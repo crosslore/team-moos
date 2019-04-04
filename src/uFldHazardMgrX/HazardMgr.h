@@ -60,6 +60,9 @@ class HazardMgr : public AppCastingMOOSApp
    void postHazardSetReport();
    void postVesselHazards();  
 
+   bool m_start_info = false;
+   
+
 
 
    

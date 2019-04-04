@@ -51,6 +51,7 @@ fi
 #-------------------------------------------------------
 VNAME1="jake"      # The first   vehicle community
 VNAME2="kasper"    # The second  vehicle community
+
 #START_POS1="450,-20"  
 #START_POS2="440,0"  
 START_POS1="-30,-20"  
@@ -69,14 +70,14 @@ nsplug meta_vehicle.moos targ_$VNAME1.moos -f WARP=$TIME_WARP  \
     VPORT="9001"          SHARE_LISTEN="9301"                  \
     SHOREIP="localhost"   SHORE_LISTEN="9200"                  \
     VNAME1=$VNAME1        VNAME2=$VNAME2                       \
-    VTYPE=UUV 
+    VTYPE=UUV
 
 nsplug meta_vehicle.moos targ_$VNAME2.moos -f WARP=$TIME_WARP  \
     VNAME=$VNAME2         START_POS=$START_POS2                \
     VPORT="9002"          SHARE_LISTEN="9302"                  \
     SHOREIP="localhost"   SHORE_LISTEN="9200"                  \
     VNAME1=$VNAME1        VNAME2=$VNAME2                       \
-    VTYPE=UUV 
+    VTYPE=UUV
 
 nsplug meta_vehicle.bhv targ_$VNAME1.bhv -f VNAME=$VNAME1   \
     START_POS=$START_POS1 VNAME1=$VNAME1 VNAME2=$VNAME2

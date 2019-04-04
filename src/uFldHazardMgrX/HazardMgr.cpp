@@ -88,8 +88,11 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
     else if(key == "HAZARDSET_REQUEST") 
       handleMailReportRequest();
 
-    else if(key == "UHZ_MISSION_PARAMS") 
-      handleMailMissionParams(sval);
+    else if(key == "UHZ_MISSION_PARAMS") {
+      if(!m_start_info) {
+        handleMailMissionParams(sval);
+      }
+    }
 
     else if(key == "HAZARD_VESSEL_REPORT") 
       postVesselHazards();  
@@ -97,6 +100,9 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
     else if(key == "TROUBLESHOOT") 
       string x = "absadf";
       //doSomeIntuitiveProgramMaybe  
+    else if(key == "VJOB") {
+      reportEvent(sval);
+    }
       
     else 
       reportRunWarning("Unhandled Mail: " + key);
@@ -207,6 +213,7 @@ void HazardMgr::registerVariables()
   Register("HAZARDSET_REQUEST", 0);
   Register("HAZARD_VESSEL_REPORT",0);
   Register("TROUBLESHOOT",0);
+  Register("VJOB",0);
 }
 
 //---------------------------------------------------------
@@ -315,7 +322,7 @@ bool HazardMgr::handleMailDetectionReport(string str)
   event += ", x=" + doubleToString(new_hazard.getX(),1);
   event += ", y=" + doubleToString(new_hazard.getY(),1);
 
-  reportEvent(event);
+  // reportEvent(event);
 
   string req = "vname=" + m_host_community + ",label=" + hazlabel;
 
@@ -355,13 +362,19 @@ void HazardMgr::handleMailReportRequest()
 
 void HazardMgr::handleMailMissionParams(string str)
 {
+
+      // reportEvent(str);
+
   vector<string> svector = parseStringZ(str, ',', "{");
   unsigned int i, vsize = svector.size();
   for(i=0; i<vsize; i++) {
     string param = biteStringX(svector[i], '=');
     string value = svector[i];
     // This needs to be handled by the developer. Just a placeholder.
+
   }
+      reportEvent(svector.back());
+m_start_info = true;
 }
 
 void HazardMgr::postVesselHazards()
