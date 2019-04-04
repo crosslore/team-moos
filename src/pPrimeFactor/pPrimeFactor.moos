@@ -1,0 +1,12 @@
+//------------------------------------------------
+// pPrimeFactor config block
+
+ServerHost = localhost
+ServerPort = 9000
+
+ProcessConfig = pPrimeFactor
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+

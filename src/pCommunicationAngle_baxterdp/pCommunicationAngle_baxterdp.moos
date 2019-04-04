@@ -1,0 +1,9 @@
+//------------------------------------------------
+// pCommunicationAngle_baxterdp config block
+
+ProcessConfig = pCommunicationAngle_baxterdp
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+

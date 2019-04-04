@@ -1,0 +1,278 @@
+
+
+//--------    FILE: alpha.bhv   -------------
+
+initialize   DEPLOY = false
+initialize   RETURN = false
+initialize   LOT_REG = east
+initialize   gps = false
+initialize   come_up = false
+initialize   coming_up_now = false
+  
+
+//----------------------------------------------
+Behavior = BHV_Loiter
+ {
+   // General Behavior Parameters
+   // ---------------------------
+   name         = lot_east               // example
+   pwt          = 100                   // default
+  condition = RETURN = false
+  condition = DEPLOY = true
+  condition = LOT_REG = east
+  condition = gps = false
+  endflag   = LOT_REG = west
+   updates      = LOITER_UPDATES        // example
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+        acquire_dist = 10               // default
+      capture_radius = 3                // default  
+     center_activate = false            // default
+           clockwise = false             // default
+         slip_radius = 15               // default
+               speed = 2.5                // default
+       spiral_factor = -2               // default
+
+             polygon = radial:: x=100,y=-75,radius=30,pts=8  // example
+         post_suffix = HENRY                             // example
+
+     //center_assign = 100,-75            // example
+     duration = 150
+     perpetual  = true
+     duration_idle_decay = false
+
+
+
+
+        visual_hints = vertex_size  = 1             // default
+        visual_hints = edge_size    = 1             // default
+        visual_hints = vertex_color = dodger_blue   // default
+        visual_hints = edge_color   = white         // default
+        visual_hints = nextpt_color = yellow        // default
+        visual_hints = nextpt_lcolor = aqua         // default
+        visual_hints = nextpt_vertex_size = 5       // default
+        visual_hints = label        = zone3         // example
+ }
+
+Behavior = BHV_ConstantDepth
+ {
+   // General Behavior Parameters
+   // ---------------------------
+   name         = const_dep_survey_east   // example
+   pwt          = 100                // default
+   condition = RETURN = false
+   condition = DEPLOY = true
+   condition = LOT_REG = east
+   condition = gps = false
+   condition = come_up = false
+
+   updates      = CONST_DEP_UPDATES  // example
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+            basewidth = 100          // default
+                depth = 10            // default
+   depth_mismatch_var = DEPTH_DIFF   // example
+             duration = no-time-limit            // default
+            peakwidth = 3            // default
+          summitdelta = 50           // default
+ }
+
+//----------------------------------------------
+Behavior = BHV_Loiter
+ {
+   // General Behavior Parameters
+   // ---------------------------
+   name         = lot_west               // example
+   pwt          = 100                   // default
+  condition = RETURN = false
+  condition = DEPLOY = true
+  condition = LOT_REG = west
+  condition = gps = false
+
+  endflag   = LOT_REG = east
+   updates      = LOITER_UPDATES        // example
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+        acquire_dist = 10               // default
+      capture_radius = 3                // default  
+     center_activate = false            // default
+           clockwise = false             // default
+         slip_radius = 15               // default
+               speed = 2.5                // default
+       spiral_factor = -2               // default
+
+             polygon = radial:: x=200,y=-75,radius=30,pts=8  // example
+         post_suffix = HENRY                             // example
+
+     duration = 150
+     perpetual  = true
+     duration_idle_decay = false
+
+
+
+
+        visual_hints = vertex_size  = 1             // default
+        visual_hints = edge_size    = 1             // default
+        visual_hints = vertex_color = dodger_blue   // default
+        visual_hints = edge_color   = white         // default
+        visual_hints = nextpt_color = yellow        // default
+        visual_hints = nextpt_lcolor = aqua         // default
+        visual_hints = nextpt_vertex_size = 5       // default
+        visual_hints = label        = zone3         // example
+ }
+
+Behavior = BHV_ConstantDepth
+ {
+   // General Behavior Parameters
+   // ---------------------------
+   name         = const_dep_survey_west   // example
+   pwt          = 100                // default
+   condition = RETURN = false
+   condition = DEPLOY = true
+   condition = LOT_REG = west
+   condition = gps = false
+   condition = come_up = false
+
+
+   updates      = CONST_DEP_UPDATES  // example
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+            basewidth = 100          // default
+                depth = 30            // default
+   depth_mismatch_var = DEPTH_DIFF   // example
+             duration = no-time-limit            // default
+            peakwidth = 3            // default
+          summitdelta = 50           // default
+ }
+
+//----------------------------------------------
+Behavior=BHV_Waypoint
+{
+  name       = waypt_return
+  pwt        = 100
+  condition  = RETURN = true
+  condition  = DEPLOY = true
+  perpetual  = true
+  updates    = RETURN_UPDATE
+  endflag    = RETURN = false
+  endflag    = DEPLOY = false
+  endflag    = MISSION = complete
+  
+           speed = 2.0
+  capture_radius = 2.0
+     slip_radius = 8.0
+          points = 0,0
+ }
+
+//----------------------------------------------
+Behavior=BHV_ConstantSpeed
+{
+  name       = const_speed
+  pwt        = 200
+  condition  = SPD=true
+  condition  = DEPLOY = true
+  perpetual  = true
+  updates    = SPEED_UPDATE
+  endflag    = SPD = false
+
+     speed = 0.5
+     duration = 10
+     duration_reset = CONST_SPD_RESET=true
+  
+}
+
+
+Behavior = BHV_ConstantDepth
+ {
+   // General Behavior Parameters
+   // ---------------------------
+   name         = const_dep_gps   // example
+   pwt          = 100                // default
+   condition = (come_up = true) //or (gps = true)
+   updates      = CONST_DEP_UPDATES  // example
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+            basewidth = 100          // default
+                depth = 0            // default
+   depth_mismatch_var = DEPTH_DIFF   // example
+             duration = no-time-limit            // default
+            peakwidth = 3            // default
+          summitdelta = 50           // default
+ }
+
+
+Behavior = BHV_Timer
+ {
+   // General Behavior Parameters
+   // ---------------------------
+   name         = bhv_timer_lot            // default
+   condition    = DEPLOY = true    // example
+   condition    = gps = false
+   condition    = come_up = false
+   duration     = 200                  // example
+   idleflag     = WAITING=false        // example
+   runflag      = DEPLOY = true         // example
+   endflag      = come_up = true          // example
+   updates      = TIMER_UPDATES        // example
+   duration_idle_decay = false
+   perpetual = true
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+   // None
+ }
+
+ Behavior = BHV_Timer
+ {
+   // General Behavior Parameters
+   // ---------------------------
+   name         = bhv_timer_come_up            // default
+   condition    = come_up = true    // example
+   duration     = no-time-limit            // default
+   idleflag     = WAITING=false        // example
+   idleflag     = coming_up_now = false
+   runflag      = DEPLOY = true         // example
+   runflag      = coming_up_now = true
+   duration_idle_decay = false
+   perpetual = true
+
+
+   updates      = TIMER_UPDATES        // example
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+   // None
+ }
+
+
+ Behavior = BHV_Timer
+ {
+   // General Behavior Parameters
+   // ---------------------------
+   name         = bhv_timer_gps            // default
+   condition    = (gps = true) or (coming_up_now = true)    // example
+   condition    = NAV_DEPTH < 0.5
+   duration     = 60                  // example
+   idleflag     = WAITING=false        // example
+   runflag      = DEPLOY = true         // example
+   runflag      = gps = true
+   endflag      = gps = false          // example
+   endflag      = come_up = false          // example
+
+   duration_idle_decay = false
+   perpetual = true
+
+
+   updates      = TIMER_UPDATES        // example
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+   // None
+ }
+
+
