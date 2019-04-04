@@ -101,13 +101,15 @@ Behavior = BHV_Waypoint
 }
 
 //------------------------------------
+
 Behavior = BHV_Timer
 {
   // General Behavior Parameters
   // ---------------------------
   name         = bhv_timer            
   condition    = MODE==ACTIVE   
-
+  duration = 60
+  perpetual = true
   duration_idle_decay = false
 
 }

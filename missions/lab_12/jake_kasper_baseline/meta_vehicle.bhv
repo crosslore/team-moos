@@ -106,6 +106,7 @@ Behavior = BHV_Waypoint
 }
 
 //------------------------------------
+
 Behavior = BHV_Timer
 {
   // General Behavior Parameters
@@ -113,11 +114,10 @@ Behavior = BHV_Timer
   name         = bhv_timer            
   condition    = MODE==ACTIVE   
 #ifdef VNAME VNAME1
-  duration = 60
-  perpetual = true
   endflag      = HAZARD_VESSEL_REPORT = "yabba dabba doo"     
 #endif
-
+  duration = 60
+  perpetual = true
   duration_idle_decay = false
 
 }

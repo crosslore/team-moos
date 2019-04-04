@@ -127,6 +127,8 @@ bool HazardMgr::Iterate()
   if(m_sensor_config_set)
     postSensorInfoRequest();
 
+     postVesselHazards();  
+
   AppCastingMOOSApp::PostReport();
   return(true);
 }
@@ -367,12 +369,15 @@ void HazardMgr::postVesselHazards()
   // string summary_report = m_hazard_set.getSpec("final_report");
   // string x_val = tokStringParse(summary_report,"x",',','=');
   // string y_val = tokStringParse(summary_report,"y",',','=');
+
   int size_hazards = m_hazard_set.size();
   XYHazard last_hazard = m_hazard_set.getHazard(size_hazards);
+  string msg = m_hazard_set.getSpec();
+  
 
-
-  // string node_message = "src_node="+m_report_name+",dest_node=all,var_name=TROUBLESHOOT,string_val="+summary_report;
-  // Notify("NODE_MESSAGE_LOCAL",node_message);
+  string node_message = "src_node="+m_report_name+",dest_node=all,var_name=TROUBLESHOOT,string_val="+msg;
+  Notify("NODE_MESSAGE_LOCAL",node_message);
+  reportEvent(node_message);
 }
 
 

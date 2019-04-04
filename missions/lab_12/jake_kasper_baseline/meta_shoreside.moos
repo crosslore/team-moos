@@ -24,7 +24,7 @@ Processconfig = ANTLER
   Run = uFldHazardSensor @ NewConsole = false
   Run = uFldHazardMetric @ NewConsole = false
 
-  Run = uXMS               @ NewConsole = true
+
 }
 
 #include plug_pHostInfo.moos
@@ -67,7 +67,6 @@ ProcessConfig = uFldShoreBroker
   bridge   = src=UHZ_DETECTION_REPORT_$V, alias=UHZ_DETECTION_REPORT
   bridge   = src=HAZARDSET_REQUEST_ALL,   alias=HAZARDSET_REQUEST
 
-  BRIDGE   = src=TROUBLESHOOT_$N, alias=TROUBLESHOOT
 }
 
 //--------------------------------------------------
@@ -190,7 +189,3 @@ ProcessConfig = pMarineViewer
   button_four  = REQ_REPORT  # HAZARDSET_REQUEST_ALL=true
 }
 
-Processconfig = uXMS
-{
-  var = HAZARDSET_REPORT
-}

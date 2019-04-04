@@ -25,15 +25,10 @@ Processconfig = ANTLER
   Run = uFldNodeBroker     @ NewConsole = false
   Run = uFldMessageHandler @ NewConsole = false
   Run = uFldHazardMgrX     @ NewConsole = false
-  Run = uXMS               @ NewConsole = true
   Run = uTimerScript       @ NewConsole = false
 }
   
 //------------------------------------------------------------
-Processconfig = uXMS
-{
-  var = TROUBLESHOOT, NODE_MESSAGE_LOCAL, NODE_MESSAGE
-}
 
 
 #include plug_uFldNodeBroker.moos

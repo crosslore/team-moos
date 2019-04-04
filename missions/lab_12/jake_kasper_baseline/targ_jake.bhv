@@ -101,16 +101,16 @@ Behavior = BHV_Waypoint
 }
 
 //------------------------------------
+
 Behavior = BHV_Timer
 {
   // General Behavior Parameters
   // ---------------------------
   name         = bhv_timer            
   condition    = MODE==ACTIVE   
+  endflag      = HAZARD_VESSEL_REPORT = "yabba dabba doo"     
   duration = 60
   perpetual = true
-  endflag      = HAZARD_VESSEL_REPORT = "yabba dabba doo"     
-
   duration_idle_decay = false
 
 }
