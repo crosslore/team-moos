@@ -27,6 +27,7 @@
 #include "MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h"
 #include "XYHazardSet.h"
 #include "XYPolygon.h"
+#include "NodeMessage.h"
 
 class HazardMgr : public AppCastingMOOSApp
 {

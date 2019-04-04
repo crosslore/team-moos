@@ -27,6 +27,7 @@
 #include "XYFormatUtilsHazard.h"
 #include "XYFormatUtilsPoly.h"
 #include "ACTable.h"
+#include "NodeMessage.h"
 
 using namespace std;
 
@@ -93,7 +94,8 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
     else if(key == "HAZARD_VESSEL_REPORT") 
       postVesselHazards();  
 
-//    else if(key == "TROUBLESHOOT") 
+    else if(key == "TROUBLESHOOT") 
+      string x = "absadf";
       //doSomeIntuitiveProgramMaybe  
       
     else 
@@ -373,11 +375,16 @@ void HazardMgr::postVesselHazards()
   int size_hazards = m_hazard_set.size();
   XYHazard last_hazard = m_hazard_set.getHazard(size_hazards);
   string msg = m_hazard_set.getSpec();
-  
+ 
+ string mes;
+ mes =  "src_node="   + m_report_name;
+ mes = mes + ",dest_node=" + "all";
+ mes = mes + ",var_name="  + "TROUBLESHOOT";
+ mes = mes + ",string_val=" + "duh";
+ 
 
-  string node_message = "src_node="+m_report_name+",dest_node=all,var_name=TROUBLESHOOT,string_val="+msg;
-  Notify("NODE_MESSAGE_LOCAL",node_message);
-  reportEvent(node_message);
+  Notify("NODE_MESSAGE_LOCAL",mes);
+
 }
 
 
