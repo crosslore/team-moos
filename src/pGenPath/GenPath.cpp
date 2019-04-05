@@ -107,7 +107,7 @@ void GenPath::sendPoints()
 
   update_str       += my_seglist.get_spec();
 
-  Notify("LOITER_UPDATE",update_str);
+  Notify("SEARCH_PATTERN",update_str);
 
   m_sent_all_points = true;
 
