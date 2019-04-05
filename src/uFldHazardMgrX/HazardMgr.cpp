@@ -374,6 +374,22 @@ void HazardMgr::handleMailMissionParams(string str)
 
   }
       reportEvent(svector.back());
+      
+      string trash = biteStringX(svector.back(), '{');
+      double x1 = stod(biteStringX(svector.back(), ','));
+      double y1 = stod(biteStringX(svector.back(), ':'));
+      double x2 = stod(biteStringX(svector.back(), ','));
+      double y2 = stod(biteStringX(svector.back(), ':'));
+      double x3 = stod(biteStringX(svector.back(), ','));
+      double y3 = stod(biteStringX(svector.back(), ':'));
+      double x4 = stod(biteStringX(svector.back(), ','));
+      double y4 = stod(biteStringX(svector.back(), '}'));
+
+
+       double m_poly_center_x = (x1 + x2 + x3 + x4) / 4;
+       double m_poly_center_y = (y1 + y2 + y3 + y4) / 4;
+
+
 m_start_info = true;
 }
 
