@@ -411,33 +411,64 @@ void HazardMgr::handleMailMissionParams(string str)
 void HazardMgr::postVesselHazards()
 {
   int size_hazards = m_hazard_set.size();
-  if (size_hazards>0){
-    XYHazard last_hazard = m_hazard_set.getHazard(size_hazards-1);
-    string msg = last_hazard.getSpec();
-    string mes;
-    mes =  "src_node="   + m_report_name;
-    mes = mes + ",dest_node=" + "all";
-    mes = mes + ",var_name="  + "NEW_HAZARD_REPORT";
-    mes = mes + ",string_val=" + msg;
-    Notify("NODE_MESSAGE_LOCAL",mes);
-    reportEvent(msg);
+  int i = 1;
+  string mes; 
+  mes =  "src_node="   + m_report_name;
+  mes = mes + ",dest_node=" + "all";
+  mes = mes + ",var_name="  + "NEW_HAZARD_REPORT";  
+  string updated_message;
+  
+  while(i<5){
+    if (size_hazards>0){
+      XYHazard last_hazard = m_hazard_set.getHazard(size_hazards-1);
+      string msg = last_hazard.getSpec();
+      string x_str,y_str,l_str,t_str; 
+
+      x_str = tokStringParse(msg, "x", ',', '=');
+      y_str = tokStringParse(msg, "y", ',', '=');
+      l_str = tokStringParse(msg, "label", ',', '=');
+      t_str = tokStringParse(msg, "type", ',', '=');
+      if(t_str=="benign")
+        t_str = "b";
+      if(t_str=="hazard")
+        t_str = "h";
+
+      updated_message = updated_message + "x=" + x_str + ";y=" + y_str +";l=" + l_str + ";t=" + t_str + ";";
+    }
+    i = i+1;
+    size_hazards = size_hazards - 1;
   }
+        mes = mes + ",string_val=" + updated_message;
+      Notify("NODE_MESSAGE_LOCAL",mes);
+      reportEvent(updated_message);
 }
 
 void HazardMgr::handleNewHazardReport(string str)
 {
-  XYHazard new_hazard;
-
   string x_str,y_str,l_str,t_str; 
+  reportEvent(str);
 
-  x_str = tokStringParse(str, "x", ',', '=');
-  y_str = tokStringParse(str, "y", ',', '=');
-  l_str = tokStringParse(str, "label", ',', '=');
-  t_str = tokStringParse(str, "type", ',', '=');
+  int l = str.length();
+  int i = 0;
 
+  int requests = l / 23;
 
+  Notify("VISIT_POINT","firstpoint");
 
+//  for (requests >0)
+  while(i<l){
+    x_str = tokStringParse(str, "x", ';', '=');
+    y_str = tokStringParse(str, "y", ';', '=');
+    l_str = tokStringParse(str, "label", ';', '=');
+    t_str = tokStringParse(str, "type", ';', '=');
+    Notify("VISIT_POINT","x=" + x_str + ",y=" + y_str + ",id=" + to_string(i));
+  }
+  Notify("VISIT_POINT","lastpoint");
+  
 }
+
+
+
 
 
 
