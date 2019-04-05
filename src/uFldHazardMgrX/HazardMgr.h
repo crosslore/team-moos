@@ -94,6 +94,9 @@ class HazardMgr : public AppCastingMOOSApp
    double m_pd_granted;
 
    XYHazardSet m_hazard_set;
+   
+
+
    XYPolygon   m_search_region;
    
    double      m_transit_path_width;

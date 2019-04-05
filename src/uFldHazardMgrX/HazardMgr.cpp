@@ -103,7 +103,6 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
     }
   }
     else if(key =="NEW_HAZARD_REPORT"){
-      reportEvent(sval);
      handleNewHazardReport(sval); 
     }
 
@@ -112,7 +111,6 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
       if(m_job == "SEARCH") {
         Notify("SEARCH_PATTERN",m_search_pattern);
       }
-      //reportEvent(sval);
     }
       
     else 
@@ -370,14 +368,12 @@ void HazardMgr::handleMailReportRequest()
 void HazardMgr::handleMailMissionParams(string str)
 {
 
-      // reportEvent(str);
 
   vector<string> svector = parseStringZ(str, ',', "{");
   unsigned int i, vsize = svector.size();
   for(i=0; i<vsize; i++) {
     string param = biteStringX(svector[i], '=');
     string value = svector[i];
-    // This needs to be handled by the developer. Just a placeholder.
   }
       
   string trash = biteStringX(svector.back(), '{');
@@ -434,7 +430,7 @@ void HazardMgr::postVesselHazards()
       if(t_str=="hazard")
         t_str = "h";
 
-      updated_message = updated_message + "x=" + x_str + ";y=" + y_str +";l=" + l_str + ";t=" + t_str + ";";
+      updated_message = updated_message + "x=" + x_str + ";y=" + y_str +";l=" + l_str + ";t=" + t_str + ":";
     }
     i = i+1;
     size_hazards = size_hazards - 1;
@@ -442,36 +438,39 @@ void HazardMgr::postVesselHazards()
         mes = mes + ",string_val=" + updated_message;
       if(m_hazard_set.size()>0) {
        Notify("NODE_MESSAGE_LOCAL",mes);
-       reportEvent(mes);
+       reportEvent(updated_message);
       }
 }
 
 void HazardMgr::handleNewHazardReport(string str)
 {
   string x_str,y_str,l_str,t_str; 
-  // reportEvent(str);
+
 
   int l = str.length();
   int i = 0;
 
-  int requests = l / 23;
+  int requests = l / 23 + 1;
 
   Notify("VISIT_POINT","firstpoint");
 
-//  for (requests >0)
-  while(i<l){
+  while(i<requests){
+
+
+
     x_str = tokStringParse(str, "x", ';', '=');
     y_str = tokStringParse(str, "y", ';', '=');
-    l_str = tokStringParse(str, "label", ';', '=');
-    t_str = tokStringParse(str, "type", ';', '=');
-
+    l_str = tokStringParse(str, "l", ';', '=');
+    t_str = tokStringParse(str, "t", ';', '=');
+    biteString(str, ':');
     string tmp;
-    tmp = "x=" + x_str + ",y=" + y_str + ",id=" + to_string(i);
+    tmp = "x=" + x_str + ",y=" + y_str + ",id=" + l_str;
     Notify("VISIT_POINT",tmp);
+    reportEvent(tmp);
     i++;
   }
 
-
+reportEvent(to_string(requests));
   Notify("VISIT_POINT","lastpoint");
   
 }
