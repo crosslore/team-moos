@@ -73,6 +73,7 @@ Behavior = BHV_Waypoint
   visual_hints = vertex_color=yellow, edge_color=green
   
   runflag = VJOB = "SEARCH"
+  
 #elseifdef VNAME VNAME2
 	points = format=lawnmower,label=kaspersearch,x=262.5,y=-237.5,height=325,width=255,lane_width=20,rows=east-west,degs=0
   visual_hints = vertex_color=yellow, edge_color=gray25
