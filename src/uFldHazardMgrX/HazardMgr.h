@@ -62,8 +62,11 @@ class HazardMgr : public AppCastingMOOSApp
    void postVesselHazards();  
 
 
-   bool m_start_info = false;
-   
+   bool m_start_info;// = false;
+   double m_poly_w;
+   double m_poly_h;
+   std::string m_search_pattern;
+
 
 
 

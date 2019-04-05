@@ -66,9 +66,11 @@ Behavior = BHV_Waypoint
         radius = 5.0
    slip_radius = 15.0
           lead = 15
+     updates   = SEARCH_PATTERN
 
 
-	points = format=lawnmower,label=jakesearch,x=0,y=-237.5,height=325,width=480,lane_width=40,rows=east-west,startx=0,starty=0
+
+	points = format=lawnmower,label=jakesearch,x=0,y=-237.5,height=325,width=480,lane_width=40,rows=east-west
   visual_hints = vertex_color=yellow, edge_color=green
   
   runflag = VJOB = "SEARCH"

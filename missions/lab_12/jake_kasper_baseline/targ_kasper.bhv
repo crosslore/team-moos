@@ -66,6 +66,8 @@ Behavior = BHV_Waypoint
         radius = 5.0
    slip_radius = 15.0
           lead = 15
+     updates   = SEARCH_PATTERN
+
 
 
 	points = format=lawnmower,label=kaspersearch,x=262.5,y=-237.5,height=325,width=255,lane_width=20,rows=east-west,degs=0

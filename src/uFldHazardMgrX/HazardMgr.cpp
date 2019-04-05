@@ -52,6 +52,9 @@ HazardMgr::HazardMgr()
   m_detection_reports  = 0;
 
   m_summary_reports = 0;
+
+  m_start_info = false;
+
 }
 
 //---------------------------------------------------------
@@ -105,6 +108,9 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
 
     else if(key == "VJOB") {
       m_job = sval;
+      if(m_job == "SEARCH") {
+        Notify("SEARCH_PATTERN",m_search_pattern);
+      }
       //reportEvent(sval);
     }
       
@@ -386,6 +392,19 @@ void HazardMgr::handleMailMissionParams(string str)
   double m_poly_center_x = (x1 + x2 + x3 + x4) / 4;
   double m_poly_center_y = (y1 + y2 + y3 + y4) / 4;
 
+  m_poly_w = abs(m_poly_center_x-x1)*2;
+  m_poly_h = abs(m_poly_center_y-y1)*2;
+
+  string tmp;
+  double buffer = 15;
+  tmp = "points = format=lawnmower,label=jakesearch,x=" + to_string(m_poly_center_x);
+  tmp = tmp + ",y=" + to_string(m_poly_center_y) + ",height=";
+  tmp = tmp + to_string(m_poly_h+buffer) + ",width=" + to_string(m_poly_w+buffer);
+  tmp = tmp + ",lane_width=40,rows=east-west";//,startx=0,starty=0";
+
+  m_search_pattern = tmp;
+
+
   m_start_info = true;
 }
 
@@ -408,6 +427,14 @@ void HazardMgr::postVesselHazards()
 void HazardMgr::handleNewHazardReport(string str)
 {
   XYHazard new_hazard;
+
+  string x_str,y_str,l_str,t_str; 
+
+  x_str = tokStringParse(str, "x", ',', '=');
+  y_str = tokStringParse(str, "y", ',', '=');
+  l_str = tokStringParse(str, "label", ',', '=');
+  t_str = tokStringParse(str, "type", ',', '=');
+
 
 
 }

@@ -5,7 +5,7 @@ Simulator  = true
 // Community name IS the vehicle name
 Community  = kasper
 
-MOOSTimeWarp = 13
+MOOSTimeWarp = 20
 //LatOrigin  = 43.825300 
 //LongOrigin = -70.330400 
 LatOrigin  = 42.3584
@@ -18,6 +18,7 @@ Processconfig = ANTLER
   MSBetweenLaunches = 100
    
   Run = MOOSDB             @ NewConsole = false
+  Run = pGenPath           @ NewConsole = false
   Run = uSimMarine         @ NewConsole = false
 //  Run = pLogger            @ NewConsole = false
   Run = pNodeReporter      @ NewConsole = false
@@ -57,6 +58,13 @@ ProcessConfig = uFldNodeBroker
   BRIDGE = src=HAZARDSET_REPORT
   BRIDGE = src=NODE_REPORT_LOCAL,  alias=NODE_REPORT
   BRIDGE = src=NODE_MESSAGE_LOCAL, alias=NODE_MESSAGE
+}
+
+ProcessConfig = pGenPath
+
+{
+  AppTick       = 4
+  CommsTick     = 4
 }
 
 //---------------------------------------------------------
