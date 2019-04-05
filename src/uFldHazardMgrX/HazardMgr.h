@@ -52,6 +52,7 @@ class HazardMgr : public AppCastingMOOSApp
    bool handleMailHazardReport(std::string) {return(true);}
    void handleMailReportRequest();
    void handleMailMissionParams(std::string);
+   void handleNewHazardReport(std::string);
 
 
  protected: 
@@ -59,6 +60,7 @@ class HazardMgr : public AppCastingMOOSApp
    void postSensorInfoRequest();
    void postHazardSetReport();
    void postVesselHazards();  
+
 
    bool m_start_info = false;
    
@@ -71,6 +73,7 @@ class HazardMgr : public AppCastingMOOSApp
    double      m_pd_desired;
    std::string m_report_name;
    std::string m_other_vessel;
+   std::string m_job;
 
  private: // State variables
    bool   m_sensor_config_requested;

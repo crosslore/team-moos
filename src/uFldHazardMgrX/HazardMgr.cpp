@@ -94,14 +94,18 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
       }
     }
 
-    else if(key == "HAZARD_VESSEL_REPORT") 
-      postVesselHazards();  
+    else if(key == "HAZARD_VESSEL_REPORT"){ 
+      if(m_job == "SEARCH"){
+        postVesselHazards();  
+    }
+  }
+    else if(key =="NEW_HAZARD_REPORT"){
+     handleNewHazardReport(sval); 
+    }
 
-    else if(key == "TROUBLESHOOT") 
-      string x = "absadf";
-      //doSomeIntuitiveProgramMaybe  
     else if(key == "VJOB") {
-      reportEvent(sval);
+      m_job = sval;
+      //reportEvent(sval);
     }
       
     else 
@@ -134,8 +138,6 @@ bool HazardMgr::Iterate()
 
   if(m_sensor_config_set)
     postSensorInfoRequest();
-
-     postVesselHazards();  
 
   AppCastingMOOSApp::PostReport();
   return(true);
@@ -212,7 +214,7 @@ void HazardMgr::registerVariables()
   Register("UHZ_MISSION_PARAMS", 0);
   Register("HAZARDSET_REQUEST", 0);
   Register("HAZARD_VESSEL_REPORT",0);
-  Register("TROUBLESHOOT",0);
+  Register("NEW_HAZARD_REPORT",0);
   Register("VJOB",0);
 }
 
@@ -322,8 +324,6 @@ bool HazardMgr::handleMailDetectionReport(string str)
   event += ", x=" + doubleToString(new_hazard.getX(),1);
   event += ", y=" + doubleToString(new_hazard.getY(),1);
 
-  // reportEvent(event);
-
   string req = "vname=" + m_host_community + ",label=" + hazlabel;
 
   Notify("UHZ_CLASSIFY_REQUEST", req);
@@ -371,51 +371,46 @@ void HazardMgr::handleMailMissionParams(string str)
     string param = biteStringX(svector[i], '=');
     string value = svector[i];
     // This needs to be handled by the developer. Just a placeholder.
-
   }
-      reportEvent(svector.back());
       
-      string trash = biteStringX(svector.back(), '{');
-      double x1 = stod(biteStringX(svector.back(), ','));
-      double y1 = stod(biteStringX(svector.back(), ':'));
-      double x2 = stod(biteStringX(svector.back(), ','));
-      double y2 = stod(biteStringX(svector.back(), ':'));
-      double x3 = stod(biteStringX(svector.back(), ','));
-      double y3 = stod(biteStringX(svector.back(), ':'));
-      double x4 = stod(biteStringX(svector.back(), ','));
-      double y4 = stod(biteStringX(svector.back(), '}'));
+  string trash = biteStringX(svector.back(), '{');
+  double x1 = stod(biteStringX(svector.back(), ','));
+  double y1 = stod(biteStringX(svector.back(), ':'));
+  double x2 = stod(biteStringX(svector.back(), ','));
+  double y2 = stod(biteStringX(svector.back(), ':'));
+  double x3 = stod(biteStringX(svector.back(), ','));
+  double y3 = stod(biteStringX(svector.back(), ':'));
+  double x4 = stod(biteStringX(svector.back(), ','));
+  double y4 = stod(biteStringX(svector.back(), '}'));
 
+  double m_poly_center_x = (x1 + x2 + x3 + x4) / 4;
+  double m_poly_center_y = (y1 + y2 + y3 + y4) / 4;
 
-       double m_poly_center_x = (x1 + x2 + x3 + x4) / 4;
-       double m_poly_center_y = (y1 + y2 + y3 + y4) / 4;
-
-
-m_start_info = true;
+  m_start_info = true;
 }
 
 void HazardMgr::postVesselHazards()
 {
-  // m_hazard_set.findMinXPath(20);
-
-  // string summary_report = m_hazard_set.getSpec("final_report");
-  // string x_val = tokStringParse(summary_report,"x",',','=');
-  // string y_val = tokStringParse(summary_report,"y",',','=');
-
   int size_hazards = m_hazard_set.size();
-  XYHazard last_hazard = m_hazard_set.getHazard(size_hazards);
-  string msg = m_hazard_set.getSpec();
- 
- string mes;
- mes =  "src_node="   + m_report_name;
- mes = mes + ",dest_node=" + "all";
- mes = mes + ",var_name="  + "TROUBLESHOOT";
- mes = mes + ",string_val=" + "duh";
- 
-
-  Notify("NODE_MESSAGE_LOCAL",mes);
-
+  if (size_hazards>0){
+    XYHazard last_hazard = m_hazard_set.getHazard(size_hazards-1);
+    string msg = last_hazard.getSpec();
+    string mes;
+    mes =  "src_node="   + m_report_name;
+    mes = mes + ",dest_node=" + "all";
+    mes = mes + ",var_name="  + "NEW_HAZARD_REPORT";
+    mes = mes + ",string_val=" + msg;
+    Notify("NODE_MESSAGE_LOCAL",mes);
+    reportEvent(msg);
+  }
 }
 
+void HazardMgr::handleNewHazardReport(string str)
+{
+  XYHazard new_hazard;
+
+
+}
 
 
 

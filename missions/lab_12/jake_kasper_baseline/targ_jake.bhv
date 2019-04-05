@@ -72,6 +72,7 @@ Behavior = BHV_Waypoint
   visual_hints = vertex_color=yellow, edge_color=green
   
   runflag = VJOB = "SEARCH"
+  
 
        endflag = NODE_MESSAGE = src_node=jake,dest_node=all,var_name=SURVEY,string_val=COMPLETE
 
