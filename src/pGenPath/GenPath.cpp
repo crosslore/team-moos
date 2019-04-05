@@ -56,6 +56,9 @@ void GenPath::testComp()
 
     double x_pt,y_pt;
 
+    // reportEvent("X=" + lobj.m_x + "Y="+lobj.m_y);
+
+
     x_pt = atof(lobj.m_x.c_str());
     y_pt = atof(lobj.m_y.c_str());
 
@@ -94,11 +97,16 @@ void GenPath::sendPoints()
 
     // Only Matters After first total completion. Gaurentees the boats come home
     if(m_set_start) {
-      my_seglist.add_vertex(m_start_point);//.x(),m_start_point.y());
+      // my_seglist.add_vertex(m_start_point);//.x(),m_start_point.y());
+    }
+
+
+    if(m_set_start) {
+      // my_seglist.add_vertex(m_curr_point);//.x(),m_start_point.y());
     }
 
     if((lobj.m_id=="firstpoint") ||(lobj.m_id=="lastpoint")){
-      my_seglist.add_vertex(m_start_point);//.x(),m_start_point.y());
+      my_seglist.add_vertex(m_curr_point);//.x(),m_start_point.y());
     }
     else {      
       my_seglist.insert_vertex(point.x(),point.y());
@@ -108,6 +116,7 @@ void GenPath::sendPoints()
   update_str       += my_seglist.get_spec();
 
   Notify("SEARCH_PATTERN",update_str);
+
 
   m_sent_all_points = true;
 
@@ -125,6 +134,8 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
     CMOOSMsg &msg = *p;
 
     string key = msg.GetKey();
+    string sval  = msg.GetString(); 
+
 
     // if(key=="WPT_STAT") {
     //   string value = msg.GetString();
@@ -157,9 +168,9 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
     }
 
 
-
   //Every new VISIT_POINT instantiates a CompPath object which is pushed to a list
     if(key=="VISIT_POINT"){
+
       string value = msg.GetString();      
       CompPath b(value);
       m_list.push_front(b);
@@ -179,6 +190,7 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
       m_y_curr = y_now;
 
       XYPoint point(x_now,y_now);
+      m_curr_point = point;
 
       if(!m_register_start){
         setStart(point);

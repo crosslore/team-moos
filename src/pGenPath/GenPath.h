@@ -40,6 +40,7 @@ class GenPath : public AppCastingMOOSApp
    bool        m_got_all_points;// = false;
    bool        m_sent_all_points;// = false;
    XYPoint     m_start_point;
+   XYPoint     m_curr_point;
    bool        m_register_start;// = false;
    bool        m_set_start;// = false;
    XYSegList   my_seglist;
