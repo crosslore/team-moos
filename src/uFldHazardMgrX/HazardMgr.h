@@ -53,6 +53,7 @@ class HazardMgr : public AppCastingMOOSApp
    void handleMailReportRequest();
    void handleMailMissionParams(std::string);
    void handleNewHazardReport(std::string);
+   void handleAcknowledgmentReport(std::string);
 
 
  protected: 
@@ -94,8 +95,7 @@ class HazardMgr : public AppCastingMOOSApp
    double m_pd_granted;
 
    XYHazardSet m_hazard_set;
-   
-
+   std::list<XYHazard> m_hazards_to_send;
 
    XYPolygon   m_search_region;
    

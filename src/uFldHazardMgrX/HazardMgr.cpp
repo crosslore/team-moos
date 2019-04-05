@@ -112,6 +112,10 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
         Notify("SEARCH_PATTERN",m_search_pattern);
       }
     }
+
+    else if(key == "ACK_REPORT"){
+      handleAcknowledgmentReport(sval);
+    }
       
     else 
       reportRunWarning("Unhandled Mail: " + key);
@@ -319,6 +323,7 @@ bool HazardMgr::handleMailDetectionReport(string str)
     return(false);
   }
 
+  m_hazards_to_send.push_back(new_hazard);
   int ix = m_hazard_set.findHazard(hazlabel);
   if(ix == -1)
     m_hazard_set.addHazard(new_hazard);
@@ -407,17 +412,17 @@ void HazardMgr::handleMailMissionParams(string str)
 
 void HazardMgr::postVesselHazards()
 {
-  int size_hazards = m_hazard_set.size();
+  int size_hazards = m_hazards_to_send.size();
   int i = 1;
   string mes; 
-  mes =  "src_node=JAKE";//   + m_report_name;
+  mes =  "src_node=" + m_report_name;
   mes = mes + ",dest_node=" + "all";
   mes = mes + ",var_name="  + "NEW_HAZARD_REPORT";  
   string updated_message;
   
   while(i<5){
     if (size_hazards>0){
-      XYHazard last_hazard = m_hazard_set.getHazard(size_hazards-1);
+      XYHazard last_hazard = m_hazards_to_send.back();
       string msg = last_hazard.getSpec();
       string x_str,y_str,l_str,t_str; 
 
@@ -432,11 +437,11 @@ void HazardMgr::postVesselHazards()
 
       updated_message = updated_message + "x=" + x_str + ";y=" + y_str +";l=" + l_str + ";t=" + t_str + ":";
     }
-    i = i+1;
-    size_hazards = size_hazards - 1;
+    i++;
+    size_hazards--;
   }
         mes = mes + ",string_val=" + updated_message;
-      if(m_hazard_set.size()>0) {
+      if(m_hazards_to_send.size()>0) {
        Notify("NODE_MESSAGE_LOCAL",mes);
        reportEvent(updated_message);
       }
@@ -444,20 +449,17 @@ void HazardMgr::postVesselHazards()
 
 void HazardMgr::handleNewHazardReport(string str)
 {
-  string x_str,y_str,l_str,t_str; 
+  string x_str,y_str,l_str,t_str,mes; 
 
 
   int l = str.length();
   int i = 0;
-
+  string ack = "l=";
   int requests = l / 23 + 1;
 
   Notify("VISIT_POINT","firstpoint");
 
   while(i<requests){
-
-
-
     x_str = tokStringParse(str, "x", ';', '=');
     y_str = tokStringParse(str, "y", ';', '=');
     l_str = tokStringParse(str, "l", ';', '=');
@@ -465,18 +467,43 @@ void HazardMgr::handleNewHazardReport(string str)
     biteString(str, ':');
     string tmp;
     tmp = "x=" + x_str + ",y=" + y_str + ",id=" + l_str;
+    if(i!=requests)
+      ack = ack + l_str + ",";
+    else
+      ack = ack + l_str;
     Notify("VISIT_POINT",tmp);
-    reportEvent(tmp);
     i++;
   }
-
-reportEvent(to_string(requests));
+  mes =  "src_node=" + m_report_name;
+  mes = mes + ",dest_node=" + "all";
+  mes = mes + ",var_name="  + "ACK_REPORT";  
+  mes = mes + ",string_val=" + ack;
+  Notify("NODE_MESSAGE_LOCAL",mes);
+  
+  reportEvent(mes);
   Notify("VISIT_POINT","lastpoint");
   
 }
 
+void HazardMgr::handleAcknowledgmentReport(string str)
+{
+
+  size_t n = std::count(str.begin(), str.end(), ',');
+  list<double> labels;
+
+  for( int i = 1; i<=n; i++)
+  {
+    for(list<XYHazard>::iterator iter = m_hazards_to_send.begin(); iter!=m_hazards_to_send.end();){
+       XYHazard& current_hazard = *iter;
+       ++iter;
+   }
+}
 
 
+
+
+
+}
 
 
 
