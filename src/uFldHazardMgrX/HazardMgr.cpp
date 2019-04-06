@@ -108,9 +108,9 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
 
     else if(key == "VJOB") {
       m_job = sval;
-      if(m_job == "SEARCH") {
+      // if(m_job == "SEARCH") {
         Notify("SEARCH_PATTERN",m_search_pattern);
-      }
+      // }
     }
 
     else if(key == "ACK_REPORT"){
@@ -225,6 +225,7 @@ void HazardMgr::registerVariables()
   Register("HAZARD_VESSEL_REPORT",0);
   Register("NEW_HAZARD_REPORT",0);
   Register("VJOB",0);
+  Register("ACK_REPORT",0);
 }
 
 //---------------------------------------------------------
@@ -309,6 +310,8 @@ bool HazardMgr::handleMailSensorConfigAck(string str)
 //      Note: The detection report should look something like:
 //            UHZ_DETECTION_REPORT = vname=betty,x=51,y=11.3,label=12 
 
+
+//Upon new hazard event
 bool HazardMgr::handleMailDetectionReport(string str)
 {
   m_detection_reports++;
@@ -323,12 +326,14 @@ bool HazardMgr::handleMailDetectionReport(string str)
     return(false);
   }
 
-  m_hazards_to_send.push_back(new_hazard);
   int ix = m_hazard_set.findHazard(hazlabel);
-  if(ix == -1)
+  if(ix == -1){
+    m_hazards_to_send.push_back(new_hazard);
     m_hazard_set.addHazard(new_hazard);
-  else
+  }
+  else {  
     m_hazard_set.setHazard(ix, new_hazard);
+  }
 
   string event = "New Detection, label=" + new_hazard.getLabel();
   event += ", x=" + doubleToString(new_hazard.getX(),1);
@@ -368,6 +373,7 @@ void HazardMgr::handleMailReportRequest()
 //                       penalty_max_time_rate=0.45,              
 //                       transit_path_width=25,                           
 //                       search_region = pts={-150,-75:-150,-50:40,-50:40,-75}
+
 
 
 void HazardMgr::handleMailMissionParams(string str)
@@ -410,6 +416,8 @@ void HazardMgr::handleMailMissionParams(string str)
   m_start_info = true;
 }
 
+
+//Jake sends kasper new hazards
 void HazardMgr::postVesselHazards()
 {
   int size_hazards = m_hazards_to_send.size();
@@ -420,10 +428,13 @@ void HazardMgr::postVesselHazards()
   mes = mes + ",var_name="  + "NEW_HAZARD_REPORT";  
   string updated_message;
   
-  while(i<5){
-    if (size_hazards>0){
-      XYHazard last_hazard = m_hazards_to_send.back();
-      string msg = last_hazard.getSpec();
+
+  list<XYHazard>::iterator l;
+  for(l=m_hazards_to_send.begin(); l!=m_hazards_to_send.end(); l++) {
+    XYHazard &lobj = *l;
+
+    if(i<5) {
+      string msg = l->getSpec();
       string x_str,y_str,l_str,t_str; 
 
       x_str = tokStringParse(msg, "x", ',', '=');
@@ -436,30 +447,35 @@ void HazardMgr::postVesselHazards()
         t_str = "h";
 
       updated_message = updated_message + "x=" + x_str + ";y=" + y_str +";l=" + l_str + ";t=" + t_str + ":";
+
+
     }
+
     i++;
-    size_hazards--;
   }
+
         mes = mes + ",string_val=" + updated_message;
       if(m_hazards_to_send.size()>0) {
        Notify("NODE_MESSAGE_LOCAL",mes);
-       reportEvent(updated_message);
       }
 }
 
+// Kasper Acknowledges and sends himself visit_points
 void HazardMgr::handleNewHazardReport(string str)
 {
   string x_str,y_str,l_str,t_str,mes; 
+      reportEvent(str);
 
 
   int l = str.length();
   int i = 0;
   string ack = "l=";
-  int requests = l / 23 + 1;
+  int requests = l / 24 + 1;
 
   Notify("VISIT_POINT","firstpoint");
 
   while(i<requests){
+
     x_str = tokStringParse(str, "x", ';', '=');
     y_str = tokStringParse(str, "y", ';', '=');
     l_str = tokStringParse(str, "l", ';', '=');
@@ -467,10 +483,11 @@ void HazardMgr::handleNewHazardReport(string str)
     biteString(str, ':');
     string tmp;
     tmp = "x=" + x_str + ",y=" + y_str + ",id=" + l_str;
-    if(i!=requests)
-      ack = ack + l_str + ",";
-    else
-      ack = ack + l_str;
+
+    // if(i<(requests-1))
+      ack = ack + l_str + ";";
+    // else
+    //   ack = ack + l_str;
     Notify("VISIT_POINT",tmp);
     i++;
   }
@@ -480,24 +497,49 @@ void HazardMgr::handleNewHazardReport(string str)
   mes = mes + ",string_val=" + ack;
   Notify("NODE_MESSAGE_LOCAL",mes);
   
-  reportEvent(mes);
   Notify("VISIT_POINT","lastpoint");
+
   
 }
 
+//Jake handles kasper's acknowledgement
 void HazardMgr::handleAcknowledgmentReport(string str)
 {
 
-  size_t n = std::count(str.begin(), str.end(), ',');
-  list<double> labels;
 
-  for( int i = 1; i<=n; i++)
-  {
-    for(list<XYHazard>::iterator iter = m_hazards_to_send.begin(); iter!=m_hazards_to_send.end();){
-       XYHazard& current_hazard = *iter;
-       ++iter;
-   }
-}
+  size_t n = std::count(str.begin(), str.end(), ';');
+  // list<string> labels;
+  biteString(str, '=');
+
+
+  for( int i = 1; i<=(n); i++) {
+    string next_label =  biteString(str, ';');  
+
+  list<XYHazard>::iterator l;
+  for(l=m_hazards_to_send.begin(); l!=m_hazards_to_send.end();) {
+    XYHazard &lobj = *l;
+
+    string tmp_lbl = lobj.getLabel();
+    if(tmp_lbl==next_label) {
+      l = m_hazards_to_send.erase(l);
+      reportEvent(next_label);
+
+    }
+    else {
+      ++l;
+    }
+  }
+
+  }
+
+
+ //  for( int i = 1; i<=n; i++)
+ //  {
+ //    for(list<XYHazard>::iterator iter = m_hazards_to_send.begin(); iter!=m_hazards_to_send.end();){
+ //       XYHazard& current_hazard = *iter;
+ //       ++iter;
+ //   }
+ // }
 
 
 

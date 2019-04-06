@@ -174,6 +174,7 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
       string value = msg.GetString();      
       CompPath b(value);
       m_list.push_front(b);
+      reportEvent(value);
       // Notify("GOT_IT",b.getReport());
     }
 
