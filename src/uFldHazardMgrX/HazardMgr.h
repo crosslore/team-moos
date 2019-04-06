@@ -54,6 +54,7 @@ class HazardMgr : public AppCastingMOOSApp
    void handleMailMissionParams(std::string);
    void handleNewHazardReport(std::string);
    void handleAcknowledgmentReport(std::string);
+   void handleHazardClassification(std::string);
 
 
  protected: 

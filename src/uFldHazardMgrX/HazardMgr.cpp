@@ -97,6 +97,9 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
       }
     }
 
+    else if(key =="UHZ_HAZARD_REPORT")
+      handleHazardClassification(sval);
+
     else if(key == "HAZARD_VESSEL_REPORT"){ 
       if(m_job == "SEARCH"){
         postVesselHazards();  
@@ -221,6 +224,7 @@ void HazardMgr::registerVariables()
   Register("UHZ_CONFIG_ACK", 0);
   Register("UHZ_OPTIONS_SUMMARY", 0);
   Register("UHZ_MISSION_PARAMS", 0);
+  Register("UHZ_HAZARD_REPORT",0);
   Register("HAZARDSET_REQUEST", 0);
   Register("HAZARD_VESSEL_REPORT",0);
   Register("NEW_HAZARD_REPORT",0);
@@ -505,48 +509,34 @@ void HazardMgr::handleNewHazardReport(string str)
 //Jake handles kasper's acknowledgement
 void HazardMgr::handleAcknowledgmentReport(string str)
 {
-
-
   size_t n = std::count(str.begin(), str.end(), ';');
-  // list<string> labels;
   biteString(str, '=');
-
-
   for( int i = 1; i<=(n); i++) {
     string next_label =  biteString(str, ';');  
-
-  list<XYHazard>::iterator l;
-  for(l=m_hazards_to_send.begin(); l!=m_hazards_to_send.end();) {
-    XYHazard &lobj = *l;
-
-    string tmp_lbl = lobj.getLabel();
-    if(tmp_lbl==next_label) {
-      l = m_hazards_to_send.erase(l);
-      reportEvent(next_label);
-
-    }
-    else {
-      ++l;
+    list<XYHazard>::iterator l;
+    for(l=m_hazards_to_send.begin(); l!=m_hazards_to_send.end();) {
+      XYHazard &lobj = *l;
+      string tmp_lbl = lobj.getLabel();
+      if(tmp_lbl==next_label) {
+        l = m_hazards_to_send.erase(l);
+        reportEvent(next_label);
+      }
+      else {
+        ++l;
+      }
     }
   }
-
-  }
-
-
- //  for( int i = 1; i<=n; i++)
- //  {
- //    for(list<XYHazard>::iterator iter = m_hazards_to_send.begin(); iter!=m_hazards_to_send.end();){
- //       XYHazard& current_hazard = *iter;
- //       ++iter;
- //   }
- // }
-
-
-
-
-
 }
 
+void HazardMgr::handleHazardClassification(string str)
+{
+  string label_str = tokStringParse(str, "label", ',', '=');
+  string type_str = tokStringParse(str, "type", ',', '=');
+  int index = m_hazard_set.findHazard(label_str);
+  XYHazard current_hazard = m_hazard_set.getHazard(index);
+  current_hazard.setType(type_str);
+  m_hazard_set.setHazard(index,current_hazard);
+}
 
 
 //------------------------------------------------------------
