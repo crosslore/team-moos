@@ -55,7 +55,7 @@ void GenPath::testComp()
   list<CompPath>::iterator l;
   for(l=m_list.begin(); l!=m_list.end();) {
     CompPath &lobj = *l;
-    reportEvent("ID="+lobj.m_id+"X="+lobj.m_x+"Y="+lobj.y);
+    reportEvent("ID="+lobj.m_id+"X="+lobj.m_x+"Y="+lobj.m_y);
 
     double x_pt,y_pt;
 
