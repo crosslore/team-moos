@@ -143,6 +143,11 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
     //   reportEvent("WPT_STAT = "+value);
     // }
 
+    if(key=="HANG_Y") {
+
+      reportEvent("I GOT A HANG_Y");
+    }
+
     if(key=="GENPATH_REGENERATE") {
       string value = msg.GetString();
       if(value =="true") {
@@ -279,6 +284,7 @@ void GenPath::registerVariables()
   Register("NODE_REPORT_LOCAL",0);
   Register("GENPATH_REGENERATE",0);
   Register("WPT_STAT",0);
+  Register("HANG_Y",0);
   Notify("PAUSE_TIME","false");
 
 }

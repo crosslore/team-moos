@@ -84,6 +84,9 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
 
     else if(key == "UHZ_OPTIONS_SUMMARY") 
       handleMailSensorOptionsSummary(sval);
+    else if(key == "GET_TIME") {
+      m_start = MOOSTime();
+    }
 
     else if(key == "UHZ_DETECTION_REPORT") 
       handleMailDetectionReport(sval);
@@ -100,11 +103,8 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
     else if(key =="UHZ_HAZARD_REPORT")
       handleHazardClassification(sval);
 
-    else if(key == "HAZARD_VESSEL_REPORT"){ 
-      if(m_job == "SEARCH"){
-        postVesselHazards();  
-    }
-  }
+  //   else if(key == "HAZARD_VESSEL_REPORT"){ 
+  // }
     else if(key =="NEW_HAZARD_REPORT"){
      handleNewHazardReport(sval); 
     }
@@ -114,6 +114,7 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
       // if(m_job == "SEARCH") {
         Notify("SEARCH_PATTERN",m_search_pattern);
         Notify("CLASS_PATTERN",m_search_pattern);
+
       // }
       assignVesselProbability();
     }
@@ -152,6 +153,16 @@ bool HazardMgr::Iterate()
 
   if(m_sensor_config_set)
     postSensorInfoRequest();
+
+  if(m_job == "SEARCH"){
+        postVesselHazards();  
+    }
+  double now = MOOSTime();
+  double duration = now-m_start;
+  if((duration>400) && (duration<800)) {
+    Notify("HANG_Y","1");
+  }
+
 
   AppCastingMOOSApp::PostReport();
   return(true);
@@ -232,6 +243,7 @@ void HazardMgr::registerVariables()
   Register("NEW_HAZARD_REPORT",0);
   Register("VJOB",0);
   Register("ACK_REPORT",0);
+  Register("GET_TIME",0);
 }
 
 //---------------------------------------------------------
@@ -409,12 +421,19 @@ void HazardMgr::handleMailMissionParams(string str)
   m_poly_w = abs(m_poly_center_x-x1)*2;
   m_poly_h = abs(m_poly_center_y-y1)*2;
 
+  string l_width = "100";
+
   string tmp;
-  double buffer = 15;
+  double w_buffer = 80;
+  double h_buffer = 100;
+  double adjust = 0;
+  h_buffer = h_buffer+2*adjust;
+
+  m_poly_center_y = m_poly_center_y+adjust;
   tmp = "points = format=lawnmower,label=jakesearch,x=" + to_string(m_poly_center_x);
   tmp = tmp + ",y=" + to_string(m_poly_center_y) + ",height=";
-  tmp = tmp + to_string(m_poly_h+buffer) + ",width=" + to_string(m_poly_w+buffer);
-  tmp = tmp + ",lane_width=40,rows=east-west";//,startx=0,starty=0";
+  tmp = tmp + to_string(m_poly_h-h_buffer) + ",width=" + to_string(m_poly_w+w_buffer);
+  tmp = tmp + ",lane_width="+l_width+",rows=east-west";//,startx=0,starty=0";
 
   m_search_pattern = tmp;
 

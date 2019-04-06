@@ -69,6 +69,8 @@ class HazardMgr : public AppCastingMOOSApp
    double m_poly_w;
    double m_poly_h;
    std::string m_search_pattern;
+   double   m_start;// = MOOSTime(); 
+
 
 
 
