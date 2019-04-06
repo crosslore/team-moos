@@ -115,6 +115,7 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
         Notify("SEARCH_PATTERN",m_search_pattern);
         Notify("CLASS_PATTERN",m_search_pattern);
       // }
+      assignVesselProbability();
     }
 
     else if(key == "ACK_REPORT"){
@@ -537,6 +538,21 @@ void HazardMgr::handleHazardClassification(string str)
   XYHazard current_hazard = m_hazard_set.getHazard(index);
   current_hazard.setType(type_str);
   m_hazard_set.setHazard(index,current_hazard);
+}
+
+void HazardMgr::assignVesselProbability()
+{
+if(m_job=="SEARCH")
+{
+  m_pd_desired = 1;
+}
+if(m_job=="CLASS")
+{
+  m_pd_desired = 0.3;
+}
+  string request = "vname=" + m_host_community;
+  request += ",pd="    + doubleToStringX(m_pd_desired,2);
+  Notify("UHZ_CONFIG_REQUEST", request);
 }
 
 
