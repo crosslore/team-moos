@@ -113,6 +113,7 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
       m_job = sval;
       // if(m_job == "SEARCH") {
         Notify("SEARCH_PATTERN",m_search_pattern);
+        Notify("CLASS_PATTERN",m_search_pattern);
       // }
     }
 

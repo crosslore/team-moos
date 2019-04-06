@@ -55,7 +55,7 @@ void GenPath::testComp()
   list<CompPath>::iterator l;
   for(l=m_list.begin(); l!=m_list.end();) {
     CompPath &lobj = *l;
-    reportEvent(lobj.m_id);
+    reportEvent("ID="+lobj.m_id+"X="+lobj.m_x+"Y="+lobj.y);
 
     double x_pt,y_pt;
 
@@ -111,7 +111,10 @@ void GenPath::sendPoints()
 
   update_str       += my_seglist.get_spec();
 
-  Notify("SEARCH_PATTERN",update_str);
+    // m_list.clear();
+
+
+  Notify("CLASS_PATTERN",update_str);
 
 
   // m_sent_all_points = true;
@@ -158,9 +161,11 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
       string value = msg.GetString();      
       CompPath b(value);
       m_list.push_front(b);
+      // if(value=="firstpoint") {
+      //   Notify("GENPATH_REGENERATE","true");
+      // }
       if(value=="lastpoint") {
         Notify("GENPATH_REGENERATE","true");
-
       }
 
     }
