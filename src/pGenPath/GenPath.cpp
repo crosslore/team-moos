@@ -27,9 +27,9 @@ int visit_radius = 5;
 
 GenPath::GenPath()
 {
-m_got_all_points = false;
-m_sent_all_points = false;
-m_register_start = false;
+// m_got_all_points = false;
+// m_sent_all_points = false;
+// m_register_start = false;
 }
 
 //---------------------------------------------------------
@@ -42,8 +42,10 @@ GenPath::~GenPath()
 void GenPath::setStart(XYPoint point)
 {
 
-m_start_point = point;
-m_register_start = true;
+// XYPoint point2(0,-40);
+
+// m_start_point = point2;
+// m_register_start = true; 
 
 }
 
@@ -53,20 +55,21 @@ void GenPath::testComp()
   list<CompPath>::iterator l;
   for(l=m_list.begin(); l!=m_list.end();) {
     CompPath &lobj = *l;
+    reportEvent(lobj.m_id);
 
     double x_pt,y_pt;
-
-    // reportEvent("X=" + lobj.m_x + "Y="+lobj.m_y);
-
 
     x_pt = atof(lobj.m_x.c_str());
     y_pt = atof(lobj.m_y.c_str());
 
     double hyp = hypot(x_pt-m_x_curr,y_pt-m_y_curr);
 
-    if((hyp < visit_radius) && (lobj.m_id!="firstpoint") && (lobj.m_id!="lastpoint")) {
+    if((hyp < visit_radius)) {// && (lobj.m_id!="firstpoint") && (lobj.m_id!="lastpoint")) {
       l = m_list.erase(l);
-    }
+    }   
+    // if(lobj.m_id!="firstpoint") {
+    //   l = m_list.erase(l);
+    // }
     else {
       ++l;
     }
@@ -86,7 +89,6 @@ void GenPath::sendPoints()
   list<CompPath>::iterator l;
   for(l=m_list.begin(); l!=m_list.end(); l++) {
     CompPath &lobj = *l;
-    // int tmp_id = atoi(lobj.m_id.c_str());
 
     x = atof(lobj.m_x.c_str());
     y = atof(lobj.m_y.c_str());
@@ -95,18 +97,12 @@ void GenPath::sendPoints()
     point.set_param("vertex_size", "3");
     point.set_label(lobj.m_id);
 
-    // Only Matters After first total completion. Gaurentees the boats come home
-    if(m_set_start) {
-      // my_seglist.add_vertex(m_start_point);//.x(),m_start_point.y());
-    }
-
-
-    if(m_set_start) {
-      // my_seglist.add_vertex(m_curr_point);//.x(),m_start_point.y());
-    }
-
-    if((lobj.m_id=="firstpoint") ||(lobj.m_id=="lastpoint")){
+    if(lobj.m_id=="firstpoint") {
       my_seglist.add_vertex(m_curr_point);//.x(),m_start_point.y());
+    }
+    else if(lobj.m_id=="lastpoint") {
+      my_seglist.add_vertex(m_curr_point);//.x(),m_start_point.y());
+
     }
     else {      
       my_seglist.insert_vertex(point.x(),point.y());
@@ -118,7 +114,9 @@ void GenPath::sendPoints()
   Notify("SEARCH_PATTERN",update_str);
 
 
-  m_sent_all_points = true;
+  // m_sent_all_points = true;
+    // m_list.clear();
+
 
 }
 
@@ -146,22 +144,8 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
       string value = msg.GetString();
       if(value =="true") {
         reportEvent("DONE !!!!!");
-        Notify("LOITER","false");
 
-        if ((m_list.size() > 2) && (m_sent_all_points)) {
-          sendPoints();
-        }
-        else if (m_list.size()==2)
-        {
-          m_set_start = true;
-          sendPoints();
-          m_set_start = false;    
-          Notify("NO_WPT","true");
-  
-        }
-
-        Notify("LOITER","true");
-
+        sendPoints();
 
         Notify("GENPATH_REGENERATE","false");
       }
@@ -174,8 +158,11 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
       string value = msg.GetString();      
       CompPath b(value);
       m_list.push_front(b);
-      reportEvent(value);
-      // Notify("GOT_IT",b.getReport());
+      if(value=="lastpoint") {
+        Notify("GENPATH_REGENERATE","true");
+
+      }
+
     }
 
     if(key=="NODE_REPORT_LOCAL"){
@@ -233,27 +220,7 @@ bool GenPath::Iterate()
   AppCastingMOOSApp::Iterate();
   // Do your thing here!
 
-    if(!m_got_all_points) {
-      list<CompPath>::iterator p;
-      for(p=m_list.begin(); p!=m_list.end(); p++) {
-        CompPath &pointobj = *p;
-
-        if((pointobj.m_id=="lastpoint")) {
-          m_got_all_points = true;
-        }
-      }
-    }
-
-
-    if((m_got_all_points) && (!m_sent_all_points)) {
-      sendPoints();
-    }
-
-    if(m_sent_all_points) {
       testComp();
-    }
-
-
 
   AppCastingMOOSApp::PostReport();
   return(true);
