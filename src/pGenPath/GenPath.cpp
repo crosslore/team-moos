@@ -78,7 +78,7 @@ void GenPath::testComp()
 
 void GenPath::sendPoints()
 {
-  my_seglist.clear();
+ // my_seglist.clear();
   double x,y;
   string label,color;
 
@@ -97,17 +97,17 @@ void GenPath::sendPoints()
     point.set_param("vertex_size", "3");
     point.set_label(lobj.m_id);
 
-    if(lobj.m_id=="firstpoint") {
-      my_seglist.add_vertex(m_curr_point);//.x(),m_start_point.y());
-    }
-    else if(lobj.m_id=="lastpoint") {
-      my_seglist.add_vertex(m_curr_point);//.x(),m_start_point.y());
+    // if(lobj.m_id=="firstpoint") {
+    //   my_seglist.add_vertex(m_curr_point);//.x(),m_start_point.y());
+    // }
+    // else if(lobj.m_id=="lastpoint") {
+    //   my_seglist.add_vertex(m_curr_point);//.x(),m_start_point.y());
 
-    }
-    else {      
+    // }
+    // else {      
       my_seglist.insert_vertex(point.x(),point.y());
-    }
-  }
+  //   }
+   }
 
   update_str       += my_seglist.get_spec();
 
@@ -176,23 +176,23 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
     }
 
     if(key=="NODE_REPORT_LOCAL"){
-      string value = msg.GetString();  
-      string x_str,y_str,ans; 
-      double x_now,y_now;
+      // string value = msg.GetString();  
+      // string x_str,y_str,ans; 
+      // double x_now,y_now;
 
-      x_str = tokStringParse(value, "X", ',', '=');
-      y_str = tokStringParse(value, "Y", ',', '=');
-      x_now = atof(x_str.c_str());
-      y_now = atof(y_str.c_str());
-      m_x_curr = x_now;
-      m_y_curr = y_now;
+      // x_str = tokStringParse(value, "X", ',', '=');
+      // y_str = tokStringParse(value, "Y", ',', '=');
+      // x_now = atof(x_str.c_str());
+      // y_now = atof(y_str.c_str());
+      // m_x_curr = x_now;
+      // m_y_curr = y_now;
 
-      XYPoint point(x_now,y_now);
-      m_curr_point = point;
+      // XYPoint point(x_now,y_now);
+      // m_curr_point = point;
 
-      if(!m_register_start){
-        setStart(point);
-      }
+      // if(!m_register_start){
+      //   setStart(point);
+      // }
 
     }
 
