@@ -44,6 +44,7 @@ HazardMgr::HazardMgr()
   // State Variables 
   m_sensor_config_requested = false;
   m_sensor_config_set   = false;
+  m_first_four_reported = false;
   m_swath_width_granted = 0;
   m_pd_granted          = 0;
 
@@ -451,11 +452,15 @@ void HazardMgr::postVesselHazards()
   int size_hazards = m_hazards_to_send.size();
   int i = 1;
   string mes; 
+  string x_str,y_str,l_str,t_str; 
   mes =  "src_node=" + m_report_name;
   mes = mes + ",dest_node=" + "all";
   mes = mes + ",var_name="  + "NEW_HAZARD_REPORT";  
   string updated_message;
+  double x_report,y_report;
   
+  if(!m_first_four_reported && m_hazards_to_send.size()<4)
+    return;
 
   list<XYHazard>::iterator l;
   for(l=m_hazards_to_send.begin(); l!=m_hazards_to_send.end(); l++) {
@@ -464,7 +469,7 @@ void HazardMgr::postVesselHazards()
     if(i<5) {
       HazardClassification new_classification;
       string msg = l->getSpec();
-      string x_str,y_str,l_str,t_str; 
+
 
       x_str = tokStringParse(msg, "x", ',', '=');
       y_str = tokStringParse(msg, "y", ',', '=');
@@ -477,18 +482,23 @@ void HazardMgr::postVesselHazards()
       if(t_str=="hazard")
         t_str = "h";
 
+
       updated_message = updated_message + "x=" + x_str + ";y=" + y_str +";l=" + l_str + ";t=" + t_str + ":";
-
-
     }
 
     i++;
   }
 
-        mes = mes + ",string_val=" + updated_message;
-      if(m_hazards_to_send.size()>0) {
-       Notify("NODE_MESSAGE_LOCAL",mes);
-      }
+  mes = mes + ",string_val=" + updated_message;
+  if(m_hazards_to_send.size()>0) {
+    Notify("NODE_MESSAGE_LOCAL",mes);
+  }
+  if(!m_first_four_reported){
+    string mes = "polygon = radial:: x=" + x_str;
+    mes = mes + ",y=" +y_str + ", radius=99, pts=8, snap=1";
+    Notify("LOITER_UPDATE",mes);
+    m_first_four_reported = true;
+  }
 }
 
 // Kasper Acknowledges and sends himself visit_points

@@ -4,6 +4,7 @@ initialize   DEPLOY  = false
 initialize   RETURN  = false
 initialize   SURVEY  = false
 initialize   STATION = false
+initialize   LOITER  = false
 //initialize   GENPATH_REGENERATE = false
 
 
@@ -16,10 +17,16 @@ set MODE = STATION-KEEPING {
   STATION = true
 }
 
+set MODE = LOITERING {
+  MODE = ACTIVE
+  LOITER = true
+}
+
 set MODE = RETURNING {
   MODE = ACTIVE
   RETURN = true
-} SURVEYING
+}
+SURVEYING
 
 
 //----------------------------------------------
@@ -62,7 +69,6 @@ Behavior = BHV_Waypoint
   pwt       = 100
   condition = MODE==SURVEYING
  // endflag   = RETURN = true
-  perpetual = true
   endflag      = GENPATH_REGENERATE = true
 
 
@@ -79,9 +85,10 @@ Behavior = BHV_Waypoint
 	points = format=lawnmower,label=jakesearch,x=0,y=-237.5,height=325,width=480,lane_width=40,rows=east-west
   visual_hints = vertex_color=yellow, edge_color=green
   lead = 15
-
+  perpetual = true
   runflag = VJOB = "SEARCH"
-  
+  endflag = LOITER = true
+
 #elseifdef VNAME VNAME2
   updates   = CLASS_PATTERN
 
@@ -89,6 +96,7 @@ Behavior = BHV_Waypoint
   visual_hints = vertex_color=yellow, edge_color=gray25
   
   runflag = VJOB = "CLASS"
+  perpetual = true
 
 #endif
 
@@ -124,6 +132,22 @@ Behavior = BHV_Waypoint
 //------------------------------------
 
 
+Behavior = BHV_Loiter
+{
+  name      = loiter
+  pwt       = 100
+  condition = MODE==LOITERING
+  updates   = LOITER_UPDATE
 
+         speed = 2
+     clockwise = false
+        radius = 8.0
+     nm_radius = 15.0
+       polygon = radial:: x=0,y=0, radius=99, pts=8, snap=1 
+
+  visual_hints = nextpt_color=white, nextpt_lcolor=khaki
+  visual_hints = edge_color=orange, vertex_color=white
+  visual_hints = edge_size=1, vertex_size=2
+}
 
 
