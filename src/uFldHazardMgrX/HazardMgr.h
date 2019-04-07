@@ -28,6 +28,7 @@
 #include "XYHazardSet.h"
 #include "XYPolygon.h"
 #include "NodeMessage.h"
+#include "HazardClassification.h"
 
 class HazardMgr : public AppCastingMOOSApp
 {
@@ -97,11 +98,14 @@ class HazardMgr : public AppCastingMOOSApp
 
    double m_swath_width_granted;
    double m_pd_granted;
+   double m_pclass_granted;
 
    XYHazardSet m_hazard_set;
    std::list<XYHazard> m_hazards_to_send;
 
    XYPolygon   m_search_region;
+
+   std::list<HazardClassification> m_classification_tracker;
    
    double      m_transit_path_width;
 };

@@ -86,6 +86,7 @@ void GenPath::sendPoints()
   string update_str = "points = ";
 
 
+
   list<CompPath>::iterator l;
   for(l=m_list.begin(); l!=m_list.end(); l++) {
     CompPath &lobj = *l;
@@ -108,7 +109,7 @@ void GenPath::sendPoints()
       my_seglist.insert_vertex(point.x(),point.y());
   //   }
    }
-
+  m_list.clear();
   update_str       += my_seglist.get_spec();
 
     // m_list.clear();

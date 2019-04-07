@@ -28,6 +28,7 @@
 #include "XYFormatUtilsPoly.h"
 #include "ACTable.h"
 #include "NodeMessage.h"
+#include "HazardClassification.h"
 
 using namespace std;
 
@@ -38,7 +39,7 @@ HazardMgr::HazardMgr()
 {
   // Config variables
   m_swath_width_desired = 25;
-  m_pd_desired          = 0.9;
+  m_pd_desired          = 0.5;
 
   // State Variables 
   m_sensor_config_requested = false;
@@ -100,11 +101,11 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
       }
     }
 
-    else if(key =="UHZ_HAZARD_REPORT")
-      handleHazardClassification(sval);
-
-  //   else if(key == "HAZARD_VESSEL_REPORT"){ 
-  // }
+    else if(key =="UHZ_HAZARD_REPORT"){
+      if(m_job!="SEARCH")
+        handleHazardClassification(sval);
+    }
+      
     else if(key =="NEW_HAZARD_REPORT"){
      handleNewHazardReport(sval); 
     }
@@ -211,7 +212,7 @@ bool HazardMgr::OnStartUp()
     else if(param == "region") {
       XYPolygon poly = string2Poly(value);
       if(poly.is_convex())
-	m_search_region = poly;
+    	m_search_region = poly;
       handled = true;
     }
 
@@ -318,6 +319,8 @@ bool HazardMgr::handleMailSensorConfigAck(string str)
     m_sensor_config_acks++;
     m_swath_width_granted = atof(width.c_str());
     m_pd_granted = atof(pd.c_str());
+    m_pclass_granted = atof(pclass.c_str());
+    reportEvent(pclass);
   }
 
   return(valid_msg);
@@ -459,12 +462,15 @@ void HazardMgr::postVesselHazards()
     XYHazard &lobj = *l;
 
     if(i<5) {
+      HazardClassification new_classification;
       string msg = l->getSpec();
       string x_str,y_str,l_str,t_str; 
 
       x_str = tokStringParse(msg, "x", ',', '=');
       y_str = tokStringParse(msg, "y", ',', '=');
       l_str = tokStringParse(msg, "label", ',', '=');
+      new_classification.m_label = l_str;
+      m_classification_tracker.push_back(new_classification);
       t_str = tokStringParse(msg, "type", ',', '=');
       if(t_str=="benign")
         t_str = "b";
@@ -489,8 +495,6 @@ void HazardMgr::postVesselHazards()
 void HazardMgr::handleNewHazardReport(string str)
 {
   string x_str,y_str,l_str,t_str,mes; 
-      reportEvent(str);
-
 
   int l = str.length();
   int i = 0;
@@ -500,7 +504,8 @@ void HazardMgr::handleNewHazardReport(string str)
   Notify("VISIT_POINT","firstpoint");
 
   while(i<requests){
-
+    
+    HazardClassification new_classification;
     x_str = tokStringParse(str, "x", ';', '=');
     y_str = tokStringParse(str, "y", ';', '=');
     l_str = tokStringParse(str, "l", ';', '=');
@@ -513,6 +518,10 @@ void HazardMgr::handleNewHazardReport(string str)
       ack = ack + l_str + ";";
     // else
     //   ack = ack + l_str;
+    new_classification.m_label = l_str;
+    new_classification.m_v1_hazard_count = 0;
+    new_classification.m_v1_benign_count = 0;
+    m_classification_tracker.push_back(new_classification);
     Notify("VISIT_POINT",tmp);
     i++;
   }
@@ -540,7 +549,6 @@ void HazardMgr::handleAcknowledgmentReport(string str)
       string tmp_lbl = lobj.getLabel();
       if(tmp_lbl==next_label) {
         l = m_hazards_to_send.erase(l);
-        reportEvent(next_label);
       }
       else {
         ++l;
@@ -557,7 +565,24 @@ void HazardMgr::handleHazardClassification(string str)
   XYHazard current_hazard = m_hazard_set.getHazard(index);
   current_hazard.setType(type_str);
   m_hazard_set.setHazard(index,current_hazard);
+
+  list<HazardClassification>::iterator l;
+  for(l=m_classification_tracker.begin(); l!=m_classification_tracker.end();) {
+    HazardClassification &lobj = *l;
+    if(lobj.m_label == label_str){
+      if(type_str=="hazard")
+        lobj.m_v1_hazard_count++;
+      if(type_str=="benign")
+        lobj.m_v1_benign_count++;
+      string msg = "hazard count = " + to_string(lobj.m_v1_hazard_count);
+      msg = msg + ",benign count = " + to_string(lobj.m_v1_benign_count);
+      msg = msg + ",label = " + lobj.m_label;
+      reportEvent(msg);
+    }
+    ++l;
+  }
 }
+
 
 void HazardMgr::assignVesselProbability()
 {
@@ -567,7 +592,7 @@ if(m_job=="SEARCH")
 }
 if(m_job=="CLASS")
 {
-  m_pd_desired = 0.3;
+  m_pd_desired = 1;
 }
   string request = "vname=" + m_host_community;
   request += ",pd="    + doubleToStringX(m_pd_desired,2);
