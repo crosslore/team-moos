@@ -32,6 +32,17 @@
 
 using namespace std;
 
+// struct ProbabilityComparator
+// {
+//   bool operator ()(const HazardClassification & hazard1, const HazardClassification & hazard2)
+//   {
+//     if(player1.name == player2.name)
+//       return player1 < player2;
+//     return player1.name < player2.name;
+ 
+//   }
+// };
+
 //---------------------------------------------------------
 // Constructor
 
@@ -321,7 +332,6 @@ bool HazardMgr::handleMailSensorConfigAck(string str)
     m_swath_width_granted = atof(width.c_str());
     m_pd_granted = atof(pd.c_str());
     m_pclass_granted = atof(pclass.c_str());
-    reportEvent(pclass);
   }
 
   return(valid_msg);
@@ -457,7 +467,6 @@ void HazardMgr::postVesselHazards()
   mes = mes + ",dest_node=" + "all";
   mes = mes + ",var_name="  + "NEW_HAZARD_REPORT";  
   string updated_message;
-  double x_report,y_report;
   
   if(!m_first_four_reported && m_hazards_to_send.size()<4)
     return;
@@ -481,8 +490,6 @@ void HazardMgr::postVesselHazards()
         t_str = "b";
       if(t_str=="hazard")
         t_str = "h";
-
-
       updated_message = updated_message + "x=" + x_str + ";y=" + y_str +";l=" + l_str + ";t=" + t_str + ":";
     }
 
@@ -575,22 +582,41 @@ void HazardMgr::handleHazardClassification(string str)
   XYHazard current_hazard = m_hazard_set.getHazard(index);
   current_hazard.setType(type_str);
   m_hazard_set.setHazard(index,current_hazard);
-
+  double p_class = m_pclass_granted;
+  double b_count, h_count;
   list<HazardClassification>::iterator l;
   for(l=m_classification_tracker.begin(); l!=m_classification_tracker.end();) {
     HazardClassification &lobj = *l;
     if(lobj.m_label == label_str){
-      if(type_str=="hazard")
+      if(type_str=="hazard"){
         lobj.m_v1_hazard_count++;
-      if(type_str=="benign")
+      }
+      if(type_str=="benign"){
         lobj.m_v1_benign_count++;
+      }
       string msg = "hazard count = " + to_string(lobj.m_v1_hazard_count);
       msg = msg + ",benign count = " + to_string(lobj.m_v1_benign_count);
       msg = msg + ",label = " + lobj.m_label;
       reportEvent(msg);
+      b_count = lobj.m_v1_benign_count;
+      h_count = lobj.m_v1_hazard_count;
+      if(b_count<h_count){
+        lobj.m_class = "hazard";
+        lobj.m_probability = pow(p_class,h_count)*pow(1-p_class,b_count);
+        lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,b_count)*pow(1-p_class,h_count));
+      }
+      else if(h_count<b_count){
+        lobj.m_class = "benign";
+        lobj.m_probability = pow(p_class,b_count)*pow(1-p_class,h_count);
+        lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,h_count)*pow(1-p_class,b_count));
+
+      }
+      reportEvent("type="+lobj.m_class+",probability = "+to_string(lobj.m_probability));
+      Notify("UPDATE_POINT","label="+lobj.m_label+",probbability="+to_string(lobj.m_probability));
     }
     ++l;
   }
+  
 }
 
 

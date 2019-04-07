@@ -24,10 +24,9 @@ using namespace std;
 
 //Data
    string      m_label;
-   double      m_v1_pc;
-   double      m_v2_pc;
    string      m_class;
-      
+   double      m_probability; 
+   int         m_priority;  
 
    int         m_v1_benign_count;
    int         m_v1_hazard_count;
