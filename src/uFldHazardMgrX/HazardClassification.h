@@ -25,6 +25,8 @@ using namespace std;
 //Data
    string      m_label;
    string      m_class;
+   double      m_x;
+   double      m_y;
    double      m_probability; 
    int         m_priority;  
 

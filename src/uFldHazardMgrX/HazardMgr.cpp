@@ -56,6 +56,7 @@ HazardMgr::HazardMgr()
   m_sensor_config_requested = false;
   m_sensor_config_set   = false;
   m_first_four_reported = false;
+  m_got_start_x = false;
   m_swath_width_granted = 0;
   m_pd_granted          = 0;
 
@@ -103,8 +104,9 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
     else if(key == "UHZ_DETECTION_REPORT") 
       handleMailDetectionReport(sval);
 
-    else if(key == "HAZARDSET_REQUEST") 
+    else if(key == "HAZARDSET_REQUEST"){ 
       handleMailReportRequest();
+    }
 
     else if(key == "UHZ_MISSION_PARAMS") {
       if(!m_start_info) {
@@ -116,6 +118,10 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
       if(m_job!="SEARCH")
         handleHazardClassification(sval);
     }
+
+    else if(key == "NAV_X")
+    //  reportEvent(sval);
+      string s = "asdf";
       
     else if(key =="NEW_HAZARD_REPORT"){
      handleNewHazardReport(sval); 
@@ -124,8 +130,9 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
     else if(key == "VJOB") {
       m_job = sval;
       // if(m_job == "SEARCH") {
-        Notify("SEARCH_PATTERN",m_search_pattern);
-        Notify("CLASS_PATTERN",m_search_pattern);
+        // Notify("SEARCH_PATTERN",m_search_pattern);
+        // Notify("CLASS_PATTERN",m_search_pattern);
+        // Notify("FIRST_SEARCH_PATTERN",m_search_pattern);
 
       // }
       //assignVesselProbability();
@@ -256,6 +263,7 @@ void HazardMgr::registerVariables()
   Register("VJOB",0);
   Register("ACK_REPORT",0);
   Register("GET_TIME",0);
+  Register("NAV_X",0);
 }
 
 //---------------------------------------------------------
@@ -386,13 +394,32 @@ bool HazardMgr::handleMailDetectionReport(string str)
 
 void HazardMgr::handleMailReportRequest()
 {
-  m_summary_reports++;
+  m_summary_reports++; 
 
-  m_hazard_set.findMinXPath(20);
-  //unsigned int count    = m_hazard_set.findMinXPath(20);
-  string summary_report = m_hazard_set.getSpec("final_report");
-  
-  Notify("HAZARDSET_REPORT", summary_report);
+//  m_hazard_set.clear();
+  XYHazardSet my_hazard_set;
+  my_hazard_set.setSource(m_host_community);
+  my_hazard_set.setName(m_report_name);
+  my_hazard_set.setRegion(m_search_region);
+      XYHazard update_hazard;
+  list<HazardClassification>::iterator l;
+  for(l=m_classification_tracker.begin(); l!=m_classification_tracker.end();) {
+    HazardClassification &lobj = *l;
+    XYHazard update_hazard;
+    if(lobj.m_class=="hazard"){
+      update_hazard.setX(lobj.m_x);
+      update_hazard.setY(lobj.m_y);
+      update_hazard.setType(lobj.m_class);
+      update_hazard.setLabel(lobj.m_label);
+    }
+    my_hazard_set.addHazard(update_hazard);
+    ++l;
+  }
+  my_hazard_set.findMinXPath(20);
+  string msg = my_hazard_set.getSpec();
+
+  // Post to the MOOSDB
+  Notify("HAZARDSET_REPORT", msg);
 }
 
 
@@ -463,7 +490,9 @@ void HazardMgr::handleMailMissionParams(string str)
   tmp = tmp + ",lane_width="+l_width+",rows=east-west";//,startx=0,starty=0";
 
   m_search_pattern = tmp;
-
+        Notify("SEARCH_PATTERN",m_search_pattern);
+        Notify("CLASS_PATTERN",m_search_pattern);
+        Notify("FIRST_SEARCH_PATTERN",m_search_pattern);
 
   m_start_info = true;
 }
@@ -529,6 +558,7 @@ void HazardMgr::handleNewHazardReport(string str)
   int requests = l / 24 + 1;
 
   Notify("VISIT_POINT","firstpoint");
+  reportEvent("firstpoint");
 
   while(i<requests){
     
@@ -548,8 +578,11 @@ void HazardMgr::handleNewHazardReport(string str)
     new_classification.m_label = l_str;
     new_classification.m_v1_hazard_count = 0;
     new_classification.m_v1_benign_count = 0;
+    new_classification.m_x = stod(x_str);
+    new_classification.m_y = stod(y_str);
     m_classification_tracker.push_back(new_classification);
     Notify("VISIT_POINT",tmp);
+    reportEvent(tmp);
     i++;
   }
   mes =  "src_node=" + m_report_name;
@@ -559,7 +592,7 @@ void HazardMgr::handleNewHazardReport(string str)
   Notify("NODE_MESSAGE_LOCAL",mes);
   
   Notify("VISIT_POINT","lastpoint");
-
+  reportEvent("lastpoint");
   
 }
 
@@ -603,7 +636,7 @@ void HazardMgr::handleHazardClassification(string str)
       string msg = "hazard count = " + to_string(lobj.m_v1_hazard_count);
       msg = msg + ",benign count = " + to_string(lobj.m_v1_benign_count);
       msg = msg + ",label = " + lobj.m_label;
-      reportEvent(msg);
+    //  reportEvent(msg);
       b_count = lobj.m_v1_benign_count;
       h_count = lobj.m_v1_hazard_count;
       if(b_count<h_count){
@@ -616,15 +649,8 @@ void HazardMgr::handleHazardClassification(string str)
         lobj.m_probability = pow(p_class,b_count)*pow(1-p_class,h_count);
         lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,h_count)*pow(1-p_class,b_count));
       }
-      XYHazard update_hazard;
-      int index = m_hazard_set.findHazard(lobj.m_label);
-      update_hazard = m_hazard_set.getHazard(index);
-      update_hazard.setType(lobj.m_class);
-      reportEvent("benign count="+to_string(m_hazard_set.getBenignCnt()));
-      reportEvent("hazard count="+to_string(m_hazard_set.getHazardCnt()));
-      update_hazard.setLabel(lobj.m_label);
-      m_hazard_set.setHazard(index,update_hazard);
-      reportEvent("type="+lobj.m_class+",probability = "+to_string(lobj.m_probability));
+
+     // reportEvent("type="+lobj.m_class+",probability = "+to_string(lobj.m_probability));
       Notify("UPDATE_POINT","label="+lobj.m_label+",probbability="+to_string(lobj.m_probability));
     }
     ++l;
