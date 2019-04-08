@@ -91,7 +91,6 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
     bool   mdbl  = msg.IsDouble();
     bool   mstr  = msg.IsString();
 #endif
-    
     if(key == "UHZ_CONFIG_ACK") 
       handleMailSensorConfigAck(sval);
 
@@ -129,7 +128,7 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
         Notify("CLASS_PATTERN",m_search_pattern);
 
       // }
-      assignVesselProbability();
+      //assignVesselProbability();
     }
 
     else if(key == "ACK_REPORT"){
@@ -372,6 +371,7 @@ bool HazardMgr::handleMailDetectionReport(string str)
   event += ", y=" + doubleToString(new_hazard.getY(),1);
 
   string req = "vname=" + m_host_community + ",label=" + hazlabel;
+  
 
   Notify("UHZ_CLASSIFY_REQUEST", req);
 
@@ -406,7 +406,12 @@ void HazardMgr::handleMailReportRequest()
 //                       transit_path_width=25,                           
 //                       search_region = pts={-150,-75:-150,-50:40,-50:40,-75}
 
-
+void HazardMgr::calculateParameters(double hazard_density)
+{
+  
+  m_swath_width_desired = 25;
+  m_pd_desired          = 0.5;
+}
 
 void HazardMgr::handleMailMissionParams(string str)
 {
@@ -429,17 +434,25 @@ void HazardMgr::handleMailMissionParams(string str)
   double x4 = stod(biteStringX(svector.back(), ','));
   double y4 = stod(biteStringX(svector.back(), '}'));
 
+  double m_penalty_missed_hazard = stod(tokStringParse(str, "penalty_missed_hazard", ',', '='));
+  double m_penalty_false_alarm = stod(tokStringParse(str, "penalty_false_alarm", ',', '='));
+  
+  calculateParameters(0.1);
+
   double m_poly_center_x = (x1 + x2 + x3 + x4) / 4;
   double m_poly_center_y = (y1 + y2 + y3 + y4) / 4;
 
   m_poly_w = abs(m_poly_center_x-x1)*2;
   m_poly_h = abs(m_poly_center_y-y1)*2;
 
-  string l_width = "100";
+  if(m_job == "CLASS")
+    m_poly_h = m_poly_h - 40;
+
+  string l_width = "40";
 
   string tmp;
-  double w_buffer = 80;
-  double h_buffer = 100;
+  double w_buffer = 70;
+  double h_buffer = 20;
   double adjust = 0;
   h_buffer = h_buffer+2*adjust;
 
@@ -501,9 +514,6 @@ void HazardMgr::postVesselHazards()
     Notify("NODE_MESSAGE_LOCAL",mes);
   }
   if(!m_first_four_reported){
-    string mes = "polygon = radial:: x=" + x_str;
-    mes = mes + ",y=" +y_str + ", radius=99, pts=8, snap=1";
-    Notify("LOITER_UPDATE",mes);
     m_first_four_reported = true;
   }
 }
@@ -518,7 +528,7 @@ void HazardMgr::handleNewHazardReport(string str)
   string ack = "l=";
   int requests = l / 24 + 1;
 
-  Notify("VISIT_POINT","firstpoint");
+//  Notify("VISIT_POINT","firstpoint");
 
   while(i<requests){
     
@@ -539,7 +549,7 @@ void HazardMgr::handleNewHazardReport(string str)
     new_classification.m_v1_hazard_count = 0;
     new_classification.m_v1_benign_count = 0;
     m_classification_tracker.push_back(new_classification);
-    Notify("VISIT_POINT",tmp);
+ //   Notify("VISIT_POINT",tmp);
     i++;
   }
   mes =  "src_node=" + m_report_name;
@@ -548,7 +558,7 @@ void HazardMgr::handleNewHazardReport(string str)
   mes = mes + ",string_val=" + ack;
   Notify("NODE_MESSAGE_LOCAL",mes);
   
-  Notify("VISIT_POINT","lastpoint");
+//  Notify("VISIT_POINT","lastpoint");
 
   
 }

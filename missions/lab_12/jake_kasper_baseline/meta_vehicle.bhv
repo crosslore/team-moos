@@ -7,6 +7,11 @@ initialize   STATION = false
 initialize   LOITER  = false
 //initialize   GENPATH_REGENERATE = false
 
+#ifdef VNAME VNAME1
+initialize  VJOB ="SEARCH"
+#elseifdef VNAME VNAME2
+initialize  VJOB ="CLASS"
+#endif
 
 Set MODE = ACTIVE {
   DEPLOY = true
@@ -76,6 +81,7 @@ Behavior = BHV_Waypoint
         radius = 5.0
    slip_radius = 15.0
 //     updates   = SEARCH_PATTERN
+            lead = 15
 
 
 
@@ -84,13 +90,12 @@ Behavior = BHV_Waypoint
 
 	points = format=lawnmower,label=jakesearch,x=0,y=-237.5,height=325,width=480,lane_width=40,rows=east-west
   visual_hints = vertex_color=yellow, edge_color=green
-  lead = 15
   perpetual = true
   runflag = VJOB = "SEARCH"
-  endflag = LOITER = true
+  endflag = SEARCH_PATTERN = "order = reverse"
 
 #elseifdef VNAME VNAME2
-  updates   = CLASS_PATTERN
+  updates   = SEARCH_PATTERN
 
 	points = format=lawnmower,label=kaspersearch,x=262.5,y=-237.5,height=325,width=255,lane_width=20,rows=east-west,degs=0
   visual_hints = vertex_color=yellow, edge_color=gray25
@@ -98,9 +103,10 @@ Behavior = BHV_Waypoint
   runflag = VJOB = "CLASS"
   perpetual = true
 
+  endflag = SEARCH_PATTERN = "order = reverse"
+
 #endif
 
-       endflag = NODE_MESSAGE = src_node=$(VNAME),dest_node=all,var_name=SURVEY,string_val=COMPLETE
 
         repeat = 0
   visual_hints = nextpt_color=red, nextpt_lcolor=green
