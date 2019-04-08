@@ -90,6 +90,7 @@ class HazardMgr : public AppCastingMOOSApp
    bool   m_sensor_config_set;
    bool   m_first_four_reported;
    bool   m_got_start_x;
+   bool   m_wait_time_reached;
 
    unsigned int m_sensor_config_reqs;
    unsigned int m_sensor_config_acks;

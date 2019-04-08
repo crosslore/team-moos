@@ -552,16 +552,13 @@ void HazardMgr::handleNewHazardReport(string str)
 {
   string x_str,y_str,l_str,t_str,mes; 
 
-  int l = str.length();
   int i = 0;
   string ack = "l=";
-  int requests = l / 24 + 1;
-
-  Notify("VISIT_POINT","firstpoint");
-  reportEvent("firstpoint");
-
-  while(i<requests){
-    
+  int requests = std::count(str.begin(),str.end(),'x');
+  reportEvent(to_string(requests));
+  bool restart_loop;
+  for(int i=0; i<requests; i++){
+    restart_loop = false;
     HazardClassification new_classification;
     x_str = tokStringParse(str, "x", ';', '=');
     y_str = tokStringParse(str, "y", ';', '=');
@@ -570,20 +567,26 @@ void HazardMgr::handleNewHazardReport(string str)
     biteString(str, ':');
     string tmp;
     tmp = "x=" + x_str + ",y=" + y_str + ",id=" + l_str;
-
-    // if(i<(requests-1))
-      ack = ack + l_str + ";";
-    // else
-    //   ack = ack + l_str;
     new_classification.m_label = l_str;
     new_classification.m_v1_hazard_count = 0;
     new_classification.m_v1_benign_count = 0;
     new_classification.m_x = stod(x_str);
     new_classification.m_y = stod(y_str);
+    ack = ack + l_str + ";";
+    list<HazardClassification>::iterator l;
+    for(l=m_classification_tracker.begin(); l!=m_classification_tracker.end(); ++l) {
+      HazardClassification &lobj = *l;
+      if(new_classification.m_label==lobj.m_label)
+        restart_loop = true;
+    }
+    if(i==0){
+      Notify("VISIT_POINT","firstpoint");
+    }
+    if(restart_loop){
+      continue;
+    }
     m_classification_tracker.push_back(new_classification);
     Notify("VISIT_POINT",tmp);
-    reportEvent(tmp);
-    i++;
   }
   mes =  "src_node=" + m_report_name;
   mes = mes + ",dest_node=" + "all";
@@ -592,7 +595,6 @@ void HazardMgr::handleNewHazardReport(string str)
   Notify("NODE_MESSAGE_LOCAL",mes);
   
   Notify("VISIT_POINT","lastpoint");
-  reportEvent("lastpoint");
   
 }
 
@@ -604,14 +606,13 @@ void HazardMgr::handleAcknowledgmentReport(string str)
   for( int i = 1; i<=(n); i++) {
     string next_label =  biteString(str, ';');  
     list<XYHazard>::iterator l;
-    for(l=m_hazards_to_send.begin(); l!=m_hazards_to_send.end();) {
+    for(l=m_hazards_to_send.begin(); l!=m_hazards_to_send.end(); ++l) {
       XYHazard &lobj = *l;
       string tmp_lbl = lobj.getLabel();
       if(tmp_lbl==next_label) {
         l = m_hazards_to_send.erase(l);
       }
       else {
-        ++l;
       }
     }
   }
@@ -636,7 +637,7 @@ void HazardMgr::handleHazardClassification(string str)
       string msg = "hazard count = " + to_string(lobj.m_v1_hazard_count);
       msg = msg + ",benign count = " + to_string(lobj.m_v1_benign_count);
       msg = msg + ",label = " + lobj.m_label;
-    //  reportEvent(msg);
+      reportEvent(msg);
       b_count = lobj.m_v1_benign_count;
       h_count = lobj.m_v1_hazard_count;
       if(b_count<h_count){
@@ -650,7 +651,7 @@ void HazardMgr::handleHazardClassification(string str)
         lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,h_count)*pow(1-p_class,b_count));
       }
 
-     // reportEvent("type="+lobj.m_class+",probability = "+to_string(lobj.m_probability));
+      reportEvent("type="+lobj.m_class+",probability = "+to_string(lobj.m_probability));
       Notify("UPDATE_POINT","label="+lobj.m_label+",probbability="+to_string(lobj.m_probability));
     }
     ++l;
