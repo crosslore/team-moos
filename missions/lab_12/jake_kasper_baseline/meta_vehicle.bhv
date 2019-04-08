@@ -92,10 +92,9 @@ Behavior = BHV_Waypoint
   visual_hints = vertex_color=yellow, edge_color=green
   perpetual = true
   runflag = VJOB = "SEARCH"
-  endflag = SEARCH_PATTERN = "order = reverse"
 
 #elseifdef VNAME VNAME2
-  updates   = SEARCH_PATTERN
+  updates   = CLASS_PATTERN
 
 	points = format=lawnmower,label=kaspersearch,x=262.5,y=-237.5,height=325,width=255,lane_width=20,rows=east-west,degs=0
   visual_hints = vertex_color=yellow, edge_color=gray25
@@ -103,7 +102,6 @@ Behavior = BHV_Waypoint
   runflag = VJOB = "CLASS"
   perpetual = true
 
-  endflag = SEARCH_PATTERN = "order = reverse"
 
 #endif
 

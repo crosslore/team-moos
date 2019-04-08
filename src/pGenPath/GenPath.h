@@ -48,7 +48,7 @@ class GenPath : public AppCastingMOOSApp
    double	   m_x_curr;
    double	   m_y_curr;
 
-   double      m_p_thresh = 0.7;
+   double      m_p_thresh = 0.95;
 
 
 

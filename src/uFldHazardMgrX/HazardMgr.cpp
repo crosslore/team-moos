@@ -348,7 +348,7 @@ bool HazardMgr::handleMailDetectionReport(string str)
   m_detection_reports++;
 
   XYHazard new_hazard = string2Hazard(str);
-  new_hazard.setType("benign");
+  //new_hazard.setType("benign");
 
   string hazlabel = new_hazard.getLabel();
   
@@ -445,14 +445,14 @@ void HazardMgr::handleMailMissionParams(string str)
   m_poly_w = abs(m_poly_center_x-x1)*2;
   m_poly_h = abs(m_poly_center_y-y1)*2;
 
-  if(m_job == "CLASS")
-    m_poly_h = m_poly_h - 40;
+  // if(m_job == "CLASS")
+  //   m_poly_h = m_poly_h - 40;
 
-  string l_width = "40";
+  string l_width = "100";
 
   string tmp;
   double w_buffer = 70;
-  double h_buffer = 20;
+  double h_buffer = 100;
   double adjust = 0;
   h_buffer = h_buffer+2*adjust;
 
@@ -528,7 +528,7 @@ void HazardMgr::handleNewHazardReport(string str)
   string ack = "l=";
   int requests = l / 24 + 1;
 
-//  Notify("VISIT_POINT","firstpoint");
+  Notify("VISIT_POINT","firstpoint");
 
   while(i<requests){
     
@@ -549,7 +549,7 @@ void HazardMgr::handleNewHazardReport(string str)
     new_classification.m_v1_hazard_count = 0;
     new_classification.m_v1_benign_count = 0;
     m_classification_tracker.push_back(new_classification);
- //   Notify("VISIT_POINT",tmp);
+    Notify("VISIT_POINT",tmp);
     i++;
   }
   mes =  "src_node=" + m_report_name;
@@ -558,7 +558,7 @@ void HazardMgr::handleNewHazardReport(string str)
   mes = mes + ",string_val=" + ack;
   Notify("NODE_MESSAGE_LOCAL",mes);
   
-//  Notify("VISIT_POINT","lastpoint");
+  Notify("VISIT_POINT","lastpoint");
 
   
 }
@@ -588,10 +588,6 @@ void HazardMgr::handleHazardClassification(string str)
 {
   string label_str = tokStringParse(str, "label", ',', '=');
   string type_str = tokStringParse(str, "type", ',', '=');
-  int index = m_hazard_set.findHazard(label_str);
-  XYHazard current_hazard = m_hazard_set.getHazard(index);
-  current_hazard.setType(type_str);
-  m_hazard_set.setHazard(index,current_hazard);
   double p_class = m_pclass_granted;
   double b_count, h_count;
   list<HazardClassification>::iterator l;
@@ -620,10 +616,14 @@ void HazardMgr::handleHazardClassification(string str)
         lobj.m_probability = pow(p_class,b_count)*pow(1-p_class,h_count);
         lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,h_count)*pow(1-p_class,b_count));
       }
+      XYHazard update_hazard;
       int index = m_hazard_set.findHazard(lobj.m_label);
-      XYHazard update_hazard = m_hazard_set.getHazard(index);
+      update_hazard = m_hazard_set.getHazard(index);
       update_hazard.setType(lobj.m_class);
-      m_hazard_set.addHazard(update_hazard);
+      reportEvent("benign count="+to_string(m_hazard_set.getBenignCnt()));
+      reportEvent("hazard count="+to_string(m_hazard_set.getHazardCnt()));
+      update_hazard.setLabel(lobj.m_label);
+      m_hazard_set.setHazard(index,update_hazard);
       reportEvent("type="+lobj.m_class+",probability = "+to_string(lobj.m_probability));
       Notify("UPDATE_POINT","label="+lobj.m_label+",probbability="+to_string(lobj.m_probability));
     }
