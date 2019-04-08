@@ -13,6 +13,8 @@ using namespace std;
  {
 
  public:
+ 	bool operator< (const CompPath&) const;
+
 
    friend class GenPath;
    CompPath(string v);
@@ -22,6 +24,7 @@ using namespace std;
  protected:
 //Functions
    string  getReport();
+   void	   setProb(double);
 
 
 //Data
@@ -30,5 +33,8 @@ using namespace std;
    string      m_y;
    string      m_id;
    string	   m_start;
+   double	   m_dist;
+
+   double 	   m_prob;
  };
  #endif 

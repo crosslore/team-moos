@@ -348,7 +348,7 @@ bool HazardMgr::handleMailDetectionReport(string str)
   m_detection_reports++;
 
   XYHazard new_hazard = string2Hazard(str);
-  new_hazard.setType("hazard");
+  new_hazard.setType("benign");
 
   string hazlabel = new_hazard.getLabel();
   
@@ -619,8 +619,11 @@ void HazardMgr::handleHazardClassification(string str)
         lobj.m_class = "benign";
         lobj.m_probability = pow(p_class,b_count)*pow(1-p_class,h_count);
         lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,h_count)*pow(1-p_class,b_count));
-
       }
+      int index = m_hazard_set.findHazard(lobj.m_label);
+      XYHazard update_hazard = m_hazard_set.getHazard(index);
+      update_hazard.setType(lobj.m_class);
+      m_hazard_set.addHazard(update_hazard);
       reportEvent("type="+lobj.m_class+",probability = "+to_string(lobj.m_probability));
       Notify("UPDATE_POINT","label="+lobj.m_label+",probbability="+to_string(lobj.m_probability));
     }

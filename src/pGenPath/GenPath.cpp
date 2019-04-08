@@ -17,6 +17,9 @@
 #include"XYSegList.h"
 #include<math.h>
 
+#include <string>
+
+
 using namespace std;
 
 
@@ -29,7 +32,9 @@ GenPath::GenPath()
 {
 // m_got_all_points = false;
 // m_sent_all_points = false;
-// m_register_start = false;
+m_register_start = false;
+  my_seglist.set_param("vertex_size", "3");
+
 }
 
 //---------------------------------------------------------
@@ -44,8 +49,8 @@ void GenPath::setStart(XYPoint point)
 
 // XYPoint point2(0,-40);
 
-// m_start_point = point2;
-// m_register_start = true; 
+m_start_point = point;
+m_register_start = true; 
 
 }
 
@@ -76,46 +81,65 @@ void GenPath::testComp()
   }
 }
 
+void GenPath::calcDist()
+{
+  double x,y,dist;
+
+  list<CompPath>::iterator l;
+    for(l=m_list.begin(); l!=m_list.end(); l++) {
+      CompPath &lobj = *l;
+
+      x = atof(lobj.m_x.c_str());
+      y = atof(lobj.m_y.c_str());
+
+      dist = hypot((m_x_curr-x), (m_y_curr-y));
+
+      lobj.m_dist = dist;
+      
+
+     }
+
+}
+
+
 void GenPath::sendPoints()
 {
  // my_seglist.clear();
   double x,y;
-  string label,color;
+  string label;
 
-  my_seglist.set_param("vertex_size", "3");
+  m_list.sort();
+
   string update_str = "points = ";
-
-
 
   list<CompPath>::iterator l;
   for(l=m_list.begin(); l!=m_list.end(); l++) {
     CompPath &lobj = *l;
 
+    reportEvent(to_string(lobj.m_dist));
+
     x = atof(lobj.m_x.c_str());
     y = atof(lobj.m_y.c_str());
     
     XYPoint point(x,y);
-    point.set_param("vertex_size", "3");
+
     point.set_label(lobj.m_id);
-
-    // if(lobj.m_id=="firstpoint") {
-    //   my_seglist.add_vertex(m_curr_point);//.x(),m_start_point.y());
-    // }
-    // else if(lobj.m_id=="lastpoint") {
-    //   my_seglist.add_vertex(m_curr_point);//.x(),m_start_point.y());
-
-    // }
-    // else {      
+    
+    if(lobj.m_prob<m_p_thresh) {
       my_seglist.insert_vertex(point.x(),point.y());
-  //   }
+    }
+
    }
-  m_list.clear();
+  // m_list.clear();
   update_str       += my_seglist.get_spec();
 
     // m_list.clear();
+  reportEvent(my_seglist.get_spec());
 
 
   Notify("CLASS_PATTERN",update_str);
+
+  my_seglist.clear();
 
 
   // m_sent_all_points = true;
@@ -152,7 +176,7 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
     if(key=="GENPATH_REGENERATE") {
       string value = msg.GetString();
       if(value =="true") {
-        reportEvent("DONE !!!!!");
+        // reportEvent("DONE !!!!!");
 
         sendPoints();
 
@@ -166,10 +190,11 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
 
       string value = msg.GetString();      
       CompPath b(value);
-      m_list.push_front(b);
-      // if(value=="firstpoint") {
-      //   Notify("GENPATH_REGENERATE","true");
-      // }
+    
+      if(!(b.m_id == "firstpoint") || !(b.m_id == "firstpoint")) {
+          m_list.push_front(b);
+      }
+
       if(value=="lastpoint") {
         Notify("GENPATH_REGENERATE","true");
       }
@@ -177,23 +202,23 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
     }
 
     if(key=="NODE_REPORT_LOCAL"){
-      // string value = msg.GetString();  
-      // string x_str,y_str,ans; 
-      // double x_now,y_now;
+      string value = msg.GetString();  
+      string x_str,y_str,ans; 
+      double x_now,y_now;
 
-      // x_str = tokStringParse(value, "X", ',', '=');
-      // y_str = tokStringParse(value, "Y", ',', '=');
-      // x_now = atof(x_str.c_str());
-      // y_now = atof(y_str.c_str());
-      // m_x_curr = x_now;
-      // m_y_curr = y_now;
+      x_str = tokStringParse(value, "X", ',', '=');
+      y_str = tokStringParse(value, "Y", ',', '=');
+      x_now = atof(x_str.c_str());
+      y_now = atof(y_str.c_str());
+      m_x_curr = x_now;
+      m_y_curr = y_now;
 
-      // XYPoint point(x_now,y_now);
-      // m_curr_point = point;
+      XYPoint point(x_now,y_now);
+      m_curr_point = point;
 
-      // if(!m_register_start){
-      //   setStart(point);
-      // }
+      if(!m_register_start){
+        setStart(point);
+      }
 
     }
 
@@ -231,7 +256,9 @@ bool GenPath::Iterate()
   AppCastingMOOSApp::Iterate();
   // Do your thing here!
 
-      testComp();
+      calcDist();
+
+      // testComp();
 
   AppCastingMOOSApp::PostReport();
   return(true);

@@ -15,6 +15,7 @@ CompPath::CompPath(string v) {
     m_x = tokStringParse(v, "x", ',', '=');
     m_y = tokStringParse(v, "y", ',', '=');
     m_id = tokStringParse(v, "id", ',', '=');
+    m_prob = 0.5;
   }
   else if(v=="firstpoint"){
     m_x = "firstpoint";
@@ -35,6 +36,29 @@ CompPath::~CompPath()
 {
 }
 
+bool CompPath::operator<(const CompPath& somePoint) const
+{
+  double d1,d2;
+
+
+ d1 = m_dist;
+ d2 = somePoint.m_dist;
+
+// cout << x1 << endl;
+// cout << x2 << endl;
+
+ if(d1 < d2)
+    return(true);
+
+ return(false);
+}
+
+
+
+void CompPath::setProb(double prob) {
+  m_prob = prob;
+
+}
 
 
 string CompPath::getReport() { // Collect data and publish report

@@ -33,6 +33,7 @@ class GenPath : public AppCastingMOOSApp
 
  protected:
    void registerVariables();
+   void calcDist();
    void sendPoints();
    void setStart(XYPoint);
    void testComp();
@@ -46,6 +47,8 @@ class GenPath : public AppCastingMOOSApp
    XYSegList   my_seglist;
    double	   m_x_curr;
    double	   m_y_curr;
+
+   double      m_p_thresh = 0.7;
 
 
 
