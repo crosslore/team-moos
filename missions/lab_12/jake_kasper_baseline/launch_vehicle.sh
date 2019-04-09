@@ -4,10 +4,10 @@
 #-------------------------------------------------------
 TIME_WARP=1
 JUST_BUILD="no"
-VNAME="anonymous"
+VNAME="jake"
 MOOS_PORT="9001"
 UDP_LISTEN_PORT="9201"
-SHOREIP="localhost"
+SHOREIP="18.21.146.185"
 SHORE_LISTEN="9200"
 
 for ARGI; do
