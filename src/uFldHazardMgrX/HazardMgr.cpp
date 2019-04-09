@@ -537,8 +537,11 @@ void HazardMgr::postVesselHazards()
       y_str = tokStringParse(msg, "y", ',', '=');
       l_str = tokStringParse(msg, "label", ',', '=');
       new_classification.m_label = l_str;
-      m_classification_tracker.push_back(new_classification);
+      //m_classification_tracker.push_back(new_classification);
       t_str = tokStringParse(msg, "type", ',', '=');
+
+
+
       if(t_str=="benign")
         t_str = "b";
       if(t_str=="hazard")
