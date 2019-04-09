@@ -65,6 +65,9 @@ HazardMgr::HazardMgr()
   m_sensor_report_reqs = 0;
   m_detection_reports  = 0;
 
+  m_penalty_missed_hazard = 150;
+  m_penalty_false_alarm = 25;
+
   m_summary_reports = 0;
 
   m_start_info = false;
@@ -469,8 +472,8 @@ void HazardMgr::handleMailMissionParams(string str)
   double x4 = stod(biteStringX(svector.back(), ','));
   double y4 = stod(biteStringX(svector.back(), '}'));
 
-  double m_penalty_missed_hazard = stod(tokStringParse(str, "penalty_missed_hazard", ',', '='));
-  double m_penalty_false_alarm = stod(tokStringParse(str, "penalty_false_alarm", ',', '='));
+  m_penalty_missed_hazard = stod(tokStringParse(str, "penalty_missed_hazard", ',', '='));
+  m_penalty_false_alarm = stod(tokStringParse(str, "penalty_false_alarm", ',', '='));
   
   calculateParameters(0.1);
 
@@ -610,7 +613,6 @@ void HazardMgr::handleNewHazardReport(string str)
   mes = mes + ",var_name="  + "ACK_REPORT";  
   mes = mes + ",string_val=" + ack;
   Notify("NODE_MESSAGE_LOCAL",mes);
-  reportEvent(to_string(m_classification_tracker.size()));
   Notify("VISIT_POINT","lastpoint");
   
 }
@@ -662,14 +664,17 @@ void HazardMgr::handleHazardClassification(string str)
         lobj.m_class = "hazard";
         lobj.m_probability = pow(p_class,h_count)*pow(1-p_class,b_count);
         lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,b_count)*pow(1-p_class,h_count));
-
+        if(lobj.m_probability * m_penalty_missed_hazard < (1-lobj.m_probability) * m_penalty_false_alarm)
+          lobj.m_class = "benign";
       }
-      else if(h_count<b_count){
+      else if(h_count<=b_count){
         lobj.m_class = "benign";
         lobj.m_probability = pow(p_class,b_count)*pow(1-p_class,h_count);
         lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,h_count)*pow(1-p_class,b_count));
+        if(lobj.m_probability * m_penalty_false_alarm < (1-lobj.m_probability) * m_penalty_missed_hazard)
+          lobj.m_class = "hazard";
       }
-      //reportEvent("type="+lobj.m_class+",probability = "+to_string(lobj.m_probability));
+      reportEvent("type="+lobj.m_class+",probability = "+to_string(lobj.m_probability));
       Notify("UPDATE_POINT","label="+lobj.m_label+",probbability="+to_string(lobj.m_probability));
     }
   }

@@ -104,6 +104,9 @@ class HazardMgr : public AppCastingMOOSApp
    double m_pd_granted;
    double m_pclass_granted;
 
+   double m_penalty_missed_hazard;
+   double m_penalty_false_alarm;
+
    XYHazardSet m_hazard_set;
    std::list<XYHazard> m_hazards_to_send;
 
