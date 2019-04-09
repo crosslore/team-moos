@@ -110,6 +110,8 @@ class HazardMgr : public AppCastingMOOSApp
    XYPolygon   m_search_region;
 
    std::list<HazardClassification> m_classification_tracker;
+   std::list<HazardClassification> m_class_found_on_own;
+   
    
    double      m_transit_path_width;
 };

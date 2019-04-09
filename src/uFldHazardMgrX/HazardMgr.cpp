@@ -115,12 +115,11 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
     }
 
     else if(key =="UHZ_HAZARD_REPORT"){
-      if(m_job!="SEARCH")
+    //  if(m_job!="SEARCH")
         handleHazardClassification(sval);
     }
 
     else if(key == "NAV_X")
-    //  reportEvent(sval);
       string s = "asdf";
       
     else if(key =="NEW_HAZARD_REPORT"){
@@ -356,10 +355,12 @@ bool HazardMgr::handleMailDetectionReport(string str)
   m_detection_reports++;
 
   XYHazard new_hazard = string2Hazard(str);
-  //new_hazard.setType("benign");
+  HazardClassification New_Classification;
+  
 
   string hazlabel = new_hazard.getLabel();
-  
+  New_Classification.m_label = hazlabel;
+
   if(hazlabel == "") {
     reportRunWarning("Detection report received for hazard w/out label");
     return(false);
@@ -369,6 +370,13 @@ bool HazardMgr::handleMailDetectionReport(string str)
   if(ix == -1){
     m_hazards_to_send.push_back(new_hazard);
     m_hazard_set.addHazard(new_hazard);
+    New_Classification.m_x = new_hazard.getX();
+    New_Classification.m_y = new_hazard.getY();
+    New_Classification.m_v1_hazard_count = 0;
+    New_Classification.m_v1_benign_count = 0;
+    New_Classification.m_probability = m_pclass_granted;
+    m_classification_tracker.push_back(New_Classification);
+    m_class_found_on_own.push_back(New_Classification);
   }
   else {  
     m_hazard_set.setHazard(ix, new_hazard);
@@ -534,10 +542,8 @@ void HazardMgr::postVesselHazards()
         t_str = "h";
       updated_message = updated_message + "x=" + x_str + ";y=" + y_str +";l=" + l_str + ";t=" + t_str + ":";
     }
-
     i++;
   }
-
   mes = mes + ",string_val=" + updated_message;
   if(m_hazards_to_send.size()>0) {
     Notify("NODE_MESSAGE_LOCAL",mes);
@@ -555,9 +561,20 @@ void HazardMgr::handleNewHazardReport(string str)
   int i = 0;
   string ack = "l=";
   int requests = std::count(str.begin(),str.end(),'x');
-  reportEvent(to_string(requests));
   bool restart_loop;
   for(int i=0; i<requests; i++){
+    if(m_class_found_on_own.size()>0){
+      HazardClassification new_classification;
+      new_classification = m_class_found_on_own.front();
+      x_str = to_string(new_classification.m_x);
+      y_str = to_string(new_classification.m_y);
+      l_str = new_classification.m_label;
+      string tmp;
+      tmp = "x=" + x_str + ",y=" + y_str + ",id=" + l_str;
+      Notify("VISIT_POINT",tmp);
+      m_class_found_on_own.pop_front();
+      continue;
+    }
     restart_loop = false;
     HazardClassification new_classification;
     x_str = tokStringParse(str, "x", ';', '=');
@@ -593,7 +610,7 @@ void HazardMgr::handleNewHazardReport(string str)
   mes = mes + ",var_name="  + "ACK_REPORT";  
   mes = mes + ",string_val=" + ack;
   Notify("NODE_MESSAGE_LOCAL",mes);
-  
+  reportEvent(to_string(m_classification_tracker.size()));
   Notify("VISIT_POINT","lastpoint");
   
 }
@@ -625,7 +642,7 @@ void HazardMgr::handleHazardClassification(string str)
   double p_class = m_pclass_granted;
   double b_count, h_count;
   list<HazardClassification>::iterator l;
-  for(l=m_classification_tracker.begin(); l!=m_classification_tracker.end();) {
+  for(l=m_classification_tracker.begin(); l!=m_classification_tracker.end();++l) {
     HazardClassification &lobj = *l;
     if(lobj.m_label == label_str){
       if(type_str=="hazard"){
@@ -640,21 +657,21 @@ void HazardMgr::handleHazardClassification(string str)
       reportEvent(msg);
       b_count = lobj.m_v1_benign_count;
       h_count = lobj.m_v1_hazard_count;
+
       if(b_count<h_count){
         lobj.m_class = "hazard";
         lobj.m_probability = pow(p_class,h_count)*pow(1-p_class,b_count);
         lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,b_count)*pow(1-p_class,h_count));
+
       }
       else if(h_count<b_count){
         lobj.m_class = "benign";
         lobj.m_probability = pow(p_class,b_count)*pow(1-p_class,h_count);
         lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,h_count)*pow(1-p_class,b_count));
       }
-
-      reportEvent("type="+lobj.m_class+",probability = "+to_string(lobj.m_probability));
+      //reportEvent("type="+lobj.m_class+",probability = "+to_string(lobj.m_probability));
       Notify("UPDATE_POINT","label="+lobj.m_label+",probbability="+to_string(lobj.m_probability));
     }
-    ++l;
   }
   
 }
