@@ -175,9 +175,9 @@ bool HazardMgr::Iterate()
   if(m_sensor_config_set)
     postSensorInfoRequest();
 
-  if(m_job == "SEARCH"){
-        postVesselHazards();  
-    }
+  if(m_hazards_to_send.size()>0)
+    postVesselHazards();  
+    
   double now = MOOSTime();
   double duration = now-m_start;
   if((duration>400) && (duration<800)) {
@@ -577,6 +577,7 @@ void HazardMgr::handleNewHazardReport(string str)
       l_str = new_classification.m_label;
       string tmp;
       tmp = "x=" + x_str + ",y=" + y_str + ",id=" + l_str;
+      ack = ack + l_str + ";";
       Notify("VISIT_POINT",tmp);
       m_class_found_on_own.pop_front();
       continue;
@@ -616,6 +617,7 @@ void HazardMgr::handleNewHazardReport(string str)
   mes = mes + ",var_name="  + "ACK_REPORT";  
   mes = mes + ",string_val=" + ack;
   Notify("NODE_MESSAGE_LOCAL",mes);
+  reportEvent(ack);
   Notify("VISIT_POINT","lastpoint");
   
 }
@@ -625,17 +627,14 @@ void HazardMgr::handleAcknowledgmentReport(string str)
 {
   size_t n = std::count(str.begin(), str.end(), ';');
   biteString(str, '=');
-  for( int i = 1; i<=(n); i++) {
+  for( int i = 0; i!=n; i++) {
     string next_label =  biteString(str, ';');  
     list<XYHazard>::iterator l;
     for(l=m_hazards_to_send.begin(); l!=m_hazards_to_send.end(); ++l) {
       XYHazard &lobj = *l;
       string tmp_lbl = lobj.getLabel();
-      if(tmp_lbl==next_label) {
+      if(tmp_lbl==next_label)
         l = m_hazards_to_send.erase(l);
-      }
-      else {
-      }
     }
   }
 }
