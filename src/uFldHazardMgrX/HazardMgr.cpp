@@ -567,6 +567,7 @@ void HazardMgr::handleNewHazardReport(string str)
   int i = 0;
   string ack = "l=";
   int requests = std::count(str.begin(),str.end(),'x');
+  requests = requests + m_class_found_on_own.size();
   bool restart_loop;
   for(int i=0; i<requests; i++){
     if(m_class_found_on_own.size()>0){
