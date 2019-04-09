@@ -65,6 +65,8 @@ class HazardMgr : public AppCastingMOOSApp
    void postSensorInfoRequest();
    void postHazardSetReport();
    void postVesselHazards();  
+   void postHazardReport();
+   void postUpdateReport();
 
 
    bool m_start_info;// = false;
@@ -72,9 +74,15 @@ class HazardMgr : public AppCastingMOOSApp
    double m_poly_h;
    std::string m_search_pattern;
    double   m_start;// = MOOSTime(); 
+   std::string m_ack;
+   double m_time_since_last_sent;
+   bool m_im_done;
+   bool m_he_done;
+   bool m_we_done;
 
 
 
+    list<HazardClassification>::iterator m_class_iterator;
 
 
    
@@ -91,6 +99,7 @@ class HazardMgr : public AppCastingMOOSApp
    bool   m_first_four_reported;
    bool   m_got_start_x;
    bool   m_wait_time_reached;
+   bool   m_done_with_survey;
 
    unsigned int m_sensor_config_reqs;
    unsigned int m_sensor_config_acks;

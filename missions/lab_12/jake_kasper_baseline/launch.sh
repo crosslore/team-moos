@@ -54,8 +54,10 @@ VNAME2="kasper"    # The second  vehicle community
 
 #START_POS1="450,-20"  
 #START_POS2="440,0"  
-START_POS1="-30,-20"  
-START_POS2="45,0"  
+START_POS1="0,0"
+#"-30,-20"  
+START_POS2="0,0"
+#"45,0"  
 
 # What is nsplug? Type "nsplug --help" or "nsplug --manual"
 

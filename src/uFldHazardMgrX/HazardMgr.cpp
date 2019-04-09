@@ -57,6 +57,7 @@ HazardMgr::HazardMgr()
   m_sensor_config_set   = false;
   m_first_four_reported = false;
   m_got_start_x = false;
+  m_done_with_survey = false;
   m_swath_width_granted = 0;
   m_pd_granted          = 0;
 
@@ -64,6 +65,7 @@ HazardMgr::HazardMgr()
   m_sensor_config_acks = 0;
   m_sensor_report_reqs = 0;
   m_detection_reports  = 0;
+  m_time_since_last_sent = MOOSTime() - 60;
 
   m_penalty_missed_hazard = 150;
   m_penalty_false_alarm = 25;
@@ -71,6 +73,10 @@ HazardMgr::HazardMgr()
   m_summary_reports = 0;
 
   m_start_info = false;
+  m_ack =  "";
+  m_im_done = false;
+  m_he_done = false;
+  m_we_done = false;
 
 }
 
@@ -104,29 +110,37 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
       m_start = MOOSTime();
     }
 
+//If Drive Over an object
     else if(key == "UHZ_DETECTION_REPORT") 
       handleMailDetectionReport(sval);
 
+//If shoreside asks for report
     else if(key == "HAZARDSET_REQUEST"){ 
       handleMailReportRequest();
     }
 
+//Tells mission params at start (poly + punishments)
     else if(key == "UHZ_MISSION_PARAMS") {
       if(!m_start_info) {
         handleMailMissionParams(sval);
       }
     }
 
+//Gives classsification when asked
     else if(key =="UHZ_HAZARD_REPORT"){
     //  if(m_job!="SEARCH")
         handleHazardClassification(sval);
     }
 
-    else if(key == "NAV_X")
-      string s = "asdf";
-      
+//
     else if(key =="NEW_HAZARD_REPORT"){
      handleNewHazardReport(sval); 
+    }
+    else if(key =="DONE_LAWN"){
+      if(sval == "true") {
+        m_done_with_survey = true;
+        m_class_iterator = m_classification_tracker.begin();
+      }
     }
 
     else if(key == "VJOB") {
@@ -143,10 +157,19 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
     else if(key == "ACK_REPORT"){
       handleAcknowledgmentReport(sval);
     }
+
+
+    else if(key == "HE_DONE") {
+      m_he_done = true;
+      reportEvent("IM DONE");
+    }
+
       
     else 
       reportRunWarning("Unhandled Mail: " + key);
   }
+
+
 	
    return(true);
 }
@@ -168,6 +191,8 @@ bool HazardMgr::OnConnectToServer()
 bool HazardMgr::Iterate()
 {
   AppCastingMOOSApp::Iterate();
+    
+  double now = MOOSTime();
 
   if(!m_sensor_config_requested)
     postSensorConfigRequest();
@@ -175,15 +200,59 @@ bool HazardMgr::Iterate()
   if(m_sensor_config_set)
     postSensorInfoRequest();
 
-  if(m_hazards_to_send.size()>0)
-    postVesselHazards();  
-    
-  double now = MOOSTime();
-  double duration = now-m_start;
-  if((duration>400) && (duration<800)) {
-    Notify("HANG_Y","1");
+  if(now - m_time_since_last_sent  > 65){
+    if(m_ack.size()){
+      string mes;
+      mes =  "src_node=" + m_report_name;
+      mes = mes + ",dest_node=" + "all";
+      mes = mes + ",var_name="  + "ACK_REPORT";  
+      mes = mes + ",string_val=" + m_ack;
+      Notify("NODE_MESSAGE_LOCAL",mes);
+      reportEvent("Sent Ack" +m_ack);
+      m_ack.clear();
+      m_time_since_last_sent = MOOSTime();
+
+    }
+
+    else if(m_hazards_to_send.size()) {
+      postVesselHazards();
+      reportEvent("hazards to send = "+ to_string(m_hazards_to_send.size())); 
+      m_time_since_last_sent = MOOSTime(); 
+    }
+    else if(m_done_with_survey){
+
+      if(!m_im_done) {
+      string mes;
+      mes =  "src_node=" + m_report_name;
+      mes = mes + ",dest_node=" + "all";
+      mes = mes + ",var_name="  + "HE_DONE";  
+      mes = mes + ",string_val=true";
+      Notify("NODE_MESSAGE_LOCAL",mes);
+      m_im_done = true;
+      reportEvent("IM DONE");
+      m_time_since_last_sent = MOOSTime();
+
+     }
+     if(m_we_done) {
+      postUpdateReport();
+      m_time_since_last_sent = MOOSTime();
+     }
+
+    }
+  
+
   }
 
+  if(m_we_done) {
+    Notify("FIRST_SURVEY","false");
+
+  }
+
+  if(m_im_done && m_he_done && !m_we_done) {
+    m_we_done = true;
+    reportEvent("WE_DONE!");
+  }
+ 
 
   AppCastingMOOSApp::PostReport();
   return(true);
@@ -265,7 +334,9 @@ void HazardMgr::registerVariables()
   Register("VJOB",0);
   Register("ACK_REPORT",0);
   Register("GET_TIME",0);
-  Register("NAV_X",0);
+  Register("DONE_LAWN",0);
+  Register("HE_DONE",0);
+  // Register("NAV_X",0);
 }
 
 //---------------------------------------------------------
@@ -381,13 +452,16 @@ bool HazardMgr::handleMailDetectionReport(string str)
     m_classification_tracker.push_back(New_Classification);
     m_class_found_on_own.push_back(New_Classification);
   }
-  else {  
-    m_hazard_set.setHazard(ix, new_hazard);
-  }
+  // else {  
+  //   // m_hazard_set.setHazard(ix, new_hazard);
 
-  string event = "New Detection, label=" + new_hazard.getLabel();
-  event += ", x=" + doubleToString(new_hazard.getX(),1);
-  event += ", y=" + doubleToString(new_hazard.getY(),1);
+  // }
+
+  //MAY want to assess probability and thershold before requsting classification
+
+  // string event = "New Detection, label=" + new_hazard.getLabel();
+  // event += ", x=" + doubleToString(new_hazard.getX(),1);
+  // event += ", y=" + doubleToString(new_hazard.getY(),1);
 
   string req = "vname=" + m_host_community + ",label=" + hazlabel;
   
@@ -521,8 +595,9 @@ void HazardMgr::postVesselHazards()
   mes = mes + ",var_name="  + "NEW_HAZARD_REPORT";  
   string updated_message;
   
-  if(!m_first_four_reported && m_hazards_to_send.size()<4)
-    return;
+  //!m_first_four_reported &&
+  // if(m_hazards_to_send.size()<4)
+  //   return;
 
   list<XYHazard>::iterator l;
   for(l=m_hazards_to_send.begin(); l!=m_hazards_to_send.end(); l++) {
@@ -554,9 +629,9 @@ void HazardMgr::postVesselHazards()
   if(m_hazards_to_send.size()>0) {
     Notify("NODE_MESSAGE_LOCAL",mes);
   }
-  if(!m_first_four_reported){
-    m_first_four_reported = true;
-  }
+  // if(!m_first_four_reported){
+  //   m_first_four_reported = true;
+  // }
 }
 
 // Kasper Acknowledges and sends himself visit_points
@@ -565,10 +640,11 @@ void HazardMgr::handleNewHazardReport(string str)
   string x_str,y_str,l_str,t_str,mes; 
 
   int i = 0;
-  string ack = "l=";
+  m_ack = "l=";
   int requests = std::count(str.begin(),str.end(),'x');
   requests = requests + m_class_found_on_own.size();
   bool restart_loop;
+  list<string> visit_pt_list;
   for(int i=0; i<requests; i++){
     if(m_class_found_on_own.size()>0){
       HazardClassification new_classification;
@@ -578,8 +654,9 @@ void HazardMgr::handleNewHazardReport(string str)
       l_str = new_classification.m_label;
       string tmp;
       tmp = "x=" + x_str + ",y=" + y_str + ",id=" + l_str;
-      ack = ack + l_str + ";";
-      Notify("VISIT_POINT",tmp);
+      m_ack = m_ack + l_str + ";";
+      // Notify("VISIT_POINT",tmp);
+      visit_pt_list.push_back(tmp);
       m_class_found_on_own.pop_front();
       continue;
     }
@@ -597,7 +674,7 @@ void HazardMgr::handleNewHazardReport(string str)
     new_classification.m_v1_benign_count = 0;
     new_classification.m_x = stod(x_str);
     new_classification.m_y = stod(y_str);
-    ack = ack + l_str + ";";
+    m_ack = m_ack + l_str + ";";
     list<HazardClassification>::iterator l;
     for(l=m_classification_tracker.begin(); l!=m_classification_tracker.end(); ++l) {
       HazardClassification &lobj = *l;
@@ -605,30 +682,38 @@ void HazardMgr::handleNewHazardReport(string str)
         restart_loop = true;
     }
     if(i==0){
-      Notify("VISIT_POINT","firstpoint");
+      // Notify("VISIT_POINT","firstpoint");
     }
     if(restart_loop){
       continue;
     }
+
+    visit_pt_list.push_back(tmp);
+
     m_classification_tracker.push_back(new_classification);
-    Notify("VISIT_POINT",tmp);
+    // Notify("VISIT_POINT",tmp);
   }
-  mes =  "src_node=" + m_report_name;
-  mes = mes + ",dest_node=" + "all";
-  mes = mes + ",var_name="  + "ACK_REPORT";  
-  mes = mes + ",string_val=" + ack;
-  Notify("NODE_MESSAGE_LOCAL",mes);
-  reportEvent(ack);
-  Notify("VISIT_POINT","lastpoint");
-  
+
+  if(visit_pt_list.size()) {
+    Notify("VISIT_POINT","firstpoint");
+
+    list<string>::iterator p;
+    for(p=visit_pt_list.begin(); p!=visit_pt_list.end(); ++p) {
+      string &lobj = *p;
+      Notify("VISIT_POINT",lobj);
+    }    
+
+    Notify("VISIT_POINT","lastpoint");
+  }
 }
+
 
 //Jake handles kasper's acknowledgement
 void HazardMgr::handleAcknowledgmentReport(string str)
 {
-  size_t n = std::count(str.begin(), str.end(), ';');
+  int n = std::count(str.begin(), str.end(), ';');
   biteString(str, '=');
-  for( int i = 0; i!=n; i++) {
+  for(int i = 0; i!=n; i++) {
     string next_label =  biteString(str, ';');  
     list<XYHazard>::iterator l;
     for(l=m_hazards_to_send.begin(); l!=m_hazards_to_send.end(); ++l) {
@@ -659,7 +744,7 @@ void HazardMgr::handleHazardClassification(string str)
       string msg = "hazard count = " + to_string(lobj.m_v1_hazard_count);
       msg = msg + ",benign count = " + to_string(lobj.m_v1_benign_count);
       msg = msg + ",label = " + lobj.m_label;
-      reportEvent(msg);
+      // reportEvent(msg);
       b_count = lobj.m_v1_benign_count;
       h_count = lobj.m_v1_hazard_count;
 
@@ -677,7 +762,7 @@ void HazardMgr::handleHazardClassification(string str)
         if(lobj.m_probability * m_penalty_false_alarm < (1-lobj.m_probability) * m_penalty_missed_hazard)
           lobj.m_class = "hazard";
       }
-      reportEvent("type="+lobj.m_class+",probability = "+to_string(lobj.m_probability));
+      // reportEvent("type="+lobj.m_class+",probability = "+to_string(lobj.m_probability));
       Notify("UPDATE_POINT","label="+lobj.m_label+",probbability="+to_string(lobj.m_probability));
     }
   }
@@ -700,6 +785,27 @@ if(m_job=="CLASS")
   Notify("UHZ_CONFIG_REQUEST", request);
 }
 
+
+void HazardMgr::postUpdateReport()
+{
+  string mes, l_str, h_str, b_str;
+  mes =  "src_node=" + m_report_name;
+  mes = mes + ",dest_node=" + "all";
+  mes = mes + ",var_name="  + "UPDATE_REPORT";  
+
+
+  for(int i = 0; i<7; ++i) {
+    HazardClassification &lobj = *m_class_iterator;
+    l_str = "l=" + lobj.m_label;
+    h_str = ";h=" + to_string(lobj.m_v1_hazard_count);
+    b_str = ";b=" + to_string(lobj.m_v1_benign_count) + ":"; 
+    ++m_class_iterator;
+  }
+  mes = mes + ",string_val=" + l_str + h_str + b_str;
+ // reportEvent(mes);
+  Notify("NODE_MESSAGE_LOCAL",mes);
+  reportEvent(mes);
+}
 
 //------------------------------------------------------------
 // Procedure: buildReport()

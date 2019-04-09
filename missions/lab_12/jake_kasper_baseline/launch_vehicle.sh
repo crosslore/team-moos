@@ -4,7 +4,7 @@
 #-------------------------------------------------------
 TIME_WARP=1
 JUST_BUILD="no"
-VNAME="jake"
+VNAME="kasper"
 MOOS_PORT="9001"
 UDP_LISTEN_PORT="9201"
 SHOREIP="18.21.146.185"

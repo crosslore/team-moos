@@ -6,6 +6,7 @@ initialize   SURVEY  = false
 initialize   STATION = false
 initialize   LOITER  = false
 initialize   FIRST_SURVEY = true
+initialize   DONE_LAWN = false
 
 #ifdef VNAME VNAME1
 initialize  VJOB ="SEARCH"
@@ -125,7 +126,11 @@ Behavior = BHV_Waypoint
   name      = first_survey
   pwt       = 100
   condition = MODE==FIRST-SURVEY
-  endflag   = FIRST_SURVEY = false
+  endflag   = DONE_LAWN = true
+  endflag   = FIRST_SEARCH_PATTERN  = order=reverse
+
+  perpetual = true
+
 
 
          speed = 2   // meters per second
