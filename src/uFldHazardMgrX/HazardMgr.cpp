@@ -221,22 +221,23 @@ bool HazardMgr::Iterate()
     }
     else if(m_done_with_survey){
 
-      if(!m_im_done) {
-      string mes;
-      mes =  "src_node=" + m_report_name;
-      mes = mes + ",dest_node=" + "all";
-      mes = mes + ",var_name="  + "HE_DONE";  
-      mes = mes + ",string_val=true";
-      Notify("NODE_MESSAGE_LOCAL",mes);
-      m_im_done = true;
-      reportEvent("IM DONE");
-      m_time_since_last_sent = MOOSTime();
+     //  if(!m_im_done) {
+     //  string mes;
+     //  mes =  "src_node=" + m_report_name;
+     //  mes = mes + ",dest_node=" + "all";
+     //  mes = mes + ",var_name="  + "HE_DONE";  
+     //  mes = mes + ",string_val=true";
+     //  Notify("NODE_MESSAGE_LOCAL",mes);
+     //  m_im_done = true;
+     //  reportEvent("IM DONE");
+     //  m_time_since_last_sent = MOOSTime();
 
-     }
-     if(m_we_done) {
+     // }
+
+    // else if(m_we_done) {
       postUpdateReport();
       m_time_since_last_sent = MOOSTime();
-     }
+     // }
 
     }
   
@@ -788,33 +789,51 @@ if(m_job=="CLASS")
 
 void HazardMgr::postUpdateReport()
 {
-  string mes, l_str, h_str, b_str;
+  string mes, l_str, h_str, b_str, end_str;
   mes =  "src_node=" + m_report_name;
   mes = mes + ",dest_node=" + "all";
   mes = mes + ",var_name="  + "UPDATE_REPORT";  
 
 
-  for(int i = 0; i<7; ++i) {
+  int i = 0;
+  bool empty = true;
+
+  list<HazardClassification>::iterator t;
+    for(t=m_classification_tracker.begin(); t!=m_classification_tracker.end();++t) {
+     HazardClassification &lobj = *t;
+     if(!lobj.m_update) {
+      empty = false;
+     }
+   }
+
+  if(empty) {
+    list<HazardClassification>::iterator p;
+    for(p=m_classification_tracker.begin(); p!=m_classification_tracker.end();++p) {
+     HazardClassification &lobj = *p;
+
+      lobj.m_update = false;
+    }
+  }
 
     // l_str = "l=" + lobj.m_label;
     // h_str = ";h=" + to_string(lobj.m_v1_hazard_count);
     // b_str = ";b=" + to_string(lobj.m_v1_benign_count) + ":"; 
     list<HazardClassification>::iterator l;
-  for(l=m_classification_tracker.begin(); l!=m_classification_tracker.end();++l) {
+    for(l=m_classification_tracker.begin(); l!=m_classification_tracker.end() && i<7;++l) {
     HazardClassification &lobj = *l;
     if(!lobj.m_update) {
     l_str = "l=" + lobj.m_label;
     h_str = ";h=" + to_string(lobj.m_v1_hazard_count);
     b_str = ";b=" + to_string(lobj.m_v1_benign_count) + ":"; 
+    end_str = end_str + l_str + h_str + b_str;
     lobj.m_update = true;
+    // empty = false;
+    i++;
   }
 
-
   }
 
-
-  }
-  mes = mes + ",string_val=" + l_str + h_str + b_str;
+  mes = mes + ",string_val=" + end_str;
  // reportEvent(mes);
   Notify("NODE_MESSAGE_LOCAL",mes);
   reportEvent(mes);
