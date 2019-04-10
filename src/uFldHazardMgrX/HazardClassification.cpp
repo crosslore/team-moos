@@ -14,6 +14,7 @@ HazardClassification::HazardClassification()
 	m_v1_hazard_count = 0;
 	m_probability = 0;
 	m_priority = 100000;
+	m_update = false;
 
 }
 

@@ -139,7 +139,7 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
     else if(key =="DONE_LAWN"){
       if(sval == "true") {
         m_done_with_survey = true;
-        m_class_iterator = m_classification_tracker.begin();
+        // m_class_iterator = m_classification_tracker.begin();
       }
     }
 
@@ -795,11 +795,24 @@ void HazardMgr::postUpdateReport()
 
 
   for(int i = 0; i<7; ++i) {
-    HazardClassification &lobj = *m_class_iterator;
+
+    // l_str = "l=" + lobj.m_label;
+    // h_str = ";h=" + to_string(lobj.m_v1_hazard_count);
+    // b_str = ";b=" + to_string(lobj.m_v1_benign_count) + ":"; 
+    list<HazardClassification>::iterator l;
+  for(l=m_classification_tracker.begin(); l!=m_classification_tracker.end();++l) {
+    HazardClassification &lobj = *l;
+    if(!lobj.m_update) {
     l_str = "l=" + lobj.m_label;
     h_str = ";h=" + to_string(lobj.m_v1_hazard_count);
     b_str = ";b=" + to_string(lobj.m_v1_benign_count) + ":"; 
-    ++m_class_iterator;
+    lobj.m_update = true;
+  }
+
+
+  }
+
+
   }
   mes = mes + ",string_val=" + l_str + h_str + b_str;
  // reportEvent(mes);
