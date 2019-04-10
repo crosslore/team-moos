@@ -72,6 +72,10 @@ void GenPath::testComp()
     if((hyp < visit_radius)) {// && (lobj.m_id!="firstpoint") && (lobj.m_id!="lastpoint")) {
       l = m_list.erase(l);
     }   
+    if(x_pt ==0 && y_pt ==0) {// && (lobj.m_id!="firstpoint") && (lobj.m_id!="lastpoint")) {
+      l = m_list.erase(l);
+    }
+
     // if(lobj.m_id!="firstpoint") {
     //   l = m_list.erase(l);
     // }
@@ -121,6 +125,12 @@ void GenPath::sendPoints()
     x = atof(lobj.m_x.c_str());
     y = atof(lobj.m_y.c_str());
     
+
+    if(x == 0 && y == 0 ) {// && (lobj.m_id!="firstpoint") && (lobj.m_id!="lastpoint")) {
+      l = m_list.erase(l);
+      continue;
+    }   
+
     XYPoint point(x,y);
 
     point.set_label(lobj.m_id);

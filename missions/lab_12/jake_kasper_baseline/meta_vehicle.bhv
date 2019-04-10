@@ -93,7 +93,6 @@ Behavior = BHV_Waypoint
 
 #ifdef VNAME VNAME1
 //  updates   = SEARCH_PATTERN
-
 	points = format=lawnmower,label=jakesearch,x=0,y=-237.5,height=325,width=480,lane_width=40,rows=east-west
   visual_hints = vertex_color=yellow, edge_color=green
   
@@ -181,7 +180,7 @@ Behavior = BHV_Waypoint
   endflag    = RETURN = false
   endflag    = DEPLOY = false
   endflag    = HAZARDSET_REQUEST = true
-  endflag    = NODE_MESSAGE_LOCAL = src_node=$(VNAME),dest_node=all,var_name=SURVEY,string_val=COMPLETE
+//  endflag    = NODE_MESSAGE_LOCAL = src_node=$(VNAME),dest_node=all,var_name=SURVEY,string_val=COMPLETE
 
          speed = 2.0
         radius = 2.0

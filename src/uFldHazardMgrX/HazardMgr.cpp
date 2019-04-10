@@ -159,12 +159,13 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
     }
 
 
-    else if(key == "HE_DONE") {
-      m_he_done = true;
-      reportEvent("IM DONE");
-    }
+    // else if(key == "HE_DONE") {
+    //   m_he_done = true;
+    //   reportEvent("IM DONE");
+    // }
 
     else if(key =="UPDATE_REPORT"){
+//      reportEvent(sval);
       handleUpdateReport(sval);
     }
 
@@ -173,7 +174,7 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
       reportRunWarning("Unhandled Mail: " + key);
   }
 
-
+      CalculateProbabilities();
 	
    return(true);
 }
@@ -204,7 +205,7 @@ bool HazardMgr::Iterate()
   if(m_sensor_config_set)
     postSensorInfoRequest();
 
-  if(now - m_time_since_last_sent  > 65){
+  if(now - m_time_since_last_sent  > 62){
     if(m_ack.size()){
       string mes;
       mes =  "src_node=" + m_report_name;
@@ -224,7 +225,7 @@ bool HazardMgr::Iterate()
       m_time_since_last_sent = MOOSTime(); 
     }
     else if(m_done_with_survey){
-
+     Notify("FIRST_SURVEY","false");
      //  if(!m_im_done) {
      //  string mes;
      //  mes =  "src_node=" + m_report_name;
@@ -239,8 +240,10 @@ bool HazardMgr::Iterate()
      // }
 
     // else if(m_we_done) {
+      calculateVisitPoints();
       postUpdateReport();
       m_time_since_last_sent = MOOSTime();
+      m_done_with_survey = false;
      // }
 
     }
@@ -248,10 +251,10 @@ bool HazardMgr::Iterate()
 
   }
 
-  if(m_we_done) {
-    Notify("FIRST_SURVEY","false");
+  // if(m_we_done) {
+  //   Notify("FIRST_SURVEY","false");
 
-  }
+  // }
 
   if(m_im_done && m_he_done && !m_we_done) {
     m_we_done = true;
@@ -460,10 +463,10 @@ bool HazardMgr::handleMailDetectionReport(string str)
     m_classification_tracker.push_back(New_Classification);
     m_class_found_on_own.push_back(New_Classification);
   }
-  // else {  
-  //   // m_hazard_set.setHazard(ix, new_hazard);
+   else {  
+      m_hazard_set.setHazard(ix, new_hazard);
 
-  // }
+   }
 
   //MAY want to assess probability and thershold before requsting classification
 
@@ -569,16 +572,18 @@ void HazardMgr::handleMailMissionParams(string str)
   //   m_poly_h = m_poly_h - 40;
 
   string l_width = "100";
-
+  double final_adjust;
+  if (m_job=="CLASS")
+   final_adjust = 50;
   string tmp;
   double w_buffer = 70;
-  double h_buffer = 100;
+  double h_buffer = 50;
   double adjust = 0;
   h_buffer = h_buffer+2*adjust;
 
   m_poly_center_y = m_poly_center_y+adjust;
   tmp = "points = format=lawnmower,label=jakesearch,x=" + to_string(m_poly_center_x);
-  tmp = tmp + ",y=" + to_string(m_poly_center_y) + ",height=";
+  tmp = tmp + ",y=" + to_string(m_poly_center_y - final_adjust) + ",height=";
   tmp = tmp + to_string(m_poly_h-h_buffer) + ",width=" + to_string(m_poly_w+w_buffer);
   tmp = tmp + ",lane_width="+l_width+",rows=east-west";//,startx=0,starty=0";
 
@@ -665,9 +670,11 @@ void HazardMgr::handleNewHazardReport(string str)
       m_ack = m_ack + l_str + ";";
       // Notify("VISIT_POINT",tmp);
       visit_pt_list.push_back(tmp);
+
       m_class_found_on_own.pop_front();
       continue;
     }
+    XYHazard new_hazard;
     restart_loop = false;
     HazardClassification new_classification;
     x_str = tokStringParse(str, "x", ';', '=');
@@ -677,6 +684,8 @@ void HazardMgr::handleNewHazardReport(string str)
     biteString(str, ':');
     string tmp;
     tmp = "x=" + x_str + ",y=" + y_str + ",id=" + l_str;
+    new_hazard.setLabel(l_str);
+    m_hazard_set.addHazard(new_hazard);
     new_classification.m_label = l_str;
     new_classification.m_v1_hazard_count = 0;
     new_classification.m_v1_benign_count = 0;
@@ -704,17 +713,17 @@ void HazardMgr::handleNewHazardReport(string str)
     // Notify("VISIT_POINT",tmp);
   }
 
-  if(visit_pt_list.size()) {
-    Notify("VISIT_POINT","firstpoint");
+  // if(visit_pt_list.size()) {
+  //   Notify("VISIT_POINT","firstpoint");
 
-    list<string>::iterator p;
-    for(p=visit_pt_list.begin(); p!=visit_pt_list.end(); ++p) {
-      string &lobj = *p;
-      Notify("VISIT_POINT",lobj);
-    }    
+  //   list<string>::iterator p;
+  //   for(p=visit_pt_list.begin(); p!=visit_pt_list.end(); ++p) {
+  //     string &lobj = *p;
+  //     Notify("VISIT_POINT",lobj);
+  //   }    
 
-    Notify("VISIT_POINT","lastpoint");
-  }
+  //   Notify("VISIT_POINT","lastpoint");
+  // }
 }
 
 
@@ -751,13 +760,15 @@ void HazardMgr::handleHazardClassification(string str)
       if(type_str=="benign"){
         lobj.m_v1_benign_count++;
       }
-      string msg = "hazard count = " + to_string(lobj.m_v1_hazard_count);
-      msg = msg + ",benign count = " + to_string(lobj.m_v1_benign_count);
+      string msg = "hazard (ME) count = " + to_string(lobj.m_v1_hazard_count);
+      msg = msg + ",benign (ME) count = " + to_string(lobj.m_v1_benign_count);
       msg = msg + ",label = " + lobj.m_label;
-      // reportEvent(msg);
+      reportEvent(msg);
       b_count = lobj.m_v1_benign_count;
       h_count = lobj.m_v1_hazard_count;
-
+      msg = "hazard (HIM) count = " + to_string(lobj.m_v2_hazard_count);
+      msg = msg + ",benign (HIM) count = " + to_string(lobj.m_v2_benign_count);
+      msg = msg + ",label = " + lobj.m_label;
       if(b_count<h_count){
         lobj.m_class = "hazard";
         lobj.m_probability = pow(p_class,h_count)*pow(1-p_class,b_count);
@@ -772,7 +783,7 @@ void HazardMgr::handleHazardClassification(string str)
         if(lobj.m_probability * m_penalty_false_alarm < (1-lobj.m_probability) * m_penalty_missed_hazard)
           lobj.m_class = "hazard";
       }
-      // reportEvent("type="+lobj.m_class+",probability = "+to_string(lobj.m_probability));
+      reportEvent("type="+lobj.m_class+",probability = "+to_string(lobj.m_probability));
       Notify("UPDATE_POINT","label="+lobj.m_label+",probbability="+to_string(lobj.m_probability));
     }
   }
@@ -850,25 +861,110 @@ void HazardMgr::postUpdateReport()
 
 void HazardMgr::handleUpdateReport(string str)
 {
-  string l_str;
+
+  string l_str, h_str, b_str;
   int h_count, b_count;
   int requests = std::count(str.begin(),str.end(),'l');
-  for(int i=0; i<requests; i++){
+  for(int i=0; i<1; i++){
     l_str = tokStringParse(str, "l", ';', '=');
-    h_count = stoi(tokStringParse(str, "h", ';', '='));
-    b_count = stoi(tokStringParse(str, "b", ';', '='));
+    h_str = tokStringParse(str, "h", ';', '=');
+    b_str = tokStringParse(str, "b", ';', '=');
     biteString(str, ':');
-    list<HazardClassification>::iterator l;
-    for(l=m_classification_tracker.begin(); l!=m_classification_tracker.end() && i<7;++l) {
-      HazardClassification &lobj = *l;
-      if(l_str == lobj.m_label){
-        lobj.m_v2_benign_count = b_count;
-        lobj.m_v2_hazard_count = h_count;
-        reportEvent("l=" + lobj.m_label + ",h2=" + to_string(h_count) + ",b2=" + to_string(b_count));
+    if(!h_str.size())
+      h_count = 0;
+    else
+      h_count = stoi(h_str);
+    if(!b_str.size())
+      b_count = 0;
+    else
+      b_count = stoi(b_str);
+      list<HazardClassification>::iterator l;
+      for(l=m_classification_tracker.begin(); l!=m_classification_tracker.end();++l) {
+        HazardClassification &lobj = *l;
+        if(l_str == lobj.m_label){
+          lobj.m_v2_benign_count = b_count;
+          lobj.m_v2_hazard_count = h_count;
+          reportEvent("l=" + lobj.m_label + ",h2=" + to_string(h_count) + ",b2=" + to_string(b_count));
+          reportEvent("l=" + lobj.m_label + "h =" + to_string(h_count) + ",b=" + to_string(b_count));
       }
+     }
+   }
+}
+
+void HazardMgr::CalculateProbabilities()
+{
+  double p_class = m_pclass_granted;
+  double b_count, h_count;
+  list<HazardClassification>::iterator l;
+  for(l=m_classification_tracker.begin(); l!=m_classification_tracker.end();++l) {
+    HazardClassification &lobj = *l;
+      b_count = lobj.m_v1_benign_count + lobj.m_v2_benign_count;
+      h_count = lobj.m_v1_hazard_count + lobj.m_v2_hazard_count;
+
+      if(b_count<h_count){
+        lobj.m_class = "hazard";
+        lobj.m_probability = pow(p_class,h_count)*pow(1-p_class,b_count);
+        lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,b_count)*pow(1-p_class,h_count));
+        if(lobj.m_probability * m_penalty_missed_hazard < (1-lobj.m_probability) * m_penalty_false_alarm)
+          lobj.m_class = "benign";
+      }
+      else if(h_count<=b_count){
+        lobj.m_class = "benign";
+        lobj.m_probability = pow(p_class,b_count)*pow(1-p_class,h_count);
+        lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,h_count)*pow(1-p_class,b_count));
+        if(lobj.m_probability * m_penalty_false_alarm < (1-lobj.m_probability) * m_penalty_missed_hazard)
+          lobj.m_class = "hazard";
+      }
+      Notify("UPDATE_POINT","label="+lobj.m_label+",probbability="+to_string(lobj.m_probability));
     }
   }
+
+
+void HazardMgr::calculateVisitPoints()
+{
+  string l_str;
+  double x, y, x_total;
+  x_total = 0;
+  list<HazardClassification>::iterator i;
+  for(i=m_classification_tracker.begin(); i!=m_classification_tracker.end();++i) {
+    HazardClassification &lobj = *i;
+    x = lobj.m_x;
+    x_total = x + x_total;
+  }    
+
+  double average_x = x_total / m_classification_tracker.size();
+  reportEvent("average x = " + to_string(average_x) + ", job = " + m_job);
+
+  string x_str, y_str;
+  Notify("VISIT_POINT","firstpoint");
+  list<HazardClassification>::iterator l;
+  for(l=m_classification_tracker.begin(); l!=m_classification_tracker.end();++l) {
+    HazardClassification &lobj = *l;
+    l_str = lobj.m_label;
+    x = lobj.m_x;
+    if(m_job == "CLASS" && x > average_x){
+      x_str = to_string(lobj.m_x);
+      y_str = to_string(lobj.m_y);
+      string tmp;
+      tmp = "x=" + x_str + ",y=" + y_str + ",id=" + l_str;
+      Notify("VISIT_POINT",tmp);
+    }
+    if(m_job =="SEARCH" && x <= average_x){
+      x_str = to_string(lobj.m_x);
+      y_str = to_string(lobj.m_y);
+      string tmp;
+      tmp = "x=" + x_str + ",y=" + y_str + ",id=" + l_str;
+      Notify("VISIT_POINT",tmp);
+    }
+  }    
+  Notify("VISIT_POINT","lastpoint");
 }
+
+
+
+
+
+
 
 
 //------------------------------------------------------------
