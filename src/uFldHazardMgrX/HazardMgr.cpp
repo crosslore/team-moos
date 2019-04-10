@@ -66,6 +66,7 @@ HazardMgr::HazardMgr()
   m_sensor_report_reqs = 0;
   m_detection_reports  = 0;
   m_time_since_last_sent = MOOSTime() - 60;
+//  m_time_game_start = MOOSTime();
 
   m_penalty_missed_hazard = 150;
   m_penalty_false_alarm = 25;
@@ -174,7 +175,6 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
       reportRunWarning("Unhandled Mail: " + key);
   }
 
-      CalculateProbabilities();
 	
    return(true);
 }
@@ -198,6 +198,7 @@ bool HazardMgr::Iterate()
   AppCastingMOOSApp::Iterate();
     
   double now = MOOSTime();
+
 
   if(!m_sensor_config_requested)
     postSensorConfigRequest();
@@ -247,7 +248,11 @@ bool HazardMgr::Iterate()
      // }
 
     }
-  
+       CalculateProbabilities();
+    if(m_done_with_survey){
+        calculateVisitPoints();
+    }
+ 
 
   }
 
@@ -784,7 +789,7 @@ void HazardMgr::handleHazardClassification(string str)
           lobj.m_class = "hazard";
       }
       reportEvent("type="+lobj.m_class+",probability = "+to_string(lobj.m_probability));
-      Notify("UPDATE_POINT","label="+lobj.m_label+",probbability="+to_string(lobj.m_probability));
+      Notify("PROB_POINT","l="+lobj.m_label+",p="+to_string(lobj.m_probability));
     }
   }
   
@@ -894,7 +899,31 @@ void HazardMgr::handleUpdateReport(string str)
 void HazardMgr::CalculateProbabilities()
 {
   double p_class = m_pclass_granted;
+  double average_prob =0;
+
   double b_count, h_count;
+
+  list<HazardClassification>::iterator t;
+  for(t=m_classification_tracker.begin(); t!=m_classification_tracker.end();++t) {
+    HazardClassification &lobj = *t;
+    average_prob = average_prob + lobj.m_probability;
+  }
+
+ average_prob = average_prob / m_classification_tracker.size();
+
+ double standardDeviation = 0;
+list<HazardClassification>::iterator c;
+  for(c=m_classification_tracker.begin(); c!=m_classification_tracker.end();++c) {
+    HazardClassification &lobj = *c;
+    standardDeviation += pow(lobj.m_probability - average_prob, 2);
+  }
+
+standardDeviation =  pow(standardDeviation / m_classification_tracker.size(),0.5);
+double p_threshhold = average_prob + standardDeviation;
+
+Notify("THRESHHOLD_UPDATE",to_string(p_threshhold));
+
+
   list<HazardClassification>::iterator l;
   for(l=m_classification_tracker.begin(); l!=m_classification_tracker.end();++l) {
     HazardClassification &lobj = *l;
@@ -915,8 +944,14 @@ void HazardMgr::CalculateProbabilities()
         if(lobj.m_probability * m_penalty_false_alarm < (1-lobj.m_probability) * m_penalty_missed_hazard)
           lobj.m_class = "hazard";
       }
-      Notify("UPDATE_POINT","label="+lobj.m_label+",probbability="+to_string(lobj.m_probability));
+      Notify("PROB_POINT","l="+lobj.m_label+",p="+to_string(lobj.m_probability));
     }
+
+
+
+
+
+
   }
 
 
@@ -956,7 +991,8 @@ void HazardMgr::calculateVisitPoints()
       tmp = "x=" + x_str + ",y=" + y_str + ",id=" + l_str;
       Notify("VISIT_POINT",tmp);
     }
-  }    
+  Notify("PROB_POINT","l="+lobj.m_label+",p="+to_string(lobj.m_probability));   
+  } 
   Notify("VISIT_POINT","lastpoint");
 }
 

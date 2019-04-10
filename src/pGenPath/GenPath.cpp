@@ -60,7 +60,7 @@ void GenPath::testComp()
   list<CompPath>::iterator l;
   for(l=m_list.begin(); l!=m_list.end();) {
     CompPath &lobj = *l;
-    reportEvent("ID="+lobj.m_id+"X="+lobj.m_x+"Y="+lobj.m_y);
+    //reportEvent("ID="+lobj.m_id+"X="+lobj.m_x+"Y="+lobj.m_y);
 
     double x_pt,y_pt;
 
@@ -114,13 +114,14 @@ void GenPath::sendPoints()
 
   m_list.sort();
 
+  my_seglist.clear();
   string update_str = "points = ";
 
   list<CompPath>::iterator l;
   for(l=m_list.begin(); l!=m_list.end(); l++) {
     CompPath &lobj = *l;
 
-    reportEvent(to_string(lobj.m_dist));
+    //reportEvent(to_string(lobj.m_dist));
 
     x = atof(lobj.m_x.c_str());
     y = atof(lobj.m_y.c_str());
@@ -134,17 +135,19 @@ void GenPath::sendPoints()
     XYPoint point(x,y);
 
     point.set_label(lobj.m_id);
+
     
-    if(lobj.m_prob<m_p_thresh) {
+    if(lobj.m_prob < m_p_thresh) {
       my_seglist.insert_vertex(point.x(),point.y());
     }
+
 
    }
   // m_list.clear();
   update_str       += my_seglist.get_spec();
 
     // m_list.clear();
-  reportEvent(my_seglist.get_spec());
+  //reportEvent(my_seglist.get_spec());
 
 
   Notify("CLASS_PATTERN",update_str);
@@ -183,7 +186,7 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
       reportEvent("I GOT A HANG_Y");
     }
 
-    if(key=="GENPATH_REGENERATE") {
+    else if(key=="GENPATH_REGENERATE") {
       string value = msg.GetString();
       if(value =="true") {
         // reportEvent("DONE !!!!!");
@@ -225,10 +228,33 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
 
       XYPoint point(x_now,y_now);
       m_curr_point = point;
-
       if(!m_register_start){
         setStart(point);
       }
+
+}
+
+if(key =="THRESHHOLD_UPDATE"){
+          string val = msg.GetString();
+          m_p_thresh = stod(val);  
+          reportEvent("new threshold = " + val);
+}
+
+
+      if(key == "PROB_POINT")
+        {
+          string val = msg.GetString();
+          string l_str = tokStringParse(val, "l", ',', '=');
+
+          list<CompPath>::iterator l;
+          for(l=m_list.begin(); l!=m_list.end(); l++) {
+            CompPath &lobj = *l;
+            if(lobj.m_id == l_str){
+              lobj.m_prob = stod(tokStringParse(val, "p", ',', '='));
+              reportEvent("label = " + l_str + ", prob = " + to_string(lobj.m_prob));
+            }
+          }
+      
 
     }
 
@@ -317,6 +343,8 @@ bool GenPath::OnStartUp()
 void GenPath::registerVariables()
 {
   AppCastingMOOSApp::RegisterVariables();
+  Register("PROB_POINT",0);
+  Register("THRESHHOLD_UPDATE",0);
   Register("VISIT_POINT", 0);
   Register("LOITER_UPDATE",0);
   Register("NODE_REPORT_LOCAL",0);
