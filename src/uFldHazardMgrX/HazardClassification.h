@@ -32,6 +32,9 @@ using namespace std;
 
    int         m_v1_benign_count;
    int         m_v1_hazard_count;
+   int         m_v2_benign_count;
+   int         m_v2_hazard_count;
+
    bool        m_update;
 
  };

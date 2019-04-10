@@ -164,6 +164,10 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
       reportEvent("IM DONE");
     }
 
+    else if(key =="UPDATE_REPORT"){
+      handleUpdateReport(sval);
+    }
+
       
     else 
       reportRunWarning("Unhandled Mail: " + key);
@@ -337,6 +341,7 @@ void HazardMgr::registerVariables()
   Register("GET_TIME",0);
   Register("DONE_LAWN",0);
   Register("HE_DONE",0);
+  Register("UPDATE_REPORT",0);
   // Register("NAV_X",0);
 }
 
@@ -449,6 +454,8 @@ bool HazardMgr::handleMailDetectionReport(string str)
     New_Classification.m_y = new_hazard.getY();
     New_Classification.m_v1_hazard_count = 0;
     New_Classification.m_v1_benign_count = 0;
+    New_Classification.m_v2_hazard_count = 0;
+    New_Classification.m_v2_benign_count = 0;
     New_Classification.m_probability = m_pclass_granted;
     m_classification_tracker.push_back(New_Classification);
     m_class_found_on_own.push_back(New_Classification);
@@ -673,6 +680,8 @@ void HazardMgr::handleNewHazardReport(string str)
     new_classification.m_label = l_str;
     new_classification.m_v1_hazard_count = 0;
     new_classification.m_v1_benign_count = 0;
+    new_classification.m_v2_hazard_count = 0;
+    new_classification.m_v2_benign_count = 0;
     new_classification.m_x = stod(x_str);
     new_classification.m_y = stod(y_str);
     m_ack = m_ack + l_str + ";";
@@ -838,6 +847,29 @@ void HazardMgr::postUpdateReport()
   Notify("NODE_MESSAGE_LOCAL",mes);
   reportEvent(mes);
 }
+
+void HazardMgr::handleUpdateReport(string str)
+{
+  string l_str;
+  int h_count, b_count;
+  int requests = std::count(str.begin(),str.end(),'l');
+  for(int i=0; i<requests; i++){
+    l_str = tokStringParse(str, "l", ';', '=');
+    h_count = stoi(tokStringParse(str, "h", ';', '='));
+    b_count = stoi(tokStringParse(str, "b", ';', '='));
+    biteString(str, ':');
+    list<HazardClassification>::iterator l;
+    for(l=m_classification_tracker.begin(); l!=m_classification_tracker.end() && i<7;++l) {
+      HazardClassification &lobj = *l;
+      if(l_str == lobj.m_label){
+        lobj.m_v2_benign_count = b_count;
+        lobj.m_v2_hazard_count = h_count;
+        reportEvent("l=" + lobj.m_label + ",h2=" + to_string(h_count) + ",b2=" + to_string(b_count));
+      }
+    }
+  }
+}
+
 
 //------------------------------------------------------------
 // Procedure: buildReport()
