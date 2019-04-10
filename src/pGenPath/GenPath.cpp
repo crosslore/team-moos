@@ -23,6 +23,7 @@
 using namespace std;
 
 
+
 int visit_radius = 5;
 
 //---------------------------------------------------------
@@ -50,6 +51,7 @@ void GenPath::setStart(XYPoint point)
 // XYPoint point2(0,-40);
 
 m_start_point = point;
+
 m_register_start = true; 
 
 }
@@ -59,6 +61,7 @@ void GenPath::testComp()
 
   list<CompPath>::iterator l;
   for(l=m_list.begin(); l!=m_list.end();) {
+    calcDist();
     CompPath &lobj = *l;
     //reportEvent("ID="+lobj.m_id+"X="+lobj.m_x+"Y="+lobj.m_y);
 
@@ -143,6 +146,10 @@ void GenPath::sendPoints()
 
 
    }
+
+
+
+
   // m_list.clear();
   update_str       += my_seglist.get_spec();
 
@@ -292,7 +299,7 @@ bool GenPath::Iterate()
   AppCastingMOOSApp::Iterate();
   // Do your thing here!
 
-      calcDist();
+
 
       // testComp();
 

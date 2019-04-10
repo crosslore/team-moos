@@ -13,6 +13,7 @@ ProcessConfig = pEchoVar
   Echo  = GPS_SPEED       ->  NAV_SPEED
   Echo  = COMPASS_HEADING ->  NAV_HEADING
 
+
   FLIP:1  = source_variable = MVIEWER_LCLICK
   FLIP:1  = dest_variable   = RETURN_UPDATES
   FLIP:1  = dest_separator  = #

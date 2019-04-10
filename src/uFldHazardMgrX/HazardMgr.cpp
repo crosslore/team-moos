@@ -78,7 +78,7 @@ HazardMgr::HazardMgr()
   m_im_done = false;
   m_he_done = false;
   m_we_done = false;
-
+  m_ready_for_update_points = false;
 }
 
 //---------------------------------------------------------
@@ -107,8 +107,12 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
 
     else if(key == "UHZ_OPTIONS_SUMMARY") 
       handleMailSensorOptionsSummary(sval);
-    else if(key == "GET_TIME") {
-      m_start = MOOSTime();
+
+    else if(key =="DEPLOY"){
+      if(sval=="true"){
+//        reportEvent("DEPLOY TIME GOT");
+        m_time_deploy = MOOSTime();
+      }
     }
 
 //If Drive Over an object
@@ -137,6 +141,7 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
     else if(key =="NEW_HAZARD_REPORT"){
      handleNewHazardReport(sval); 
     }
+
     else if(key =="DONE_LAWN"){
       if(sval == "true") {
         m_done_with_survey = true;
@@ -197,8 +202,6 @@ bool HazardMgr::Iterate()
 {
   AppCastingMOOSApp::Iterate();
     
-  double now = MOOSTime();
-
 
   if(!m_sensor_config_requested)
     postSensorConfigRequest();
@@ -206,15 +209,30 @@ bool HazardMgr::Iterate()
   if(m_sensor_config_set)
     postSensorInfoRequest();
 
+     double now = MOOSTime();
   if(now - m_time_since_last_sent  > 62){
-    if(m_ack.size()){
+
+  if(m_classification_tracker.size() >= 35){
+      Notify("CLASS_PATTERN","endflag = PERM_LAWN1 = true");
+      string mes;
+      mes =  "src_node=" + m_report_name;
+      mes = mes + ",dest_node=" + "all";
+      mes = mes + ",var_name="  + "CLASS_PATTERN";  
+      mes = mes + ",string_val=" + "endflag = PERM_LAWN1 = true";
+      Notify("NODE_MESSAGE_LOCAL",mes);
+      Notify("TIMER_UPDATES","endflag = TALK_NEEDED = false ");
+      //assignVesselProbability();
+
+}
+
+   else if(m_ack.size()){
       string mes;
       mes =  "src_node=" + m_report_name;
       mes = mes + ",dest_node=" + "all";
       mes = mes + ",var_name="  + "ACK_REPORT";  
       mes = mes + ",string_val=" + m_ack;
       Notify("NODE_MESSAGE_LOCAL",mes);
-      reportEvent("Sent Ack" +m_ack);
+      //reportEvent("Sent Ack for = " + m_ack);
       m_ack.clear();
       m_time_since_last_sent = MOOSTime();
 
@@ -222,10 +240,13 @@ bool HazardMgr::Iterate()
 
     else if(m_hazards_to_send.size()) {
       postVesselHazards();
-      reportEvent("hazards to send = "+ to_string(m_hazards_to_send.size())); 
+    //  reportEvent("hazards to send = "+ to_string(m_hazards_to_send.size())); 
       m_time_since_last_sent = MOOSTime(); 
     }
     else if(m_done_with_survey){
+     // string new_time = to_string(7200 - (now - m_time_deploy) - 60 * (m_classification_tracker.size()/7) - m_transit_time);
+     // reportEvent(new_time);
+     // Notify("TIMER_UPDATES","duration = " + new_time);
      Notify("FIRST_SURVEY","false");
      //  if(!m_im_done) {
      //  string mes;
@@ -244,18 +265,23 @@ bool HazardMgr::Iterate()
       calculateVisitPoints();
       postUpdateReport();
       m_time_since_last_sent = MOOSTime();
-      m_done_with_survey = false;
      // }
-
+      m_ready_for_update_points = true;
+      m_done_with_survey = false;
     }
-       CalculateProbabilities();
-    if(m_done_with_survey){
-        calculateVisitPoints();
+    else if(m_ready_for_update_points){
+        postUpdateReport();
+        m_time_since_last_sent = MOOSTime();
     }
  
 
   }
 
+if(m_classification_tracker.size() >= 40){
+     Notify("CLASS_PATTERN","endflag = PERM_LAWN1 = true");
+}
+
+       CalculateProbabilities();
   // if(m_we_done) {
   //   Notify("FIRST_SURVEY","false");
 
@@ -263,7 +289,7 @@ bool HazardMgr::Iterate()
 
   if(m_im_done && m_he_done && !m_we_done) {
     m_we_done = true;
-    reportEvent("WE_DONE!");
+    //reportEvent("WE_DONE!");
   }
  
 
@@ -350,6 +376,7 @@ void HazardMgr::registerVariables()
   Register("DONE_LAWN",0);
   Register("HE_DONE",0);
   Register("UPDATE_REPORT",0);
+  Register("DEPLOY",0);
   // Register("NAV_X",0);
 }
 
@@ -573,20 +600,26 @@ void HazardMgr::handleMailMissionParams(string str)
   m_poly_w = abs(m_poly_center_x-x1)*2;
   m_poly_h = abs(m_poly_center_y-y1)*2;
 
+  m_transit_time = pow(pow(m_poly_w,2)+pow(m_poly_h,2),0.5) / 4;
+
+
+  Notify("RETURN_UPDATES","points =" + to_string(m_poly_center_x) + "," + to_string(m_poly_center_y));
+
   // if(m_job == "CLASS")
   //   m_poly_h = m_poly_h - 40;
 
-  string l_width = "100";
+  string l_width = "40";
   double final_adjust;
   if (m_job=="CLASS")
-   final_adjust = 50;
+   final_adjust = 20;
   string tmp;
   double w_buffer = 70;
-  double h_buffer = 50;
+  double h_buffer = 20;
   double adjust = 0;
   h_buffer = h_buffer+2*adjust;
 
   m_poly_center_y = m_poly_center_y+adjust;
+
   tmp = "points = format=lawnmower,label=jakesearch,x=" + to_string(m_poly_center_x);
   tmp = tmp + ",y=" + to_string(m_poly_center_y - final_adjust) + ",height=";
   tmp = tmp + to_string(m_poly_h-h_buffer) + ",width=" + to_string(m_poly_w+w_buffer);
@@ -596,6 +629,8 @@ void HazardMgr::handleMailMissionParams(string str)
         Notify("SEARCH_PATTERN",m_search_pattern);
         Notify("CLASS_PATTERN",m_search_pattern);
         Notify("FIRST_SEARCH_PATTERN",m_search_pattern);
+        Notify("LAWN_1_UPDATES",m_search_pattern);
+        Notify("LAWN_2_UPDATES",m_search_pattern);
 
   m_start_info = true;
 }
@@ -774,6 +809,7 @@ void HazardMgr::handleHazardClassification(string str)
       msg = "hazard (HIM) count = " + to_string(lobj.m_v2_hazard_count);
       msg = msg + ",benign (HIM) count = " + to_string(lobj.m_v2_benign_count);
       msg = msg + ",label = " + lobj.m_label;
+      reportEvent(msg);
       if(b_count<h_count){
         lobj.m_class = "hazard";
         lobj.m_probability = pow(p_class,h_count)*pow(1-p_class,b_count);
@@ -792,7 +828,7 @@ void HazardMgr::handleHazardClassification(string str)
       Notify("PROB_POINT","l="+lobj.m_label+",p="+to_string(lobj.m_probability));
     }
   }
-  
+  CalculateProbabilities();  
 }
 
 
@@ -800,11 +836,11 @@ void HazardMgr::assignVesselProbability()
 {
 if(m_job=="SEARCH")
 {
-  m_pd_desired = 1;
+  m_pd_desired = 0.4;
 }
 if(m_job=="CLASS")
 {
-  m_pd_desired = 1;
+  m_pd_desired = 0.4;
 }
   string request = "vname=" + m_host_community;
   request += ",pd="    + doubleToStringX(m_pd_desired,2);
@@ -859,7 +895,7 @@ void HazardMgr::postUpdateReport()
   }
 
   mes = mes + ",string_val=" + end_str;
- // reportEvent(mes);
+  reportEvent(mes);
   Notify("NODE_MESSAGE_LOCAL",mes);
   reportEvent(mes);
 }
@@ -870,7 +906,7 @@ void HazardMgr::handleUpdateReport(string str)
   string l_str, h_str, b_str;
   int h_count, b_count;
   int requests = std::count(str.begin(),str.end(),'l');
-  for(int i=0; i<1; i++){
+  for(int i=0; i<requests; i++){
     l_str = tokStringParse(str, "l", ';', '=');
     h_str = tokStringParse(str, "h", ';', '=');
     b_str = tokStringParse(str, "b", ';', '=');
@@ -919,7 +955,7 @@ list<HazardClassification>::iterator c;
   }
 
 standardDeviation =  pow(standardDeviation / m_classification_tracker.size(),0.5);
-double p_threshhold = average_prob + standardDeviation;
+double p_threshhold = average_prob + 1.5 * standardDeviation;
 
 Notify("THRESHHOLD_UPDATE",to_string(p_threshhold));
 
@@ -968,7 +1004,7 @@ void HazardMgr::calculateVisitPoints()
   }    
 
   double average_x = x_total / m_classification_tracker.size();
-  reportEvent("average x = " + to_string(average_x) + ", job = " + m_job);
+
 
   string x_str, y_str;
   Notify("VISIT_POINT","firstpoint");

@@ -85,7 +85,7 @@ class HazardMgr : public AppCastingMOOSApp
    bool m_we_done;
 
 
-
+   int m_counter;
     list<HazardClassification>::iterator m_class_iterator;
 
 
@@ -104,6 +104,7 @@ class HazardMgr : public AppCastingMOOSApp
    bool   m_got_start_x;
    bool   m_wait_time_reached;
    bool   m_done_with_survey;
+   bool   m_ready_for_update_points;
 
    unsigned int m_sensor_config_reqs;
    unsigned int m_sensor_config_acks;
@@ -116,6 +117,9 @@ class HazardMgr : public AppCastingMOOSApp
    double m_swath_width_granted;
    double m_pd_granted;
    double m_pclass_granted;
+
+   double m_transit_time;
+   double m_time_deploy;
 
    double m_penalty_missed_hazard;
    double m_penalty_false_alarm;

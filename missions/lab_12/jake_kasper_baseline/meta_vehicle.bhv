@@ -7,6 +7,10 @@ initialize   STATION = false
 initialize   LOITER  = false
 initialize   FIRST_SURVEY = true
 initialize   DONE_LAWN = false
+initialize   TIMER_START = false
+initialize   TALK_NEEDED = false
+initialize   PERM_LAWN1   = false
+initialize   PERM_LAWN2   = false
 
 #ifdef VNAME VNAME1
 initialize  VJOB ="SEARCH"
@@ -28,9 +32,25 @@ set MODE = LOITERING {
   LOITER = true
 }
 
+set MODE = PERM-LAWN1 {
+  MODE = ACTIVE
+  PERM_LAWN1 = true
+}
+
+set MODE = PERM-LAWN2 {
+  MODE = ACTIVE
+  PERM_LAWN2 = true
+}
+
+
 set MODE = FIRST-SURVEY {
   MODE = ACTIVE
   FIRST_SURVEY = true
+}
+
+set MODE = TALKING{
+  MODE = ACTIVE
+  TALK_NEEDED = true
 }
 
 set MODE = RETURNING {
@@ -81,6 +101,8 @@ Behavior = BHV_Waypoint
   condition = MODE==SURVEYING
  // endflag   = RETURN = true
   endflag      = GENPATH_REGENERATE = true
+
+
 
 
          speed = 2   // meters per second
@@ -162,12 +184,115 @@ Behavior = BHV_Waypoint
   visual_hints = vertex_size=1, edge_size=1
 
 
-//  points = -200,-130:-90,-420:-57,-402:-170,-120:-129,-104:-22,-388:20,-370:-84,-85:-42,-69:59,-354:100,-339:-2,-53:39,-34:140,-322:175,-311:80,-23:121,-7:216,-290:256,-275:167,3:203,14:296,-260:330,-244:244,6
+}
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{ 
+  name      = perm_lawn_1
+  pwt       = 100
+  condition = MODE==PERM-LAWN1
+  endflag   = PERM_LAWN1 = false
+  endflag   =  PERM_LAWN2 = true
+
+  order = reverse
+  perpetual = true
+
+         speed = 2   // meters per second
+        radius = 5.0
+   slip_radius = 15.0
+            lead = 15
+
+     updates   = LAWN_1_UPDATE
+
+#ifdef VNAME VNAME1
+
+  points = format=lawnmower,label=jakesearch,x=0,y=-237.5,height=325,width=480,lane_width=40,rows=east-west
+  visual_hints = vertex_color=yellow, edge_color=green
+  runflag = VJOB = "SEARCH"
+
+#elseifdef VNAME VNAME2
+
+
+  points = format=lawnmower,label=kaspersearch,x=262.5,y=-237.5,height=325,width=255,lane_width=20,rows=east-west,degs=0
+  visual_hints = vertex_color=yellow, edge_color=gray25
+  
+  runflag = VJOB = "CLASS"
+
+
+#endif
+
+
+        repeat = 0
+  visual_hints = nextpt_color=red, nextpt_lcolor=green
+  visual_hints = vertex_size=1, edge_size=1
+
+
+}
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{ 
+  name      = perm_lawn_2
+  pwt       = 100
+  condition = MODE==PERM-LAWN2
+  endflag   = PERM_LAWN1 = true
+  endflag   =  PERM_LAWN2 = false
+
+  perpetual = true
+
+         speed = 2   // meters per second
+        radius = 5.0
+   slip_radius = 15.0
+            lead = 15
+
+     updates   = LAWN_2_UPDATES
+
+#ifdef VNAME VNAME1
+
+  points = format=lawnmower,label=jakesearch,x=0,y=-237.5,height=325,width=480,lane_width=40,rows=east-west
+  visual_hints = vertex_color=yellow, edge_color=green
+  runflag = VJOB = "SEARCH"
+
+#elseifdef VNAME VNAME2
+
+
+  points = format=lawnmower,label=kaspersearch,x=262.5,y=-237.5,height=325,width=255,lane_width=20,rows=east-west,degs=0
+  visual_hints = vertex_color=yellow, edge_color=gray25
+  
+  runflag = VJOB = "CLASS"
+
+
+#endif
+
+
+        repeat = 0
+  visual_hints = nextpt_color=red, nextpt_lcolor=green
+  visual_hints = vertex_size=1, edge_size=1
+
 
 }
 
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name       = waypt_talkneeded
+  pwt        = 100
+  condition  = MODE==TALKING
+  perpetual  = true
+  endflag    = RETURN = false
+  endflag    = DEPLOY = false
+//  endflag    = HAZARDSET_REQUEST = true
+//  endflag    = NODE_MESSAGE_LOCAL = src_node=$(VNAME),dest_node=all,var_name=SURVEY,string_val=COMPLETE
 
+updates = RETURN_UPDATES
 
+         speed = 2.0
+        radius = 2.0
+     nm_radius = 8.0
+        points = $(START_POS)
+}
+
+//------------------------------------
 
 
 //----------------------------------------------
@@ -179,8 +304,9 @@ Behavior = BHV_Waypoint
   perpetual  = true
   endflag    = RETURN = false
   endflag    = DEPLOY = false
-  endflag    = HAZARDSET_REQUEST = true
+//  endflag    = HAZARDSET_REQUEST = true
 //  endflag    = NODE_MESSAGE_LOCAL = src_node=$(VNAME),dest_node=all,var_name=SURVEY,string_val=COMPLETE
+
 
          speed = 2.0
         radius = 2.0
@@ -191,24 +317,46 @@ Behavior = BHV_Waypoint
 //------------------------------------
 
 
+ Behavior = BHV_Timer
+ {
+   // General Behavior Parameters
+   // ---------------------------
+   name         = bhv_timer_talking
+   duration     = 6500                 // example
+   runflag      = TIMER_START = true         // example
+ 
+   endflag      =   FIRST_SURVEY = false
+   endflag      =   TALK_NEEDED = true         // example
+
+   duration_idle_decay = false
+   duration_status = TIME_LEFT
+   perpetual = true
+
+   updates      = TIMER_UPDATES        // example
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+   // None
+ }
+
+ Behavior = BHV_Timer
+ {
+   // General Behavior Parameters
+   // ---------------------------
+   name         = bhv_timer_return
+   duration     = 7100              // example
+   runflag      = TIMER_START = true         // example
+ 
+   endflag      = HAZARDSET_REQUEST = true
+   endflag      = RETURN = true
+
+   duration_idle_decay = false
+   perpetual = true
 
 
-Behavior = BHV_Loiter
-{
-  name      = loiter
-  pwt       = 100
-  condition = MODE==LOITERING
-  updates   = LOITER_UPDATE
 
-         speed = 2
-     clockwise = false
-        radius = 8.0
-     nm_radius = 15.0
-       polygon = radial:: x=0,y=0, radius=99, pts=8, snap=1 
-
-  visual_hints = nextpt_color=white, nextpt_lcolor=khaki
-  visual_hints = edge_color=orange, vertex_color=white
-  visual_hints = edge_size=1, vertex_size=2
-}
-
+   // Parameters specific to this behavior
+   // ------------------------------------
+   // None
+ }
 
