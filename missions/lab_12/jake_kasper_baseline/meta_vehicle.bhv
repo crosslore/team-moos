@@ -322,7 +322,7 @@ Behavior = BHV_Waypoint
    // General Behavior Parameters
    // ---------------------------
    name         = bhv_timer_talking
-   duration     = 6200                 // example
+   duration     = 6600                 // example
    runflag      = TIMER_START = true         // example
  
    endflag      =   FIRST_SURVEY = false

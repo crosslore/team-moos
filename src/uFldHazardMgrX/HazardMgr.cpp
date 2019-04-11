@@ -82,6 +82,8 @@ HazardMgr::HazardMgr()
 }
 
 bool genpath = true;
+bool time_to_get_update = false;
+bool shifted = false;
 
 //---------------------------------------------------------
 // Procedure: OnNewMail
@@ -211,24 +213,16 @@ bool HazardMgr::Iterate()
   if(m_sensor_config_set)
     postSensorInfoRequest();
 
+     if(m_classification_tracker.size() >= 20 ){
+              assignVesselProbability();}
+
      double now = MOOSTime();
   if(now - m_time_since_last_sent  > 62){
+     
 
-  if(m_classification_tracker.size() >= 20){
-      Notify("CLASS_PATTERN","endflag = PERM_LAWN1 = true");
-      string mes;
-      mes =  "src_node=" + m_report_name;
-      mes = mes + ",dest_node=" + "all";
-      mes = mes + ",var_name="  + "CLASS_PATTERN";  
-      mes = mes + ",string_val=" + "endflag = PERM_LAWN1 = true";
-      Notify("NODE_MESSAGE_LOCAL",mes);
-      Notify("TIMER_UPDATES","endflag = TALK_NEEDED = false ");
-      assignVesselProbability();
-      genpath = false;
 
-}
 
-   else if(m_ack.size()){
+   if(m_ack.size()){
       string mes;
       mes =  "src_node=" + m_report_name;
       mes = mes + ",dest_node=" + "all";
@@ -272,7 +266,7 @@ bool HazardMgr::Iterate()
       m_ready_for_update_points = true;
       m_done_with_survey = false;
     }
-    else if(m_ready_for_update_points){
+    else if(1){
         postUpdateReport();
         m_time_since_last_sent = MOOSTime();
     }
@@ -593,7 +587,7 @@ void HazardMgr::handleMailMissionParams(string str)
   double y4 = stod(biteStringX(svector.back(), '}'));
 
   m_penalty_missed_hazard = stod(tokStringParse(str, "penalty_missed_hazard", ',', '='));
-  m_penalty_false_alarm = 30+stod(tokStringParse(str, "penalty_false_alarm", ',', '='));
+  m_penalty_false_alarm = stod(tokStringParse(str, "penalty_false_alarm", ',', '='));
   
   calculateParameters(0.1);
 
@@ -839,11 +833,11 @@ void HazardMgr::assignVesselProbability()
 {
 if(m_job=="SEARCH")
 {
-  m_pd_desired = 0.4;
+  m_pd_desired = 0.6;
 }
 if(m_job=="CLASS")
 {
-  m_pd_desired = 0.4;
+  m_pd_desired = 0.6;
 }
   string request = "vname=" + m_host_community;
   request += ",pd="    + doubleToStringX(m_pd_desired,2);
