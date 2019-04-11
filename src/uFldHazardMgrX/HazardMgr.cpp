@@ -81,6 +81,8 @@ HazardMgr::HazardMgr()
   m_ready_for_update_points = false;
 }
 
+bool genpath = true;
+
 //---------------------------------------------------------
 // Procedure: OnNewMail
 
@@ -212,7 +214,7 @@ bool HazardMgr::Iterate()
      double now = MOOSTime();
   if(now - m_time_since_last_sent  > 62){
 
-  if(m_classification_tracker.size() >= 35){
+  if(m_classification_tracker.size() >= 20){
       Notify("CLASS_PATTERN","endflag = PERM_LAWN1 = true");
       string mes;
       mes =  "src_node=" + m_report_name;
@@ -221,7 +223,8 @@ bool HazardMgr::Iterate()
       mes = mes + ",string_val=" + "endflag = PERM_LAWN1 = true";
       Notify("NODE_MESSAGE_LOCAL",mes);
       Notify("TIMER_UPDATES","endflag = TALK_NEEDED = false ");
-      //assignVesselProbability();
+      assignVesselProbability();
+      genpath = false;
 
 }
 
@@ -277,9 +280,9 @@ bool HazardMgr::Iterate()
 
   }
 
-if(m_classification_tracker.size() >= 40){
-     Notify("CLASS_PATTERN","endflag = PERM_LAWN1 = true");
-}
+// if(m_classification_tracker.size() >= 40){
+//      Notify("CLASS_PATTERN","endflag = PERM_LAWN1 = true");
+// }
 
        CalculateProbabilities();
   // if(m_we_done) {
@@ -814,14 +817,14 @@ void HazardMgr::handleHazardClassification(string str)
         lobj.m_class = "hazard";
         lobj.m_probability = pow(p_class,h_count)*pow(1-p_class,b_count);
         lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,b_count)*pow(1-p_class,h_count));
-        if(lobj.m_probability * m_penalty_missed_hazard < (1-lobj.m_probability) * m_penalty_false_alarm)
+        if((lobj.m_probability * m_penalty_missed_hazard < (1-lobj.m_probability) * m_penalty_false_alarm) && genpath)
           lobj.m_class = "benign";
       }
       else if(h_count<=b_count){
         lobj.m_class = "benign";
         lobj.m_probability = pow(p_class,b_count)*pow(1-p_class,h_count);
         lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,h_count)*pow(1-p_class,b_count));
-        if(lobj.m_probability * m_penalty_false_alarm < (1-lobj.m_probability) * m_penalty_missed_hazard)
+        if((lobj.m_probability * m_penalty_false_alarm < (1-lobj.m_probability) * m_penalty_missed_hazard) && genpath)
           lobj.m_class = "hazard";
       }
       reportEvent("type="+lobj.m_class+",probability = "+to_string(lobj.m_probability));
@@ -970,14 +973,14 @@ Notify("THRESHHOLD_UPDATE",to_string(p_threshhold));
         lobj.m_class = "hazard";
         lobj.m_probability = pow(p_class,h_count)*pow(1-p_class,b_count);
         lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,b_count)*pow(1-p_class,h_count));
-        if(lobj.m_probability * m_penalty_missed_hazard < (1-lobj.m_probability) * m_penalty_false_alarm)
+        if((lobj.m_probability * m_penalty_missed_hazard < (1-lobj.m_probability) * m_penalty_false_alarm) && genpath)
           lobj.m_class = "benign";
       }
       else if(h_count<=b_count){
         lobj.m_class = "benign";
         lobj.m_probability = pow(p_class,b_count)*pow(1-p_class,h_count);
         lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,h_count)*pow(1-p_class,b_count));
-        if(lobj.m_probability * m_penalty_false_alarm < (1-lobj.m_probability) * m_penalty_missed_hazard)
+        if((lobj.m_probability * m_penalty_false_alarm < (1-lobj.m_probability) * m_penalty_missed_hazard) && genpath)
           lobj.m_class = "hazard";
       }
       Notify("PROB_POINT","l="+lobj.m_label+",p="+to_string(lobj.m_probability));
