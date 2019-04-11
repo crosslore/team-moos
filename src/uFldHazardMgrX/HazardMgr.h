@@ -57,7 +57,7 @@ class HazardMgr : public AppCastingMOOSApp
    void handleAcknowledgmentReport(std::string);
    void handleHazardClassification(std::string);
    void handleUpdateReport(std::string);
-   void assignVesselProbability();
+   void assignVesselProbability(double num);
    void calculateParameters(double);
    void CalculateProbabilities();
    void calculateVisitPoints();

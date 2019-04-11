@@ -213,8 +213,10 @@ bool HazardMgr::Iterate()
   if(m_sensor_config_set)
     postSensorInfoRequest();
 
-     if(m_classification_tracker.size() >= 20 ){
-              assignVesselProbability();}
+     if(m_classification_tracker.size() >= 20 && !shifted ){
+              assignVesselProbability(0.7);
+              shifted = true;
+            }
 
      double now = MOOSTime();
   if(now - m_time_since_last_sent  > 62){
@@ -829,15 +831,15 @@ void HazardMgr::handleHazardClassification(string str)
 }
 
 
-void HazardMgr::assignVesselProbability()
+void HazardMgr::assignVesselProbability(double num)
 {
 if(m_job=="SEARCH")
 {
-  m_pd_desired = 0.6;
+  m_pd_desired = num;
 }
 if(m_job=="CLASS")
 {
-  m_pd_desired = 0.6;
+  m_pd_desired = num;
 }
   string request = "vname=" + m_host_community;
   request += ",pd="    + doubleToStringX(m_pd_desired,2);
@@ -1005,7 +1007,9 @@ void HazardMgr::calculateVisitPoints()
   }    
 
   double average_x = x_total / m_classification_tracker.size();
+  
 
+  assignVesselProbability(1.0);
 
   string x_str, y_str;
   Notify("VISIT_POINT","firstpoint");
