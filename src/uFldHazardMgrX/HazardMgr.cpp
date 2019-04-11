@@ -910,10 +910,12 @@ void HazardMgr::handleUpdateReport(string str)
   int h_count, b_count;
   int requests = std::count(str.begin(),str.end(),'l');
   for(int i=0; i<requests; i++){
-    l_str = tokStringParse(str, "l", ';', '=');
-    h_str = tokStringParse(str, "h", ';', '=');
-    b_str = tokStringParse(str, "b", ';', '=');
-    biteString(str, ':');
+    string trash = biteStringX(str,'=');
+    l_str = biteStringX(str,';');
+    trash = biteStringX(str,'=');
+    h_str = biteStringX(str,';');
+    trash = biteStringX(str,'=');
+    b_str = biteStringX(str,';');
     if(!h_str.size())
       h_count = 0;
     else
