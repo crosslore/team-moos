@@ -593,7 +593,7 @@ void HazardMgr::handleMailMissionParams(string str)
   double y4 = stod(biteStringX(svector.back(), '}'));
 
   m_penalty_missed_hazard = stod(tokStringParse(str, "penalty_missed_hazard", ',', '='));
-  m_penalty_false_alarm = stod(tokStringParse(str, "penalty_false_alarm", ',', '='));
+  m_penalty_false_alarm = 30+stod(tokStringParse(str, "penalty_false_alarm", ',', '='));
   
   calculateParameters(0.1);
 

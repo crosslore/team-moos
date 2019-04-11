@@ -322,7 +322,7 @@ Behavior = BHV_Waypoint
    // General Behavior Parameters
    // ---------------------------
    name         = bhv_timer_talking
-   duration     = 6600                 // example
+   duration     = 6200                 // example
    runflag      = TIMER_START = true         // example
  
    endflag      =   FIRST_SURVEY = false
@@ -344,7 +344,7 @@ Behavior = BHV_Waypoint
    // General Behavior Parameters
    // ---------------------------
    name         = bhv_timer_return
-   duration     = 7190              // example
+   duration     = 7193              // example
    runflag      = TIMER_START = true         // example
  
    endflag      = HAZARDSET_REQUEST = true
