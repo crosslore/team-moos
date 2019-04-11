@@ -817,14 +817,14 @@ void HazardMgr::handleHazardClassification(string str)
         lobj.m_class = "hazard";
         lobj.m_probability = pow(p_class,h_count)*pow(1-p_class,b_count);
         lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,b_count)*pow(1-p_class,h_count));
-        if((lobj.m_probability * m_penalty_missed_hazard < (1-lobj.m_probability) * m_penalty_false_alarm) && !genpath)
+        if((lobj.m_probability * m_penalty_missed_hazard < (1-lobj.m_probability) * m_penalty_false_alarm))
           lobj.m_class = "benign";
       }
       else if(h_count<=b_count){
         lobj.m_class = "benign";
         lobj.m_probability = pow(p_class,b_count)*pow(1-p_class,h_count);
         lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,h_count)*pow(1-p_class,b_count));
-        if((lobj.m_probability * m_penalty_false_alarm < (1-lobj.m_probability) * m_penalty_missed_hazard) && !genpath)
+        if((lobj.m_probability * m_penalty_false_alarm < (1-lobj.m_probability) * m_penalty_missed_hazard))
           lobj.m_class = "hazard";
       }
       reportEvent("type="+lobj.m_class+",probability = "+to_string(lobj.m_probability));
@@ -977,14 +977,14 @@ Notify("THRESHHOLD_UPDATE",to_string(p_threshhold));
         lobj.m_class = "hazard";
         lobj.m_probability = pow(p_class,h_count)*pow(1-p_class,b_count);
         lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,b_count)*pow(1-p_class,h_count));
-        if((lobj.m_probability * m_penalty_missed_hazard < (1-lobj.m_probability) * m_penalty_false_alarm) && !genpath)
+        if((lobj.m_probability * m_penalty_missed_hazard < (1-lobj.m_probability) * m_penalty_false_alarm))
           lobj.m_class = "benign";
       }
       else if(h_count<=b_count){
         lobj.m_class = "benign";
         lobj.m_probability = pow(p_class,b_count)*pow(1-p_class,h_count);
         lobj.m_probability = lobj.m_probability / (lobj.m_probability + pow(p_class,h_count)*pow(1-p_class,b_count));
-        if((lobj.m_probability * m_penalty_false_alarm < (1-lobj.m_probability) * m_penalty_missed_hazard) && !genpath)
+        if((lobj.m_probability * m_penalty_false_alarm < (1-lobj.m_probability) * m_penalty_missed_hazard))
           lobj.m_class = "hazard";
       }
       Notify("PROB_POINT","l="+lobj.m_label+",p="+to_string(lobj.m_probability));
