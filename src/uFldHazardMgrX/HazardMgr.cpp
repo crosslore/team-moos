@@ -173,7 +173,7 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
     // }
 
     else if(key =="UPDATE_REPORT"){
-//      reportEvent(sval);
+      reportEvent(sval);
       handleUpdateReport(sval);
     }
 
@@ -858,7 +858,6 @@ void HazardMgr::postUpdateReport()
   mes = mes + ",dest_node=" + "all";
   mes = mes + ",var_name="  + "UPDATE_REPORT";  
 
-
   int i = 0;
   bool empty = true;
 
@@ -878,6 +877,9 @@ void HazardMgr::postUpdateReport()
       lobj.m_update = false;
     }
   }
+
+  if(m_classification_tracker.size() <=0)
+    end_str = "empty";
 
     // l_str = "l=" + lobj.m_label;
     // h_str = ";h=" + to_string(lobj.m_v1_hazard_count);
@@ -915,23 +917,23 @@ void HazardMgr::handleUpdateReport(string str)
     trash = biteStringX(str,'=');
     h_str = biteStringX(str,';');
     trash = biteStringX(str,'=');
-    b_str = biteStringX(str,';');
-    if(!h_str.size())
+    b_str = biteStringX(str,':');
+    if(h_str.size() <= 0)
       h_count = 0;
     else
       h_count = stoi(h_str);
-    if(!b_str.size())
+    if(b_str.size() <= 0)
       b_count = 0;
     else
       b_count = stoi(b_str);
-      list<HazardClassification>::iterator l;
-      for(l=m_classification_tracker.begin(); l!=m_classification_tracker.end();++l) {
-        HazardClassification &lobj = *l;
-        if(l_str == lobj.m_label){
-          lobj.m_v2_benign_count = b_count;
-          lobj.m_v2_hazard_count = h_count;
-          reportEvent("l=" + lobj.m_label + ",h2=" + to_string(h_count) + ",b2=" + to_string(b_count));
-          reportEvent("l=" + lobj.m_label + "h =" + to_string(h_count) + ",b=" + to_string(b_count));
+    list<HazardClassification>::iterator l;
+    for(l=m_classification_tracker.begin(); l!=m_classification_tracker.end();++l) {
+      HazardClassification &lobj = *l;
+      if(l_str == lobj.m_label){
+        lobj.m_v2_benign_count = b_count;
+        lobj.m_v2_hazard_count = h_count;
+        reportEvent("l=" + lobj.m_label + ",h2=" + to_string(h_count) + ",b2=" + to_string(b_count));
+        reportEvent("l=" + lobj.m_label + "h =" + to_string(h_count) + ",b=" + to_string(b_count));
       }
      }
    }
