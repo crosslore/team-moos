@@ -4,9 +4,9 @@
 #-------------------------------------------------------
 TIME_WARP=1
 JUST_BUILD="no"
-VNAME="kasper"
-MOOS_PORT="9001"
-UDP_LISTEN_PORT="9201"
+VNAME="jake"
+MOOS_PORT="9002"
+UDP_LISTEN_PORT="9202"
 SHOREIP="18.21.167.115"
 SHORE_LISTEN="9200"
 
