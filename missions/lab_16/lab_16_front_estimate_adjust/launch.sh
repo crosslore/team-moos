@@ -154,3 +154,7 @@ fi
     sleep 5
 
 done
+
+#RESULTS_DIR="results_"`date "+%Y_%m_%d_____%H_%M"`
+#mkdir $RESULTS_DIR
+#mv targ* *LOG* $RESULTS_DIR
