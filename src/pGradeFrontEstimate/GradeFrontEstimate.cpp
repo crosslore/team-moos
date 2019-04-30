@@ -16,6 +16,8 @@ using namespace std;
 //---------------------------------------------------------
 // Constructor
 
+bool notposted = true;
+
 GradeFrontEstimate::GradeFrontEstimate()
 {
 
@@ -211,6 +213,15 @@ bool GradeFrontEstimate::Iterate()
     //    printReport();
     m_last_report_time = m_curr_time;}
   AppCastingMOOSApp::PostReport();
+
+    std::string outstring;
+  if (reported && notposted){
+    
+    outstring=handleSensingReport(estimate_report);
+    msg_appcast=outstring;
+    notposted = false;
+  }
+  
   return(true);
 }
 

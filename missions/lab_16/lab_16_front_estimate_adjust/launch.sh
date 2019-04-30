@@ -3,7 +3,7 @@
 #  Part 1: Check for and handle command-line arguments
 #-------------------------------------------------------
 
-for i in {1..30}
+for i in {1..15}
 do
 
 TIME_WARP=1
