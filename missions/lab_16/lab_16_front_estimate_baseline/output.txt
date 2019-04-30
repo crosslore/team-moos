@@ -1,0 +1,3 @@
+score=204.928,degrees=
+score=37.6724,degrees=
+score=40.456,degrees=

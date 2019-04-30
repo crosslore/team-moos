@@ -45,3 +45,20 @@ TARGET_LINK_LIBRARIES(BHV_SimpleWaypoint
    mbutil 
    geometry 
    ${SYSTEM_LIBS} )
+
+
+#--------------------------------------------------------
+#                                      BHV_FindTempFront
+#--------------------------------------------------------
+ADD_LIBRARY(BHV_FindTempFront SHARED 
+   BHV_FindTempFront.cpp)
+TARGET_LINK_LIBRARIES(BHV_FindTempFront
+   helmivp
+   behaviors 
+   ivpbuild 
+   logic 
+   ivpcore 
+   bhvutil 
+   mbutil 
+   geometry 
+   ${SYSTEM_LIBS} )
