@@ -23,6 +23,9 @@ ADD_SUBDIRECTORY(pGenPath)
 ADD_SUBDIRECTORY(pOdometry)
 ADD_SUBDIRECTORY(pCommunicationAngle_baxterdp)
 ADD_SUBDIRECTORY(uFldHazardMgrX)
+ADD_SUBDIRECTORY(pGradeFrontEstimate)
+ADD_SUBDIRECTORY(lib_henrik_anneal)
+ADD_SUBDIRECTORY(pFrontEstimate)
 ##############################################################################
 #                           END of CMakeLists.txt
 ##############################################################################
