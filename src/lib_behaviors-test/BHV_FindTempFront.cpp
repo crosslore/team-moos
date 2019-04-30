@@ -15,12 +15,14 @@
 #include "BHV_FindTempFront.h"
 #include "ZAIC_PEAK.h"
 
+
 using namespace std;
 
 //---------------------------------------------------------------
 // Constructor
 
   IvPFunction *ipf = 0;
+  bool temp_report = false;
 
 BHV_FindTempFront::BHV_FindTempFront(IvPDomain domain) :
   IvPBehavior(domain)
@@ -43,6 +45,7 @@ BHV_FindTempFront::BHV_FindTempFront(IvPDomain domain) :
   // Add any variables this behavior needs to subscribe for
   addInfoVars("NAV_X, NAV_Y, DESIRED_HEADING");
   addInfoVars("UCTD_MSMNT_REPORT","no_warning");
+
 }
 
 //---------------------------------------------------------------
@@ -166,6 +169,16 @@ void BHV_FindTempFront::onRunToIdleState()
 IvPFunction* BHV_FindTempFront::onRunState()
 {
   bool ok1, ok2, ok3, ok4;
+  
+
+//Publishes North and South Temperatures to Front Estimate to reduce bounds for annealing.
+if(!temp_report){
+  postMessage("TEMP_NORTH",to_string(m_tc));
+  postMessage("TEMP_SOUTH",to_string(m_th));
+  temp_report = true;
+}
+
+
   m_osx = getBufferDoubleVal("NAV_X", ok1);
   // if(m_osx > 160)
   //   m_mid_heading = 270;
