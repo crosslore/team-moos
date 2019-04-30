@@ -363,16 +363,20 @@ std::string GradeFrontEstimate::handleSensingReport(const string& request)
   s << "Temp_North " << r_T_N << " Actual " << m_T_N << endl; 
   s << "Temp_South " << r_T_S << " Actual " << m_T_S << endl; 
   //post the score to moosdb:
-  postSensingScore(vname,error, score);
 
-    ostringstream output;
+      ostringstream output;
     output << "vname," << vname << ",error," << error << ",Elapsed Time," << m_curr_time-m_start_time << ",score," << score << ",Offset," << r_offset;
     output << ",Angle," << r_angle << ",Amplitude," << r_amplitude << ",Period," << r_period << ",Wavelength," << r_wavelength;
     output << ",Alpha," << r_alpha << ",Beta," << r_beta << ",Temp_North," << r_T_N << ",Temp_South," << r_T_S << endl; 
     string output_string = output.str();
-    std::ofstream out("output.txt", ios::out | ios::app);
+
+
+    std::ofstream out;
+
+    out.open("output.txt", ios::out | ios::app );
     out << output.str();
     out.close();
+  postSensingScore(vname,error, score);
 
   return(s.str());
 }

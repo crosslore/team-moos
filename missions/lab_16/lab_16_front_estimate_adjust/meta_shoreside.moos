@@ -28,7 +28,7 @@ Processconfig = ANTLER
 }
 
 //#include plug_uFldCTDSensor.moos
-#include plug_uFldCTDSensor_1.moos
+#include plug_uFldCTDSensor.moos
 #include plug_pHostInfo.moos
 #include plug_pLogger.moos
 //--------------------------------------------------

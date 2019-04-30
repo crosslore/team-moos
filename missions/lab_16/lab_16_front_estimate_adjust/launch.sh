@@ -20,8 +20,8 @@ WIDTH1=120
 WIDTH2=120
 LANE_WIDTH1=25
 LANE_WIDTH2=25
-DEGREES1=270
-DEGREES2=270
+DEGREES1=180
+DEGREES2=180
 for ARGI; do
     #help:
     if [ "${ARGI}" = "--help" -o "${ARGI}" = "-h" ] ; then 
