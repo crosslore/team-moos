@@ -17,6 +17,7 @@ using namespace std;
 // Constructor
 
 bool notposted = true;
+bool notposted2 = true;
 
 GradeFrontEstimate::GradeFrontEstimate()
 {
@@ -46,7 +47,9 @@ GradeFrontEstimate::GradeFrontEstimate()
   m_T_N = 20;
   m_T_S = 25;
   reported=false;
+  reported2=false;
   estimate_report="";
+  estimate_report2="";
   front_model_vars="";
 
 }
@@ -76,6 +79,15 @@ bool GradeFrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
       setCurrTime(MOOSTime());
       reported=true;
     }
+
+
+    if (key=="UCTD_PARAMETER_ESTIMATE_DAVID" && !reported2 ){
+      estimate_report2=sval;
+      setCurrTime(MOOSTime());
+      reported2=true;
+    }
+
+
     if(key == "DB_UPTIME") {
       m_db_uptime = dval;
     }
@@ -84,6 +96,7 @@ bool GradeFrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
 	setStartTime(MOOSTime());
 	cout << "Deploy, Start Time " << m_start_time << endl;
 	reported = false;
+  reported2 = false;
       }
     }
     if (key == "UCTD_TRUE_PARAMETERS"){
@@ -221,6 +234,13 @@ bool GradeFrontEstimate::Iterate()
     msg_appcast=outstring;
     notposted = false;
   }
+
+  if (reported2 && notposted2){
+    
+    outstring=handleSensingReport(estimate_report2);
+    msg_appcast=outstring;
+    notposted2 = false;
+  }
   
   return(true);
 }
@@ -258,6 +278,7 @@ void GradeFrontEstimate::RegisterVariables()
 {
   AppCastingMOOSApp::RegisterVariables();
   Register("UCTD_PARAMETER_ESTIMATE", 0);
+  Register("UCTD_PARAMETER_ESTIMATE_DAVID", 0);
   Register("UCTD_TRUE_PARAMETERS",0);
   Register("DEPLOY_ALL",0);
   Register("DB_UPTIME",0);
@@ -391,6 +412,7 @@ std::string GradeFrontEstimate::handleSensingReport(const string& request)
 
   return(s.str());
 }
+
 bool GradeFrontEstimate::buildReport()
 {
   m_msgs << "GradeFrontEstimate      " << endl;
@@ -399,8 +421,8 @@ bool GradeFrontEstimate::buildReport()
   std::string outstring;
   if (reported){
     
-    outstring=handleSensingReport(estimate_report);
-    msg_appcast=outstring;
+    //outstring=handleSensingReport(estimate_report);
+    //msg_appcast=outstring;
     reported=false;
   }
   

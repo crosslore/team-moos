@@ -98,6 +98,7 @@ class CFrontEstimate : public AppCastingMOOSApp
   std::string report_var;
 
   void postParameterReport();
+  void postParameterReportDavid();
 };
 
 #endif 

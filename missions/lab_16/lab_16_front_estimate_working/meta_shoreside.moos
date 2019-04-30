@@ -85,6 +85,7 @@ ProcessConfig = uFldShoreBroker
   bridge = src=RETURN_$V, alias=RETURN
   bridge= src=UP_LOITER_$N,alias=UP_LOITER
   bridge= src=UCTD_MSMNT_REPORT_$V,alias=UCTD_MSMNT_REPORT
+  bridge = src=UCTD_MSMNT_REPORT_DAVID_$V,alias=UCTD_MSMNT_REPORT_DAVID
   bridge   = src=APPCAST_REQ 
 }
 

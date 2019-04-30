@@ -45,6 +45,7 @@ protected: // State variables
   double             m_curr_heading;
   bool               m_change_course;
   bool               m_top_hot;
+  bool               m_survey_start;
   std::string        m_msmnt_report; 
   double             m_course_time;
   list<double>       m_temps;

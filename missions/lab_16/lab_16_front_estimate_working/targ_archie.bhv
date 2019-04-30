@@ -5,11 +5,12 @@
 initialize   DEPLOY  = false
 initialize   RETURN  = false
 initialize   STATION_KEEP = false
-initialize   SURVEY = true
+initialize   FIRST_SURVEY = true
 initialize   AVOID   = true
 initialize   SURVEY_UNDERWAY = false
 initialize   OPREGION = true
 initialize   FIND_TEMP = false
+initialize   SURVEY = false
 
 set MODE = ACTIVE {
   DEPLOY = true
@@ -22,7 +23,7 @@ set MODE = RETURNING {
 
 set MODE = SURVEYING {
   MODE = ACTIVE
-  SURVEY = true
+  FIRST_SURVEY = true
   RETURN = false
 }
 
@@ -42,7 +43,7 @@ Behavior = BHV_Waypoint
   updates      = SURVEY_UPDATES
   activeflag   = SURVEY_UNDERWAY = true
   //inactiveflag = SURVEY_UNDERWAY = false
-  endflag      = SURVEY = false
+  endflag      = FIRST_SURVEY = false
   endflag      = FIND_TEMP = true //RETURN = true
 
          speed = 2   // meters per second

@@ -31,6 +31,7 @@ BHV_FindTempFront::BHV_FindTempFront(IvPDomain domain) :
   m_change_course = false;
   m_top_hot = false;
   m_mid_heading = 90;
+  m_survey_start = false;
 
 
   // Provide a default behavior name
@@ -166,10 +167,10 @@ IvPFunction* BHV_FindTempFront::onRunState()
 {
   bool ok1, ok2, ok3, ok4;
   m_osx = getBufferDoubleVal("NAV_X", ok1);
-  if(m_osx > 160)
-    m_mid_heading = 270;
-  if(m_osx < -20)
-    m_mid_heading = 90;;
+  // if(m_osx > 160)
+  //   m_mid_heading = 270;
+  // if(m_osx < -50)
+  //   m_mid_heading = 90;
   m_osy = getBufferDoubleVal("NAV_Y", ok2);
   m_curr_heading = getBufferDoubleVal("DESIRED_HEADING",ok4);
   if(!ok1 || !ok2) {
@@ -210,7 +211,7 @@ IvPFunction* BHV_FindTempFront::onRunState()
  // m_tc = 16;
 
   double t_ave = (m_th - m_tc)/2;
-  double t_turn = (m_th - m_tc) * 0.50;
+  double t_turn = (m_th - m_tc) * 0.70;
   double m_curr_time = getBufferCurrTime();
 
   if(m_change_course && m_curr_time - m_course_time > 0.5){
@@ -219,11 +220,11 @@ IvPFunction* BHV_FindTempFront::onRunState()
 
 
   if (!m_change_course && m_curr_heading == 0){
-    if(m_top_hot && new_temp > m_th - t_turn){
-      m_heading_desired = m_mid_heading;
-      m_change_course = true;
-      m_course_time = getBufferCurrTime();
-    }
+    // if(m_top_hot && new_temp > m_th - t_turn){
+    //   m_heading_desired = m_mid_heading;
+    //   m_change_course = true;
+    //   m_course_time = getBufferCurrTime();
+    // }
     if(!m_top_hot && new_temp < m_tc + t_turn){
       m_heading_desired = m_mid_heading;
       m_change_course = true;
@@ -236,18 +237,18 @@ IvPFunction* BHV_FindTempFront::onRunState()
       m_change_course = true;
       m_course_time = getBufferCurrTime();
     }
-    if(m_top_hot && new_temp < m_tc + t_turn){
-      m_heading_desired = m_mid_heading;;
-      m_change_course = true;
-      m_course_time = getBufferCurrTime();
-    }
+    // if(m_top_hot && new_temp < m_tc + t_turn){
+    //   m_heading_desired = m_mid_heading;;
+    //   m_change_course = true;
+    //   m_course_time = getBufferCurrTime();
+    // }
   }
   if (!m_change_course && (m_curr_heading == 90 || m_curr_heading == 270)){
-    if(m_top_hot && new_temp > m_th - t_turn){
-      m_heading_desired = 180;
-      m_change_course = true;
-      m_course_time = getBufferCurrTime();
-    }
+    // if(m_top_hot && new_temp > m_th - t_turn){
+    //   m_heading_desired = 180;
+    //   m_change_course = true;
+    //   m_course_time = getBufferCurrTime();
+    // }
     if(!m_top_hot && new_temp < m_tc + t_turn){
       m_heading_desired = 180;
       m_change_course = true;
@@ -260,12 +261,36 @@ IvPFunction* BHV_FindTempFront::onRunState()
     }
   }
 
-  if(m_osx > 170)
+  if (m_change_course && !m_survey_start){
+    m_survey_start = true;
+    postMessage("SURVEY","true");
+  }
+
+  int buffer = 25;
+
+  if(m_osx > 180 - buffer){
     m_heading_desired = 270;
-  if(m_osx < -40)
-    m_heading_desired = 90;;
+     m_mid_heading = 270;
+    m_change_course = true;
+  }
+  if(m_osx < 100 && m_osx > -50 && m_osy > 2/5 * m_osx - 20 - buffer){
+    m_heading_desired = 180;
+    //m_mid_heading = 90;
+    m_change_course = true;
+  }
+  if(m_osx < -50 && m_osy > 7/10*m_osx - 5 - buffer){
+    m_heading_desired = 90;
+    m_mid_heading = 90;
+    m_change_course = true;
+  }
+  if(m_osx < -50 && m_osy > -5/2 * m_osx - 325 + buffer){
+    m_change_course = true;
+    m_mid_heading = 90;
+    m_heading_desired = 90;
+  }
 
       ipf = buildFunctionWithZAIC();
+  
   // Part 1: Build the IvP function
 
   // Part N: Prior to returning the IvP function, apply the priority wt

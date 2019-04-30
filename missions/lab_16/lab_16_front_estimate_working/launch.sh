@@ -120,8 +120,8 @@ fi
 #-------------------------------------------------------
 #  Part 3: Launch the processes
 #-------------------------------------------------------
-for i in {1..5}
-do
+
+
     printf "Launching $VNAME1 MOOS Community (WARP=%s) \n" $TIME_WARP
     pAntler targ_$VNAME1.moos >& /dev/null &
     sleep .25
@@ -138,13 +138,13 @@ do
 
    echo "Poking..."
    uPokeDB targ_shoreside.moos DEPLOY_ALL=true MOOS_MANUAL_OVERRIDE_ALL=false
-   sleep 67
-   uPokeDB targ_shoreside.moos RETURN_ALL=true
-   sleep 5
-   printf "Killing all processes ... \n"
-   kill %1 %2 %3
-   ktm
-   printf "Done killing processes.   \n"
-   sleep 5
-done
+#   sleep 67
+ #  uPokeDB targ_shoreside.moos RETURN_ALL=true
+ #  sleep 5
+ #  printf "Killing all processes ... \n"
+ #  kill %1 %2 %3
+ #  ktm
+ #  printf "Done killing processes.   \n"
+ #  sleep 5
+
 

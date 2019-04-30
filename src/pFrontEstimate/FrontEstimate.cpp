@@ -276,7 +276,9 @@ bool CFrontEstimate::Iterate()
       T_N  =       result[7];
       T_S  =       result[8];
       
+      postParameterReportDavid();
       postParameterReport();
+
       report_sent = true;
       new_anneal_report=true;
     }
@@ -350,6 +352,27 @@ void CFrontEstimate::postParameterReport()
   sval += ",tempsouth=" + doubleToString(T_S);
   m_Comms.Notify(report_var, sval);
 }
+
+
+void CFrontEstimate::postParameterReportDavid()
+{
+  string sval;
+  sval = "vname=David";
+  sval += ",offset=" + doubleToString(offset);
+  sval += ",angle=" + doubleToString(angle);
+  sval += ",amplitude=" + doubleToString(amplitude);
+  sval += ",period=" + doubleToString(period);
+  sval += ",wavelength=" + doubleToString(wavelength);
+  sval += ",alpha=" + doubleToString(alpha);
+  sval += ",beta=" + doubleToString(beta);
+  sval += ",tempnorth=" + doubleToString(T_N);
+  sval += ",tempsouth=" + doubleToString(T_S);
+  m_Comms.Notify("UCTD_PARAMETER_ESTIMATE_DAVID", sval);
+}
+
+
+
+
 
 
 bool CFrontEstimate::buildReport()
