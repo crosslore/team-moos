@@ -1,0 +1,32 @@
+4.3.1
+vname,betty,error,0.864761,Elapsed Time,546.542,score,115.639,Offset,-111.835,Angle,14.4643,Amplitude,11.6257,Period,590.325,Wavelength,103.542,Alpha,400.143,Beta,25.5436,Temp_North,21.8377,Temp_South,28.2235
+vname,betty,error,0.467775,Elapsed Time,546.411,score,213.778,Offset,-105.755,Angle,9.36799,Amplitude,5.71424,Period,328.984,Wavelength,157.45,Alpha,400.275,Beta,25.5436,Temp_North,21.7317,Temp_South,28.3094
+vname,betty,error,1.04391,Elapsed Time,545.544,score,95.7938,Offset,-84.8424,Angle,-4.18801,Amplitude,16.5395,Period,473.163,Wavelength,249.343,Alpha,400.275,Beta,17.8433,Temp_North,22.1456,Temp_South,27.8568
+vname,betty,error,1.82668,Elapsed Time,547.219,score,54.744,Offset,-71.5764,Angle,0.60982,Amplitude,31.3701,Period,451.068,Wavelength,101.734,Alpha,434.269,Beta,25.5436,Temp_North,21.7317,Temp_South,28.2307
+vname,betty,error,0.391375,Elapsed Time,546.424,score,255.509,Offset,-102.819,Angle,5.50501,Amplitude,4.05048,Period,224.667,Wavelength,119.149,Alpha,598.755,Beta,26.3515,Temp_North,21.7317,Temp_South,28.3094
+vname,betty,error,0.680632,Elapsed Time,546.31,score,146.922,Offset,-91.9727,Angle,0.86727,Amplitude,10.3623,Period,574.863,Wavelength,414.933,Alpha,400.275,Beta,32.2253,Temp_North,21.4356,Temp_South,28.5092
+vname,betty,error,1.85051,Elapsed Time,546.679,score,54.0391,Offset,-69.2518,Angle,0.14908,Amplitude,31.5637,Period,531.702,Wavelength,118.751,Alpha,414.467,Beta,31.5856,Temp_North,21.3391,Temp_South,28.4459
+vname,betty,error,0.786025,Elapsed Time,546.317,score,127.222,Offset,-89.7584,Angle,-2.97994,Amplitude,11.9441,Period,366.572,Wavelength,174.992,Alpha,599.514,Beta,18.6359,Temp_North,22.0806,Temp_South,27.9098
+vname,betty,error,2.16228,Elapsed Time,546.602,score,46.2476,Offset,-65.4278,Angle,-3.56597,Amplitude,35.7307,Period,574.668,Wavelength,120.692,Alpha,400.275,Beta,23.1647,Temp_North,21.876,Temp_South,28.0667
+vname,betty,error,0.37363,Elapsed Time,544.922,score,267.645,Offset,-107.782,Angle,6.7721,Amplitude,4.90884,Period,583.874,Wavelength,159.78,Alpha,400.275,Beta,23.1647,Temp_North,21.8688,Temp_South,28.1488
+vname,betty,error,0.925114,Elapsed Time,546.317,score,108.095,Offset,-88.5283,Angle,-3.87258,Amplitude,13.3444,Period,537.923,Wavelength,394.251,Alpha,543.122,Beta,21.9851,Temp_North,21.9805,Temp_South,28.1192
+vname,betty,error,0.797291,Elapsed Time,545.83,score,125.425,Offset,-89.7584,Angle,3.39378,Amplitude,15.2371,Period,530.484,Wavelength,103.542,Alpha,442.17,Beta,27.5112,Temp_North,21.6663,Temp_South,28.3298
+vname,betty,error,2.72011,Elapsed Time,546.358,score,36.7633,Offset,-73.8803,Angle,10.8247,Amplitude,44.9759,Period,478.772,Wavelength,113.267,Alpha,530.301,Beta,23.0217,Temp_North,21.9805,Temp_South,27.8971
+vname,betty,error,0.42267,Elapsed Time,546.749,score,236.591,Offset,-105.755,Angle,7.26437,Amplitude,4.05048,Period,225.232,Wavelength,106.658,Alpha,400.143,Beta,25.5436,Temp_North,21.7977,Temp_South,28.3102
+
+4.3.1 Alpha Expanded
+vname,betty,error,2.16823,Elapsed Time,545.757,score,46.1207,Offset,-66.3705,Angle,-4.41201,Amplitude,35.5304,Period,571.642,Wavelength,115.802,Alpha,351.453,Beta,25.5436,Temp_North,21.7977,Temp_South,28.2022
+vname,betty,error,1.04367,Elapsed Time,545.243,score,95.8156,Offset,-86.5897,Angle,0.06272,Amplitude,18.4634,Period,490.902,Wavelength,118.485,Alpha,798.786,Beta,18.1108,Temp_North,22.0987,Temp_South,27.8229
+vname,betty,error,0.465687,Elapsed Time,546.339,score,214.737,Offset,-109.368,Angle,5.50501,Amplitude,8.44286,Period,547.36,Wavelength,158.677,Alpha,796.888,Beta,24.1877,Temp_North,21.8688,Temp_South,28.2022
+vname,betty,error,0.850218,Elapsed Time,546.761,score,117.617,Offset,-115.791,Angle,10.4595,Amplitude,15.0503,Period,502.744,Wavelength,158.677,Alpha,300.687,Beta,16.7057,Temp_North,22.1456,Temp_South,27.9046
+vname,betty,error,0.359642,Elapsed Time,544.741,score,278.054,Offset,-103.027,Angle,5.9237,Amplitude,4.05048,Period,290.498,Wavelength,202.026,Alpha,351.453,Beta,21.109,Temp_North,21.9816,Temp_South,28.0043
+vname,betty,error,1.84711,Elapsed Time,545.333,score,54.1386,Offset,-68.5049,Angle,0.62093,Amplitude,31.5637,Period,449.171,Wavelength,104.682,Alpha,798.756,Beta,19.014,Temp_North,22.0321,Temp_South,27.8229
+vname,betty,error,1.89591,Elapsed Time,545.399,score,52.7451,Offset,-69.5144,Angle,-3.87258,Amplitude,31.3701,Period,556.773,Wavelength,113.267,Alpha,385.673,Beta,23.1647,Temp_North,21.8688,Temp_South,28.0667
+vname,betty,error,0.60343,Elapsed Time,546.29,score,165.719,Offset,-107.034,Angle,11.0959,Amplitude,8.44286,Period,503.522,Wavelength,295.087,Alpha,300.685,Beta,20.248,Temp_North,22.008,Temp_South,28.0043
+vname,betty,error,1.47211,Elapsed Time,546.523,score,67.9296,Offset,-82.7862,Angle,4.67867,Amplitude,26.3465,Period,439.448,Wavelength,157.45,Alpha,300.687,Beta,17.2405,Temp_North,22.0987,Temp_South,27.8229
+vname,betty,error,1.44926,Elapsed Time,546.876,score,69.0007,Offset,-81.4303,Angle,1.58075,Amplitude,25.6647,Period,589.611,Wavelength,270.602,Alpha,300.687,Beta,25.8415,Temp_North,21.6663,Temp_South,28.3298
+vname,betty,error,1.41559,Elapsed Time,547.323,score,70.642,Offset,-76.275,Angle,-3.07717,Amplitude,23.4894,Period,593.755,Wavelength,113.992,Alpha,398.782,Beta,33.2661,Temp_North,21.3391,Temp_South,28.5386
+vname,betty,error,0.781286,Elapsed Time,546.267,score,127.994,Offset,-90.8872,Angle,3.3339,Amplitude,14.8221,Period,598.677,Wavelength,313.447,Alpha,302.698,Beta,27.2528,Temp_North,21.65,Temp_South,28.3377
+vname,betty,error,0.41098,Elapsed Time,546.132,score,243.321,Offset,-100.577,Angle,4.35549,Amplitude,4.29428,Period,262.265,Wavelength,144.08,Alpha,793.888,Beta,23.7894,Temp_North,21.8493,Temp_South,28.1488
+vname,betty,error,0.547372,Elapsed Time,546.451,score,182.691,Offset,-93.6785,Angle,0.054,Amplitude,7.87405,Period,374.91,Wavelength,187.423,Alpha,798.786,Beta,22.352,Temp_North,21.9434,Temp_South,28.0678
+vname,betty,error,1.01191,Elapsed Time,545.974,score,98.8235,Offset,-83.7236,Angle,-2.58326,Amplitude,16.5395,Period,572.345,Wavelength,105.388,Alpha,772.075,Beta,22.4159,Temp_North,21.929,Temp_South,28.0667

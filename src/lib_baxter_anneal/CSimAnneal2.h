@@ -21,68 +21,74 @@
 /* <http://www.gnu.org/licenses/>.                               */
 /*****************************************************************/
 
+#ifndef __CSIMANNEAL_h__
+#define __CSIMANNEAL_h__
 
+//#include "MOOSLIB/MOOSLib.h"
+#include "MOOS/libMOOS/MOOSLib.h"
+
+#include "Random.h"
+#include "CFrontSim2.h"
+#include <math.h>
+#include <vector>
 #include <iostream>
-#include "CFrontSim.h"
+#include "MBUtils.h"
 
-using namespace std;
-
-void CFrontSim::setVars(double offset, double degrees, double amplitude, 
-			double period, double wavelength, 
-			double alpha_in, double beta_in,
-			double temp_N, double temp_S)
-
+class CMeasurement
 {
-  // Initialize FrontSim class
-  //
-  amp = amplitude;
-  xi_0 = offset;
-  angle = degrees;
-  k=2*M_PI/wavelength;
-  omega=2*M_PI/period;
-  alpha = alpha_in;
-  beta = beta_in;
-  T_N = temp_N;
-  T_S = temp_S;
-  T_mean = (T_N+T_S)*0.5;
-  T_fac = (T_N-T_S)/M_PI;
-  //  cout << "CFrontSim: offset = " << offset << endl; 
-  // cout << "CFrontSim: T_mean = " << T_mean << endl; 
-  // cout << "CFrontSim: T_fac = " << T_fac << endl; 
-
-}
-
-void CFrontSim::setSigma(double temp_sigma) 
-{
-  T_sigma = temp_sigma;
-}
-
-void CFrontSim::setRegion(double x1, double x2,
-			  double y1, double y2)
-{
-  x_min = x1;
-  x_max = x2;
-  y_min = y1;
-  y_max = y2;
-
-}
-
-double CFrontSim::tempFunction(double t, double x, double y)
-{ 
-  double theta = angle*M_PI/180.0;
-  double x_prime = x * cos(theta) + (y-xi_0)*sin(theta);
-  double y_prime = (y-xi_0)*cos(theta) - x*sin(theta); 
-  double y_front = amp*exp(-x_prime/alpha)*sin(x_prime*k-omega*t);
-  double val = T_mean + T_fac*atan((y_prime-y_front)/beta);
-  return(val);
-}
-
-double CFrontSim::tempMeas(double t, double x, double y)
-{
-  double dev = Ran.gauss_real(tempFunction(t,x,y),T_sigma);
-  return(dev);
-}
+ public:
+  double t;
+  double x;
+  double y;
+  double temp;
+};
  
+class CSimAnneal 
+{
+ public:
+
+  CSimAnneal();
+  virtual ~CSimAnneal();
+
+  void setVars(int num, double temp_fac, bool adapt);
+  bool setInitVal(std::vector<double> val);
+  bool setMinVal(std::vector<double> val);
+  bool setMaxVal(std::vector<double> val);
+  void getEstimate(std::vector<double>& est, bool good);
+  void clearMeas();
+  void addMeas(CMeasurement new_meas);
+  CMeasurement parseMeas(std::string report);
+  double calcEnergy();
+  double heatBath(double temperature);
+  double measModel(double t, double x, double y);
+ 
+ protected:
+
+  CRandom Ran;
+  unsigned int num_vars;
+  double k;
+  bool adaptive;
+
+  std::vector<double> variables;
+  std::vector<double> var_min;
+  std::vector<double> var_max;
+  std::vector<double> var_norm;
+  std::vector<double> variables_best;
+
+
+  bool got_min;
+  bool got_max;
+  
+  double Energy;
+  double Energy_best;
+
+  std::vector<CMeasurement> measurements;
+  std::vector<CMeasurement> model;
+
+  CFrontSim front;
+};
+  
+#endif /* __CSimAnneal_h__ */
 
 
 

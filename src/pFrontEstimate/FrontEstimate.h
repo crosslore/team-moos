@@ -27,8 +27,8 @@
 //#include "MOOSLIB/MOOSLib.h"
 //#include "MOOSGenLib/MOOSGenLib.h"
 //#include "MOOSUtilityLib/MOOSGeodesy.h"
-#include <../lib_henrik_anneal/CSimAnneal.h>
-#include <../lib_henrik_anneal/CFrontSim.h>
+#include "CSimAnneal2.h"
+#include "CFrontSim2.h"
 #include <string>
 #include "MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h"
 
@@ -66,6 +66,16 @@ class CFrontEstimate : public AppCastingMOOSApp
   double T_N;
   double T_S;
   double temperature;
+  // David Front parameters
+  double doffset;
+  double dangle;
+  double damplitude;
+  double dperiod;
+  double dwavelength;
+  double dalpha;
+  double dbeta;
+  double dT_N;
+  double dT_S;
   // lower limits for annealer
   double min_offset;
   double min_angle;

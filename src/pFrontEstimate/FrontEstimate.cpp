@@ -265,7 +265,7 @@ bool CFrontEstimate::Iterate()
        (!concurrent && anneal_step == cooling_steps)))
     {
       vector<double> result;
-      anneal.getEstimate(result);
+      anneal.getEstimate(result, 0);
       offset =     result[0];
       angle  =     result[1];
       amplitude =  result[2];
@@ -276,8 +276,20 @@ bool CFrontEstimate::Iterate()
       T_N  =       result[7];
       T_S  =       result[8];
       
-      postParameterReportDavid();
       postParameterReport();
+
+      anneal.getEstimate(result, 1);
+      doffset =     result[0];
+      dangle  =     result[1];
+      damplitude =  result[2];
+      dperiod =     result[3];
+      dwavelength = result[4];
+      dalpha =      result[5];
+      dbeta =       result[6];
+      dT_N  =       result[7];
+      dT_S  =       result[8];
+      
+      postParameterReportDavid();
 
       report_sent = true;
       new_anneal_report=true;
@@ -358,15 +370,15 @@ void CFrontEstimate::postParameterReportDavid()
 {
   string sval;
   sval = "vname=David";
-  sval += ",offset=" + doubleToString(offset);
-  sval += ",angle=" + doubleToString(angle);
-  sval += ",amplitude=" + doubleToString(amplitude);
-  sval += ",period=" + doubleToString(period);
-  sval += ",wavelength=" + doubleToString(wavelength);
-  sval += ",alpha=" + doubleToString(alpha);
-  sval += ",beta=" + doubleToString(beta);
-  sval += ",tempnorth=" + doubleToString(T_N);
-  sval += ",tempsouth=" + doubleToString(T_S);
+  sval += ",offset=" + doubleToString(doffset);
+  sval += ",angle=" + doubleToString(dangle);
+  sval += ",amplitude=" + doubleToString(damplitude);
+  sval += ",period=" + doubleToString(dperiod);
+  sval += ",wavelength=" + doubleToString(dwavelength);
+  sval += ",alpha=" + doubleToString(dalpha);
+  sval += ",beta=" + doubleToString(dbeta);
+  sval += ",tempnorth=" + doubleToString(dT_N);
+  sval += ",tempsouth=" + doubleToString(dT_S);
   m_Comms.Notify("UCTD_PARAMETER_ESTIMATE_DAVID", sval);
 }
 

@@ -22,7 +22,7 @@
 /*****************************************************************/
 
 
-#include "CSimAnneal.h"
+#include "CSimAnneal2.h"
 
 using namespace std;
 
@@ -52,6 +52,7 @@ bool CSimAnneal::setInitVal(vector<double> var_init)
 	return(false);
     }
   variables = var_init;
+  variables_best = var_init;
   return(true);
 }
 
@@ -79,9 +80,15 @@ bool CSimAnneal::setMaxVal(vector<double> var)
   return(true);
 }
 
-void CSimAnneal::getEstimate(vector<double>& var_est)
+void CSimAnneal::getEstimate(vector<double>& var_est, bool good)
 {
-  var_est = variables;
+  if(good){
+    var_est = variables_best;
+  }
+  else {
+    var_est = variables;
+  }
+  
 }
 
 void CSimAnneal::clearMeas()
@@ -164,7 +171,11 @@ double CSimAnneal::heatBath(double temperature)
 	{
 	  variables[i] = old;
 	}
+  if (new_Energy < Energy){
+    variables_best[i] = variables[i];
+    Energy_best = new_Energy;
     }
+  }
   return(Energy);
 }
 
