@@ -58,7 +58,8 @@ protected: // State variables
   list<double>       m_xy_ave;
   list<double>       m_x_square_ave;
   double             m_angle;
-
+  double             m_t_turn_south;
+  double             m_t_turn_north;
 
 };
 

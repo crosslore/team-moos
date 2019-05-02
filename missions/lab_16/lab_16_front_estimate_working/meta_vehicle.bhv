@@ -11,6 +11,7 @@ initialize   SURVEY_UNDERWAY = false
 initialize   OPREGION = true
 initialize   FIND_TEMP = false
 initialize   SURVEY = false
+initialize   FOLLOW = false
 
 set MODE = ACTIVE {
   DEPLOY = true
@@ -25,6 +26,11 @@ set MODE = SURVEYING {
   MODE = ACTIVE
   FIRST_SURVEY = true
   RETURN = false
+}
+
+set MODE = TRAIL{
+  MODE = ACTIVE
+  FOLLOW = true
 }
 
 set MODE = FINDTEMP {
@@ -44,14 +50,24 @@ Behavior = BHV_Waypoint
   activeflag   = SURVEY_UNDERWAY = true
   //inactiveflag = SURVEY_UNDERWAY = false
   endflag      = FIRST_SURVEY = false
+  #ifdef VNAME VNAME1
   endflag      = FIND_TEMP = true //RETURN = true
+  #elseifdef VNAME VNAME2
+  endflag      = FOLLOW = true
+  #endif
 
+
+  #ifdef VNAME VNAME1
          speed = 2   // meters per second
+  #elseifdef VNAME VNAME2
+          speed = 1.6   // meters per second
+  #endif
+
 //        radius = 5.0
 //   slip_radius = 15.0
 //          lead = 8
 //	  lead_damper=1
-	points = pts = {-40,-185}
+	points = pts = {165,-180}
   //points = format=lawnmower, label=archie_survey, x=$(SURVEY_X), y=$(SURVEY_Y), width=$(WIDTH), height=$(HEIGHT),lane_width=$(LANE_WIDTH), rows=north-south, degs=$(DEGREES)
 
         repeat = 0
@@ -127,3 +143,36 @@ Behavior = BHV_AvoidCollision
              pwt_grade = linear
    bearing_line_config = white:0, green:0.65, yellow:0.8, red:1.0
 }
+
+ Behavior = BHV_Trail
+ {
+   // General Behavior Parameters
+   // ---------------------------
+   name         = trail_                // example
+   pwt          = 100                   // default
+   condition    = MODE == TRAIL
+   updates      = TRAIL_INFO            // example
+   templating   = spawn                 // example
+
+
+   // General Contact Behavior Parameters
+   // -----------------------------------
+             contact = VNAME2        // example
+               decay = 15,30            // default (seconds)
+         extrapolate = true             // default
+    on_no_contact_ok = true             // default
+         time_on_leg = 60               // default (seconds)
+
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+                
+                 nm_radius = 20         // default (meters)
+          no_alert_request = false      // default
+   post_trail_dist_on_idle = true       // default
+            pwt_outer_dist = 0          // default (meters)        
+                    radius = 30          // default (meters) 
+               trail_angle = 90        // default (degrees)
+          trail_angle_type = relative   // default (or absolute)             
+               trail_range = 75         // default (meters)
+ }

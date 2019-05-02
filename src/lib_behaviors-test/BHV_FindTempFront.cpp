@@ -266,7 +266,7 @@ if(!temp_report){
 
 
   m_tave = (m_th + m_tc)/2;
-  double t_turn = (m_th - m_tc) * 0.50;
+  double t_turn = (m_th - m_tc) * 0.70;
   double m_curr_time = getBufferCurrTime();
 
 //adjust how often a course change can be applied
