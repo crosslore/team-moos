@@ -27,6 +27,7 @@ public:
   void         postConfigStatus();
   void         onRunToIdleState();
   void         onIdleToRunState();
+  void         findEstimates(double x, double y, double temp);
   IvPFunction* onRunState();
   IvPFunction* buildFunctionWithZAIC();
 
@@ -45,11 +46,19 @@ protected: // State variables
   double             m_curr_heading;
   bool               m_change_course;
   bool               m_top_hot;
+  double             m_tave;
   bool               m_survey_start;
   std::string        m_msmnt_report; 
   double             m_course_time;
   list<double>       m_temps;
   double             m_mid_heading;
+  list<double>       m_y_ave;
+  list<double>       m_temps_ave;
+  list<double>       m_x_ave;
+  list<double>       m_xy_ave;
+  list<double>       m_x_square_ave;
+  double             m_angle;
+
 
 };
 

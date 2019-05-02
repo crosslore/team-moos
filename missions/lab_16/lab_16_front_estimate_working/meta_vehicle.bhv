@@ -51,7 +51,7 @@ Behavior = BHV_Waypoint
 //   slip_radius = 15.0
 //          lead = 8
 //	  lead_damper=1
-	points = pts = {-50,-185}
+	points = pts = {-40,-185}
   //points = format=lawnmower, label=archie_survey, x=$(SURVEY_X), y=$(SURVEY_Y), width=$(WIDTH), height=$(HEIGHT),lane_width=$(LANE_WIDTH), rows=north-south, degs=$(DEGREES)
 
         repeat = 0
@@ -99,8 +99,8 @@ Behavior = BHV_OpRegion
   condition  = OPREGION=true
  
              polygon = pts={-50,-40 : 100,20 : 180,20 : 180,-200 : -50,-200 : -100,-75}
-  trigger_entry_time = 1
-  trigger_exit_time  = 1
+  trigger_entry_time = 1000
+  trigger_exit_time  = 1000
         visual_hints = edge_size=1, vertex_size=2
 }
 

@@ -2,6 +2,11 @@
 #-------------------------------------------------------
 #  Part 1: Check for and handle command-line arguments
 #-------------------------------------------------------
+
+for i in {1..25}
+do
+
+
 TIME_WARP=1
 JUST_MAKE="no"
 COOL_FAC=50
@@ -121,30 +126,35 @@ fi
 #  Part 3: Launch the processes
 #-------------------------------------------------------
 
-
-    printf "Launching $VNAME1 MOOS Community (WARP=%s) \n" $TIME_WARP
-    pAntler targ_$VNAME1.moos >& /dev/null &
-    sleep .25
     printf "Launching $VNAME2 MOOS Community (WARP=%s) \n" $TIME_WARP
-    #pAntler targ_$VNAME2.moos >& /dev/null &
-    sleep .25
+    pAntler targ_$VNAME2.moos >& /dev/null &
+    sleep 0.25
+  #  printf "Launching $VNAME2 MOOS Community (WARP=%s) \n" $TIME_WARP
+  #  pAntler targ_$VNAME2.moos >& /dev/null &
+  #  sleep 0.25
     printf "Launching $SNAME MOOS Community (WARP=%s) \n"  $TIME_WARP
     pAntler targ_shoreside.moos >& /dev/null &
     printf "Done \n"
-
-    #uMAC targ_shoreside.moos
-
-   sleep 5
-
-   echo "Poking..."
-   uPokeDB targ_shoreside.moos DEPLOY_ALL=true MOOS_MANUAL_OVERRIDE_ALL=false
-#   sleep 67
- #  uPokeDB targ_shoreside.moos RETURN_ALL=true
- #  sleep 5
- #  printf "Killing all processes ... \n"
- #  kill %1 %2 %3
- #  ktm
- #  printf "Done killing processes.   \n"
- #  sleep 5
+    
+    sleep 5
+    echo "Poking..."
+    uPokeDB targ_shoreside.moos DEPLOY_ALL=true MOOS_MANUAL_OVERRIDE_ALL=false
 
 
+    #    uMAC targ_shoreside.moos
+    sleep 80
+    uPokeDB targ_shoreside.moos RETURN_ALL=true
+    sleep 5
+    printf "Killing all processes ... \n"
+    kill %1 %2 %3
+    ktm
+    printf "Done killing processes.   \n"
+    sleep 5
+    ktm
+    sleep 5
+
+done
+
+#RESULTS_DIR="results_"`date "+%Y_%m_%d_____%H_%M"`
+#mkdir $RESULTS_DIR
+#mv targ* *LOG* $RESULTS_DIR

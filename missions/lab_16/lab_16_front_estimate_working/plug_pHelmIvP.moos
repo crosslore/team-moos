@@ -3,8 +3,8 @@
 
 ProcessConfig = pHelmIvP
 {
-  AppTick    = 2
-  CommsTick  = 2
+  AppTick    = 5
+  CommsTick  = 5
   
   Behaviors    = targ_$(VNAME).bhv  
   Verbose      = false

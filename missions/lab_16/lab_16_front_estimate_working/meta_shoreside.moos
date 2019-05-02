@@ -79,7 +79,7 @@ ProcessConfig = uFldShoreBroker
 
   qbridge  = DEPLOY, RETURN, NODE_REPORT, NODE_MESSAGE, STATION_KEEP
 //  qbridge = STATION_KEEP
-  qbridge  = MOOS_MANUAL_OVERRIDE
+  qbridge  = MOOS_MANUAL_OVERRIDE, VIEW_VECTOR
 
   bridge = src=RETURN_ALL, alias=RETURN
   bridge = src=RETURN_$V, alias=RETURN
