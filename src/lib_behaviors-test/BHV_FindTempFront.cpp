@@ -36,6 +36,12 @@ BHV_FindTempFront::BHV_FindTempFront(IvPDomain domain) :
   m_top_hot = false;
   m_mid_heading = 90;
   m_survey_start = false;
+  m_alpha = 0;
+  max_amp = 0;
+  min_amp = 0;
+  amp = 0;
+  m_alpha = 350;
+  temp_last = 0;
 
 
   // Provide a default behavior name
@@ -93,6 +99,15 @@ void BHV_FindTempFront::onHelmStart()
 {
 }
 
+void BHV_FindTempFront::refineTemps(double t_ave_new)
+{
+  if(t_ave_new < m_tave)
+    return;
+  m_tave = t_ave_new;
+  m_th = round(m_tave + (m_tave - m_tc));
+  postMessage("TEMP_SOUTH_NEW",to_string(m_th));
+}
+
 //---------------------------------------------------------------
 // Procedure: onIdleState()
 //   Purpose: Invoked on each helm iteration if conditions not met.
@@ -116,17 +131,25 @@ void BHV_FindTempFront::onIdleState()
   }
 
   //determine if a new max or min temperature exists.
-  double new_temp = stod(tokStringParse(m_msmnt_report,"temp",',','='));
-  double temp_x = stod(tokStringParse(m_msmnt_report,"x",',','='));
-  double temp_y = stod(tokStringParse(m_msmnt_report,"y",',','='));
-
-  if(new_temp > m_th){
-    m_th = new_temp;
-    m_th_y = temp_y;
+  Temps Temp_New;
+  Temp_New.m_temps = stod(tokStringParse(m_msmnt_report,"temp",',','='));
+  if(temp_last == 0)
+    temp_last = Temp_New.m_temps;
+  if(Temp_New.m_temps - temp_last > max_delta){
+    max_delta = Temp_New.m_temps - temp_last;
+    double p_t_ave = (Temp_New.m_temps + temp_last)/2;
+    refineTemps(p_t_ave);
   }
-  if(new_temp < m_tc){
-    m_tc = new_temp;
-    m_tc_y = temp_y; 
+  Temp_New.m_x = stod(tokStringParse(m_msmnt_report,"x",',','='));
+  Temp_New.m_y = stod(tokStringParse(m_msmnt_report,"y",',','='));
+  
+  temps_list.push_back(Temp_New);
+
+  if(Temp_New.m_temps > m_th){
+    m_th = ceil(Temp_New.m_temps);
+  }
+  if(Temp_New.m_temps < m_tc){
+    m_tc = floor(Temp_New.m_temps);
   }
 }
 
@@ -161,6 +184,62 @@ void BHV_FindTempFront::onRunToIdleState()
 {
 }
 
+void BHV_FindTempFront::calcAmplitude()
+{
+  std::list<Temps>::iterator it;
+  for (it = ave_temps_list.begin(); it != ave_temps_list.end(); ++it){
+    Temps Curr_Temp = *it;
+    if(Curr_Temp.m_temps > m_tave + 0.05 * (m_th - m_tc))
+      continue;
+    if(Curr_Temp.m_temps < m_tave - 0.05 * (m_th - m_tc))
+      continue;
+    if(Curr_Temp.m_x < 35 && Curr_Temp.m_x > -15){
+    double A = Curr_Temp.m_x - 0;
+    double B = Curr_Temp.m_y - (a_one * A + a_zero);
+    double C = 40;
+    double D = a_one * C + a_zero - (a_one * A + a_zero);
+
+    double dot = A * C + B * D; 
+    double len_sq = C * C + D * D;
+    double param = -1;
+
+    if(len_sq !=0){
+      param = dot / len_sq;
+    }
+    double xx, yy;
+    
+    xx = param * C;
+    yy = a_one * A + a_zero + param * D;
+
+
+    double dx = Curr_Temp.m_x - xx;
+    double dy = Curr_Temp.m_y - yy;
+
+    postMessage("A_DX",to_string(dx));
+    postMessage("A_DY",to_string(dy));
+
+    double uncorrected_amplitude = pow(dx * dx + dy * dy,0.5);
+
+    if(Curr_Temp.m_x + Curr_Temp.m_y < xx + yy){
+      uncorrected_amplitude = -uncorrected_amplitude;
+    }
+
+    double x_prime = sqrt((yy - a_zero) * (yy - a_zero) + xx * xx);
+    if(xx<0)
+      x_prime = -x_prime;
+
+    Curr_Temp.m_amplitude = uncorrected_amplitude / exp(-x_prime/m_alpha);
+    if(Curr_Temp.m_amplitude > max_amp){
+      max_amp = Curr_Temp.m_amplitude;
+      amp = (max_amp + abs(min_amp))/2;
+    }
+    if(Curr_Temp.m_amplitude < min_amp){
+      min_amp = Curr_Temp.m_amplitude;
+      amp = (max_amp + abs(min_amp))/2;
+    }
+  }
+  }
+}
 
 void BHV_FindTempFront::findEstimates(double x, double y, double temp)
 {
@@ -171,6 +250,13 @@ void BHV_FindTempFront::findEstimates(double x, double y, double temp)
 
 //if temperature within allowance band, perform a linear regression
   if ((temp > t_ave_low) && (temp < t_ave_high)){
+    Temps New_Temp;
+    New_Temp.m_x = x;
+    New_Temp.m_y = y;
+    New_Temp.m_temps = temp;
+    ave_temps_list.push_back(New_Temp);
+    calcAmplitude();
+
     m_x_ave.push_back(x);
     m_y_ave.push_back(y);
     m_xy_ave.push_back(x*y);
@@ -185,8 +271,8 @@ void BHV_FindTempFront::findEstimates(double x, double y, double temp)
     double n = m_x_ave.size();
 
     // solution in form of y = a1 * x + a0
-    double a_one = (n * S_xy - S_x * S_y) / (n * S_xx - S_x * S_x);
-    double a_zero = (S_xx * S_y - S_xy * S_x) / (n * S_xx - S_x * S_x);
+    a_one = (n * S_xy - S_x * S_y) / (n * S_xx - S_x * S_x);
+    a_zero = (S_xx * S_y - S_xy * S_x) / (n * S_xx - S_x * S_x);
 
     // convert a1 from radians to degrees
     m_angle = atan(a_one) * 180/M_PI;
@@ -195,11 +281,15 @@ void BHV_FindTempFront::findEstimates(double x, double y, double temp)
     double angle_drawn = 90 - m_angle;
 
     string s = "x=0,y="+to_string(a_zero)+",mag=100,ang="+to_string(angle_drawn)+",label=one,edge_color=red";  
-    
+    string s2 = "x=0,y="+to_string(a_zero)+",mag="+to_string(amp) + ",ang="+to_string(-m_angle)+",label=amp,edge_color=red";
     //draw vector of guess and solution
     postMessage("VIEW_VECTOR",s);
     postMessage("VIEW_VECTOR","x=0,y=-78,mag=100,ang=105,label=truth");
-    postMessage("VIEW_VECTOR","x=0,y=-78,mag=34,ang=15,label=amplitude");
+    postMessage("VIEW_VECTOR",s2);
+    postMessage("VIEW_VECTOR","x=0,y=-78,mag=34,ang=15,label=true_amplitude");
+
+
+ 
   }
 }
 
@@ -237,33 +327,32 @@ if(!temp_report){
   }
 
   //determine temperature at location
-  double new_temp = stod(tokStringParse(m_msmnt_report,"temp",',','='));
-  double temp_x = stod(tokStringParse(m_msmnt_report,"x",',','='));
-  double temp_y = stod(tokStringParse(m_msmnt_report,"y",',','='));
+  Temps Temp_New;
+  Temp_New.m_temps = stod(tokStringParse(m_msmnt_report,"temp",',','='));
+  Temp_New.m_x = stod(tokStringParse(m_msmnt_report,"x",',','='));
+  Temp_New.m_y = stod(tokStringParse(m_msmnt_report,"y",',','='));
+
+//checks temperature gradient. refine t_ave, t_h, t_c
+  if(temp_last ==0)
+    temp_last = Temp_New.m_temps;
+  if(Temp_New.m_temps - temp_last > max_delta){
+    max_delta = Temp_New.m_temps - temp_last;
+    double p_t_ave = (temp_last + Temp_New.m_temps)/ 2;
+    refineTemps(p_t_ave);
+  }
 
 //only start linear regression solver if survey has started
   if(m_survey_start){
-   findEstimates(temp_x,temp_y,new_temp); 
+   findEstimates(Temp_New.m_x,Temp_New.m_y,Temp_New.m_temps); 
   }
 
   //determine if new temp is max or min and store
-  if(new_temp > m_th){
-    m_th = new_temp;
-    m_th_y = temp_y;
+  if(Temp_New.m_temps > m_th){
+    m_th = ceil(Temp_New.m_temps);
   }
-  if(new_temp < m_tc){
-    m_tc = new_temp;
-    m_tc_y = temp_y; 
+  if(Temp_New.m_temps < m_tc){
+    m_tc = floor(Temp_New.m_temps);
   }
-
-
-  if (m_th_y > m_tc_y)
-    m_top_hot = true;
-  else
-    m_top_hot = false;
-  
-  m_top_hot = false;
-
 
   m_tave = (m_th + m_tc)/2;
   double t_turn = (m_th - m_tc) * 0.70;
@@ -273,45 +362,29 @@ if(!temp_report){
   if(m_change_course && m_curr_time - m_course_time > 0.5){
     m_change_course = false;
   }
-
 //logic statements used to determine if a new desired heading
 //is desired and apply that course change
   if (!m_change_course && m_curr_heading == 0){
-    // if(m_top_hot && new_temp > m_th - t_turn){
-    //   m_heading_desired = m_mid_heading;
-    //   m_change_course = true;
-    //   m_course_time = getBufferCurrTime();
-    // }
-    if(!m_top_hot && new_temp < m_tc + t_turn){
+    if(Temp_New.m_temps < m_tc + t_turn){
       m_heading_desired = m_mid_heading;
       m_change_course = true;
       m_course_time = getBufferCurrTime();
     }
   }   
   if (!m_change_course && m_curr_heading == 180){
-    if(!m_top_hot && new_temp > m_th - t_turn){
+    if(Temp_New.m_temps > m_th - t_turn){
       m_heading_desired = m_mid_heading;;
       m_change_course = true;
       m_course_time = getBufferCurrTime();
     }
-    // if(m_top_hot && new_temp < m_tc + t_turn){
-    //   m_heading_desired = m_mid_heading;;
-    //   m_change_course = true;
-    //   m_course_time = getBufferCurrTime();
-    // }
   }
   if (!m_change_course && (m_curr_heading == 90 || m_curr_heading == 270)){
-    // if(m_top_hot && new_temp > m_th - t_turn){
-    //   m_heading_desired = 180;
-    //   m_change_course = true;
-    //   m_course_time = getBufferCurrTime();
-    // }
-    if(!m_top_hot && new_temp < m_tc + t_turn){
+    if(Temp_New.m_temps < m_tc + t_turn){
       m_heading_desired = 180;
       m_change_course = true;
       m_course_time = getBufferCurrTime();
     }
-    if(!m_top_hot && new_temp > m_th - t_turn){
+    if(Temp_New.m_temps > m_th - t_turn){
       m_heading_desired = 0;
       m_change_course = true;
       m_course_time = getBufferCurrTime();
@@ -346,12 +419,25 @@ if(!temp_report){
     m_mid_heading = 90;
     m_change_course = true;
     m_course_time = getBufferCurrTime();
+
+
+
+
+//determining wavelength
+    double y_one = a_one * (-40) + a_zero;
+    double y_two = a_one * (160) + a_zero;
+    postMessage("WAVE_UPDATES","points=pts={-40,"+to_string(y_one)+":160,"+to_string(y_two) +"}");
+    postMessage("FIND_WL","true");
   }
   if((m_osx < -50) && (m_osy < -5.0/2.0 * m_osx - 325.0 + buffer)){
     m_change_course = true;
     m_mid_heading = 90;
     m_heading_desired = 90;
     m_course_time = getBufferCurrTime();
+    double y_one = a_one * (-40) + a_zero;
+    double y_two = a_one * (160) + a_zero;
+    postMessage("WAVE_UPDATES","points=pts={-40,"+to_string(y_one)+":160,"+to_string(y_two) +"}");
+    postMessage("FIND_WL","true");
    }
 
   //build the IvP function

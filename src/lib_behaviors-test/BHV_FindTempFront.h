@@ -13,6 +13,7 @@
 
 #include <list>
 #include "ZAIC_PEAK.h"
+#include "temps.h"
 
 class BHV_FindTempFront : public IvPBehavior {
 public:
@@ -28,6 +29,8 @@ public:
   void         onRunToIdleState();
   void         onIdleToRunState();
   void         findEstimates(double x, double y, double temp);
+  void         calcAmplitude();
+  void         refineTemps(double temp);
   IvPFunction* onRunState();
   IvPFunction* buildFunctionWithZAIC();
 
@@ -60,6 +63,16 @@ protected: // State variables
   double             m_angle;
   double             m_t_turn_south;
   double             m_t_turn_north;
+  list<Temps>        temps_list;
+  list<Temps>        ave_temps_list;
+  double             a_one;
+  double             a_zero;
+  double             m_alpha;
+  double             min_amp;
+  double             max_amp;
+  double             amp;
+  double             max_delta;
+  double             temp_last;
 
 };
 

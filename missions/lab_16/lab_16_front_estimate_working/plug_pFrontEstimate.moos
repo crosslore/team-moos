@@ -16,6 +16,7 @@ ProcessConfig = pFrontEstimate
 
   min_period = 200
   max_period = 600
+
   min_wavelength = 100
   max_wavelength = 500
 
