@@ -57,7 +57,7 @@ Behavior = BHV_Waypoint
 //   slip_radius = 15.0
 //          lead = 8
 //	  lead_damper=1
-	points = pts = {145,-180}
+	points = pts = {145,-180:160,-175}
   //points = format=lawnmower, label=archie_survey, x=$(SURVEY_X), y=$(SURVEY_Y), width=$(WIDTH), height=$(HEIGHT),lane_width=$(LANE_WIDTH), rows=north-south, degs=$(DEGREES)
 
         repeat = 0
@@ -141,7 +141,7 @@ Behavior = BHV_Waypoint
   condition    = MODE==WAVE
   perpetual    = true
   updates      = WAVE_UPDATES
-  endflag      = FIND_WL = false
+  endflag      = FIND_WL=false
 
 
          speed = 2   // meters per second
@@ -149,7 +149,7 @@ Behavior = BHV_Waypoint
 //   slip_radius = 15.0
           lead = 8
 //    lead_damper=1
-  points = pts = {165,-180}
+  points = pts = {175,-180}
 
         repeat = 0
   visual_hints = nextpt_color=red, nextpt_lcolor=green

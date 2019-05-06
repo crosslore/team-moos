@@ -11,5 +11,6 @@ class Temps
     double m_y;
     double m_time;
     double m_amplitude;
+    std::string m_transition;
 
 }; 

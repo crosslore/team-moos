@@ -31,6 +31,13 @@ public:
   void         findEstimates(double x, double y, double temp);
   void         calcAmplitude();
   void         refineTemps(double temp);
+  void         findWavelength(Temps New_Temp);
+  void         calculateWavelengthWest();
+  void         calculateWavelengthEast();
+  void         courseAdjustBoundary();
+  void         reportOffsetAngle();
+  void         calculatePeriodEast(Temps New_Temp);
+  void         determineCoursePD(Temps New_Temp);
   IvPFunction* onRunState();
   IvPFunction* buildFunctionWithZAIC();
 
@@ -41,11 +48,13 @@ protected: // Configuration parameters
 protected: // State variables
   double             m_osx;
   double             m_osy;
+  double             m_osh;
   double             m_th;
   double             m_th_y;
   double             m_tc;
   double             m_tc_y;
   double             m_heading_desired;
+  double             m_course_desired;
   double             m_curr_heading;
   bool               m_change_course;
   bool               m_top_hot;
@@ -73,6 +82,35 @@ protected: // State variables
   double             amp;
   double             max_delta;
   double             temp_last;
+  bool               finding_wavelength;
+  std::string        location;
+  list<Temps>        wavelength_temps_west;
+  list<Temps>        wavelength_temps_east;
+  list<double>       wavelength_west;
+  list<double>       wavelength_east;
+  double             wavelength_east_guess;
+  double             wavelength_west_guess;   
+  double             wave_large;
+  double             wave_small;
+
+  bool               foundwave;
+  Temps              Last_Temp;
+  std::string        direction;
+  list<Temps>        Last_Ten;
+
+
+  double             min_T_N;
+  double             max_T_N;
+  double             min_T_S;
+  double             max_T_S; 
+  double             min_offset;
+  double             max_offset;
+  double             min_angle;
+  double             max_angle;
+  double             min_amplitude;
+  double             max_amplitude;
+  double             min_wavelength;
+  double             max_wavelength;
 
 };
 
