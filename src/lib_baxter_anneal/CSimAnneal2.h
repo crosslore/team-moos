@@ -61,7 +61,8 @@ class CSimAnneal
   double calcEnergy();
   double heatBath(double temperature);
   double measModel(double t, double x, double y);
- 
+  void updateOffset(int min, int max, int guess);
+
  protected:
 
   CRandom Ran;
@@ -86,6 +87,15 @@ class CSimAnneal
   std::vector<CMeasurement> model;
 
   CFrontSim front;
+
+  int offset_guess;
+  int offset_guess_min;
+  int offset_guess_max;
+
+  // void updateAmplitude(int min, int max, int guess);
+  // void updateAmplitude(int min, int max, int guess);
+
+
 };
   
 #endif /* __CSimAnneal_h__ */

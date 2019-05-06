@@ -235,6 +235,7 @@ bool CFrontEstimate::OnConnectToServer()
   Register("SURVEY_UNDERWAY",0);
   Register("UCTD_MSMNT_REPORT",0);
   Register("APPCAST_REQ",0);
+  Register("OFFSET",0);
   AppCastingMOOSApp::RegisterVariables();
   return(true);
 }
@@ -315,6 +316,16 @@ bool CFrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
   for(p=NewMail.begin(); p!=NewMail.end(); p++)
     {
       CMOOSMsg & rMsg = *p;
+
+      if (rMsg.m_sKey == "OFFSET" && in_survey)
+  {
+    value = rMsg.m_sVal;
+    int min = stoi(tokStringParse(value, "min", ',','='));
+    int max = stoi(tokStringParse(value, "max", ',','='));
+    int guess = stoi(tokStringParse(value, "guess", ',','='));
+    anneal.updateOffset(min, max, guess);
+    reportEvent(to_string(guess));
+  }
       
       if (rMsg.m_sKey == "UCTD_MSMNT_REPORT" && in_survey)
 	{

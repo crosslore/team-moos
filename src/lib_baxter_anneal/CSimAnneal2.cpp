@@ -37,6 +37,16 @@ CSimAnneal::~CSimAnneal()
 {
 }
 
+void CSimAnneal::updateOffset(int min, int max, int guess)
+{
+
+offset_guess = guess;
+offset_guess_min = min;
+offset_guess_max = max;
+}
+
+
+
 void CSimAnneal::setVars( int num, double temp_fac, bool adapt)
 {
   num_vars = num;
