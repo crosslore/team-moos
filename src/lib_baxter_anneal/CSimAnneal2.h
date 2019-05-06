@@ -58,10 +58,14 @@ class CSimAnneal
   void clearMeas();
   void addMeas(CMeasurement new_meas);
   CMeasurement parseMeas(std::string report);
-  double calcEnergy();
+  double calcEnergy(bool good);
   double heatBath(double temperature);
   double measModel(double t, double x, double y);
+  double measModelGood(double t, double x, double y);
+  
   void updateOffset(int min, int max, int guess);
+  bool setMinVal(int val, int i);
+  bool setMaxVal(int val, int i);
 
  protected:
 
@@ -75,12 +79,15 @@ class CSimAnneal
   std::vector<double> var_max;
   std::vector<double> var_norm;
   std::vector<double> variables_best;
-
+  std::vector<double> variables_good;
+  std::vector<double> var_min_best;
+  std::vector<double> var_max_best;
 
   bool got_min;
   bool got_max;
   
   double Energy;
+  double Energy_good;
   double Energy_best;
 
   std::vector<CMeasurement> measurements;
