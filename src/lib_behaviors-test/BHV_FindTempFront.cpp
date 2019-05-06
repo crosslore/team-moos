@@ -65,6 +65,7 @@ BHV_FindTempFront::BHV_FindTempFront(IvPDomain domain) :
   min_amplitude = 0;
   max_amplitude = 50;
 
+
   // Provide a default behavior name
   IvPBehavior::setParam("name", "defaultname");
 
@@ -378,7 +379,7 @@ void BHV_FindTempFront::calcAmplitude()
       continue;
     if(Curr_Temp.m_temps < m_tave - 0.15 * (m_th - m_tc))
       continue;
-    if(Curr_Temp.m_x < 60 && Curr_Temp.m_x > -15){
+    if(Curr_Temp.m_x < 90 && Curr_Temp.m_x > -50){
       double A = Curr_Temp.m_x - 0;
       double B = Curr_Temp.m_y - (a_one * A + a_zero);
       double C = 40;
@@ -416,12 +417,14 @@ void BHV_FindTempFront::calcAmplitude()
         amp = (max_amp + abs(min_amp))/2;
     }
     if(max_amp > abs(min_amp) && (max_amp * 1.15 < max_amplitude)){
-      max_amplitude = max_amp * 1.15;
-      min_amplitude = abs(min_amp) * 0.85;
+      max_amplitude_reported = max_amp * 1.25;
+      if(abs(min_amp) * 0.75 > min_amplitude)
+      min_amplitude_reported = abs(min_amp) * 0.75;
     }
-    if(max_amp < abs(min_amp)){
-      max_amplitude = abs(min_amp) * 1.15;
-      min_amplitude = max_amp * 0.85; 
+    if(max_amp < abs(min_amp) && abs(min_amp) * 1.25 < max_amplitude){
+      max_amplitude_reported = abs(min_amp) * 1.25;
+      if(max_amp * 0.75 > min_amplitude)
+      min_amplitude_reported = max_amp * 0.75; 
     }
   }
 }
@@ -497,7 +500,8 @@ void BHV_FindTempFront::reportOffsetAngle()
     max_offset = a_zero + 20;
   if(a_zero - 20 > min_offset)
     min_offset = a_zero - 20;
-  postMessage("OFFSET","max=" + to_string((int)ceil(max_offset)) + ",min=" + to_string((int)floor(min_offset)) + ",guess=" + to_string((int)round(a_zero)));
+//  postMessage("OFFSET","max=" + to_string((int)ceil(max_offset)) + ",min=" + to_string((int)floor(min_offset)) + ",guess=" + to_string((int)round(a_zero)));
+  postMessage("OFFSET","max=78,min=78,guess=78");
   if(m_angle + 20 < max_angle)
     max_angle = m_angle + 20;
   if(m_angle - 20 > min_angle)
@@ -561,8 +565,8 @@ void BHV_FindTempFront::findEstimates(double x, double y, double temp)
 
     string s = "x=0,y="+to_string(a_zero)+",mag=100,ang="+to_string(angle_drawn)+",label=one,edge_color=red";  
     string s2 = "x=0,y="+to_string(a_zero)+",mag="+to_string(amp) + ",ang="+to_string(-m_angle)+",label=amp_guess,edge_color=red";
-    string s_min = "x=0,y="+to_string(a_zero)+",mag="+to_string(min_amplitude) + ",ang="+to_string(-m_angle)+",label=amp_min,edge_color=red";
-    string s_max = "x=0,y="+to_string(a_zero)+",mag="+to_string(max_amplitude) + ",ang="+to_string(-m_angle)+",label=amp_max,edge_color=red";
+    string s_min = "x=0,y="+to_string(a_zero)+",mag="+to_string(min_amplitude_reported) + ",ang="+to_string(-m_angle)+",label=amp_min,edge_color=red";
+    string s_max = "x=0,y="+to_string(a_zero)+",mag="+to_string(max_amplitude_reported) + ",ang="+to_string(-m_angle)+",label=amp_max,edge_color=red";
     //draw vector of guess and solution
     postMessage("VIEW_VECTOR",s);
     postMessage("VIEW_VECTOR","x=0,y=-78,mag=100,ang=93,label=truth");

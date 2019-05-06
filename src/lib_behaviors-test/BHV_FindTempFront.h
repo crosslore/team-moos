@@ -79,6 +79,8 @@ protected: // State variables
   double             m_alpha;
   double             min_amp;
   double             max_amp;
+  double             min_amplitude_reported;
+  double             max_amplitude_reported;
   double             amp;
   double             max_delta;
   double             temp_last;
