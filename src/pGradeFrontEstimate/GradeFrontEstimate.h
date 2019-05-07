@@ -32,8 +32,10 @@ class GradeFrontEstimate : public AppCastingMOOSApp
  protected:
    std::string estimate_report;//what you get from UCTD_PARAMETER_ESTIMATE
    std::string estimate_report2;//what you get from UCTD_PARAMETER_ESTIMATE
+   std::string estimate_report3;
    bool reported;
    bool reported2;
+   bool reported3;
    std::string msg_appcast;//message for appcasting report
    std::string front_model_vars;//string from CTDSensor_MOOSApp that describes true values
    //Front true values: (from front_model_vars)

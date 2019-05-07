@@ -18,6 +18,7 @@ using namespace std;
 
 bool notposted = true;
 bool notposted2 = true;
+bool notposted3 = true;
 
 GradeFrontEstimate::GradeFrontEstimate()
 {
@@ -48,8 +49,10 @@ GradeFrontEstimate::GradeFrontEstimate()
   m_T_S = 25;
   reported=false;
   reported2=false;
+  reported3=false;
   estimate_report="";
   estimate_report2="";
+  estimate_report3="";
   front_model_vars="";
 
 }
@@ -87,6 +90,11 @@ bool GradeFrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
       reported2=true;
     }
 
+    if (key=="UCTD_PARAMETER_ESTIMATE_GENETIC" && !reported3 ){
+      estimate_report3=sval;
+      setCurrTime(MOOSTime());
+      reported3=true;
+    }
 
     if(key == "DB_UPTIME") {
       m_db_uptime = dval;
@@ -242,6 +250,13 @@ bool GradeFrontEstimate::Iterate()
     notposted2 = false;
   }
   
+  if (reported3 && notposted3){
+    
+    outstring=handleSensingReport(estimate_report3);
+    msg_appcast=outstring;
+    notposted3 = false;
+  }
+
   return(true);
 }
 
