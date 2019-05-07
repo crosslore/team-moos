@@ -15,7 +15,7 @@
 /* but WITHOUT ANY WARRANTY; without even the implied warranty   */
 /* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See  */
 /* the GNU General Public License for more details.              */
-/*                                                               */
+/*                                                              */
 /* You should have received a copy of the GNU General Public     */
 /* License along with MOOS-IvP.  If not, see                     */
 /* <http://www.gnu.org/licenses/>.                               */
@@ -26,7 +26,7 @@
 
 using namespace std;
 
-CSimAnneal::CSimAnneal()
+Genetic::Genetic()
 {
   got_min = false;
   got_max = false;
@@ -35,11 +35,11 @@ CSimAnneal::CSimAnneal()
   Energy_best = 10000000;
 }
 
-CSimAnneal::~CSimAnneal()
+Genetic::~Genetic()
 {
 }
 
-void CSimAnneal::updateOffset(int min, int max, int guess)
+void Genetic::updateOffset(int min, int max, int guess)
 {
 
 offset_guess = guess;
@@ -53,14 +53,14 @@ setMaxVal(max,0);
 
 
 
-void CSimAnneal::setVars( int num, double temp_fac, bool adapt)
+void Genetic::setVars( int num, double temp_fac, bool adapt)
 {
   num_vars = num;
   k = temp_fac;
   adaptive = adapt;
 }
 
-bool CSimAnneal::setInitVal(vector<double> var_init)
+bool Genetic::setInitVal(vector<double> var_init)
 {
   if (num_vars != var_init.size())
     {
@@ -73,7 +73,7 @@ bool CSimAnneal::setInitVal(vector<double> var_init)
   return(true);
 }
 
-bool CSimAnneal::setMinVal(vector<double> var)
+bool Genetic::setMinVal(vector<double> var)
 {
   if (num_vars != var.size())
     {
@@ -86,7 +86,7 @@ bool CSimAnneal::setMinVal(vector<double> var)
   return(true);
 }
 
-bool CSimAnneal::setMaxVal(vector<double> var)
+bool Genetic::setMaxVal(vector<double> var)
 {
   if (num_vars != var.size())
     {
@@ -99,19 +99,19 @@ bool CSimAnneal::setMaxVal(vector<double> var)
   return(true);
 }
 
-bool CSimAnneal::setMinVal(int var, int i)
+bool Genetic::setMinVal(int var, int i)
 {
   var_min_best[i] = var;
   return(true);
 }
 
-bool CSimAnneal::setMaxVal(int var, int i)
+bool Genetic::setMaxVal(int var, int i)
 {
   var_max_best[i] = var;
   return(true);
 }
 
-void CSimAnneal::getEstimate(vector<double>& var_est, bool good)
+void Genetic::getEstimate(vector<double>& var_est, bool good)
 {
   if(good){
     var_est = variables_best;
@@ -122,12 +122,12 @@ void CSimAnneal::getEstimate(vector<double>& var_est, bool good)
   
 }
 
-void CSimAnneal::clearMeas()
+void Genetic::clearMeas()
 {
   measurements.clear();
 }
 
-void CSimAnneal::addMeas(CMeasurement new_meas)
+void Genetic::addMeas(CMeasurement new_meas)
 {
   int num_meas = measurements.size(); 
   measurements.push_back(new_meas);
@@ -144,7 +144,7 @@ void CSimAnneal::addMeas(CMeasurement new_meas)
        << " model=" << model << " Energy =" << Energy << endl;
 }
 
-CMeasurement CSimAnneal::parseMeas(string report)
+CMeasurement Genetic::parseMeas(string report)
 {
 //---------------------------------------------------------
 // Procedure: parseMeas
@@ -173,7 +173,7 @@ CMeasurement CSimAnneal::parseMeas(string report)
 }
 
 
-double CSimAnneal::heatBath(double temperature)
+double Genetic::heatBath(double temperature)
 {
   for (unsigned int i=0; i< num_vars; i++)
     {
@@ -244,7 +244,7 @@ double CSimAnneal::heatBath(double temperature)
   return(Energy);
 }
 
-double CSimAnneal::calcEnergy(bool good)
+double Genetic::calcEnergy(bool good)
 {
   double energy = 0;
   for (unsigned int i=0; i < measurements.size(); i++)
@@ -262,7 +262,7 @@ double CSimAnneal::calcEnergy(bool good)
   return(energy);
 }
 
-double CSimAnneal::measModel(double t, double x, double y)
+double Genetic::measModel(double t, double x, double y)
 {
   double offset     = variables[0];
   double angle      = variables[1];
@@ -280,7 +280,7 @@ double CSimAnneal::measModel(double t, double x, double y)
   return(temp) ;
 }
 
-double CSimAnneal::measModelGood(double t, double x, double y)
+double Genetic::measModelGood(double t, double x, double y)
 {
   double offset     = variables_good[0];
   double angle      = variables_good[1];

@@ -43,12 +43,12 @@ class CMeasurement
   double temp;
 };
  
-class CSimAnneal 
+class Genetic 
 {
  public:
 
-  CSimAnneal();
-  virtual ~CSimAnneal();
+  Genetic();
+  virtual ~Genetic();
 
   void setVars(int num, double temp_fac, bool adapt);
   bool setInitVal(std::vector<double> val);
@@ -105,7 +105,7 @@ class CSimAnneal
 
 };
   
-#endif /* __CSimAnneal_h__ */
+#endif /* __Genetic_h__ */
 
 
 
