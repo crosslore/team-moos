@@ -366,28 +366,28 @@ bool CFrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
 	  num_meas += 1;
 	  MOOSTrace("New measurement added, Total = %d\n", num_meas);
 	}   
-  else if (rMsg.m_sKey == "OTHER_TEMP" && in_survey)
-  {
-    value = rMsg.m_sVal;
+  // else if (rMsg.m_sKey == "OTHER_TEMP" && in_survey)
+  // {
+  //   value = rMsg.m_sVal;
 
-    size_t n = std::count(value.begin(), value.end(), ':');
-    for(int count=1; count !=n; count++){
-      string m_new = biteString(value,':');
-      if(m_new == "")
-        continue;
-      string vname = "me";
-      string temp = tokStringParse(m_new,"temp",';','=');
-      string x = tokStringParse(m_new,"x",';','=');
-      string y = tokStringParse(m_new,"y",';','=');
-      string time = tokStringParse(m_new,"utc",';','='); 
-      value = "vname=" + vname + ",utc=" + time + ",x=" + x + ",y=" + y + ",temp=" + temp;
-      CMeasurement buf;
-      buf = anneal.parseMeas(value);
-      anneal.addMeas(buf);
-      num_meas += 1;
-      MOOSTrace("New measurement added, Total = %d\n", num_meas);
-    }
-  }
+  //   size_t n = std::count(value.begin(), value.end(), ':');
+  //   for(int count=1; count !=n; count++){
+  //     string m_new = biteString(value,':');
+  //     if(m_new == "")
+  //       continue;
+  //     string vname = "me";
+  //     string temp = tokStringParse(m_new,"temp",';','=');
+  //     string x = tokStringParse(m_new,"x",';','=');
+  //     string y = tokStringParse(m_new,"y",';','=');
+  //     string time = tokStringParse(m_new,"utc",';','='); 
+  //     value = "vname=" + vname + ",utc=" + time + ",x=" + x + ",y=" + y + ",temp=" + temp;
+  //     CMeasurement buf;
+  //     buf = anneal.parseMeas(value);
+  //     anneal.addMeas(buf);
+  //     num_meas += 1;
+  //     MOOSTrace("New measurement added, Total = %d\n", num_meas);
+  //   }
+  // }
       else if (rMsg.m_sKey == "SURVEY_UNDERWAY")
 	{
 	  if ( !in_survey && rMsg.m_sVal =="true")
