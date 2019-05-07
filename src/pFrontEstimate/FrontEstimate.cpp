@@ -373,7 +373,7 @@ bool CFrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
     size_t n = std::count(value.begin(), value.end(), ':');
     for(int count=1; count !=n; count++){
       string m_new = biteString(value,':');
-      if(m_new = "")
+      if(m_new == "")
         continue;
       string vname = "me";
       string temp = tokStringParse(m_new,"temp",';','=');
