@@ -26,9 +26,9 @@
 #include <iostream>
 #include <sstream>
 #include <math.h>
+#include <algorithm>
 
 using namespace std;
-
 
 CFrontEstimate::CFrontEstimate()
 {
@@ -335,6 +335,7 @@ bool CFrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
   AppCastingMOOSApp::OnNewMail(NewMail);
   string value;
 
+
   MOOSMSG_LIST::iterator p;
 
 // This loop checks ALL messages
@@ -366,28 +367,34 @@ bool CFrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
 	  num_meas += 1;
 	  MOOSTrace("New measurement added, Total = %d\n", num_meas);
 	}   
-  // else if (rMsg.m_sKey == "OTHER_TEMP" && in_survey)
-  // {
-  //   value = rMsg.m_sVal;
+   else if (rMsg.m_sKey == "OTHER_TEMP" && in_survey)
+   {
+     value = rMsg.m_sVal;
+     reportEvent(value);
 
-  //   size_t n = std::count(value.begin(), value.end(), ':');
-  //   for(int count=1; count !=n; count++){
-  //     string m_new = biteString(value,':');
-  //     if(m_new == "")
-  //       continue;
-  //     string vname = "me";
-  //     string temp = tokStringParse(m_new,"temp",';','=');
-  //     string x = tokStringParse(m_new,"x",';','=');
-  //     string y = tokStringParse(m_new,"y",';','=');
-  //     string time = tokStringParse(m_new,"utc",';','='); 
-  //     value = "vname=" + vname + ",utc=" + time + ",x=" + x + ",y=" + y + ",temp=" + temp;
+
+    size_t n = std::count(value.begin(), value.end(), ':');
+    reportEvent(to_string(n));
+    vector<string> str_vector = parseString(value, ':');
+    reportEvent("vector size = " + to_string(str_vector.size()));
+    for(unsigned int i=0; i<str_vector.size(); i++){
+      if (str_vector[i] == "")
+        return(true);
+      string vname = "me";
+      string temp = tokStringParse(str_vector[i],"temp",';','=');
+      string x = tokStringParse(str_vector[i],"x",';','=');
+      string y = tokStringParse(str_vector[i],"y",';','=');
+      string time = tokStringParse(str_vector[i],"utc",';','='); 
+      string new_value = "vname=" + vname + ",utc=" + time + ",x=" + x + ",y=" + y + ",temp=" + temp;
+
+    }
   //     CMeasurement buf;
   //     buf = anneal.parseMeas(value);
   //     anneal.addMeas(buf);
   //     num_meas += 1;
   //     MOOSTrace("New measurement added, Total = %d\n", num_meas);
-  //   }
-  // }
+    
+   }
       else if (rMsg.m_sKey == "SURVEY_UNDERWAY")
 	{
 	  if ( !in_survey && rMsg.m_sVal =="true")

@@ -779,8 +779,8 @@ IvPFunction* BHV_FindTempFront::onRunState()
         location = "north";
       if(Temp_New.m_temps > m_tave)
         location = "south";
-      //postMessage("WAVE_UPDATES","points=pts={-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");// ":-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");
-      //postMessage("FIND_WL","true");
+      postMessage("WAVE_UPDATES","points=pts={-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");// ":-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");
+      postMessage("FIND_WL","true");
     }
    }
 
@@ -792,31 +792,28 @@ IvPFunction* BHV_FindTempFront::onRunState()
     int i =0;
     std::list<Temps>::iterator it;
     for (it = Report_Temps.begin(); it != Report_Temps.end(); ++it){
-    Temps Curr_Temp = *it;
-    i = i+1;
-    stringstream stream1;
-    stream1 << fixed << setprecision(1) << Curr_Temp.m_time;
-    string time_string = stream1.str();
-    stringstream stream2;
-    stream2 << fixed << setprecision(1) << Curr_Temp.m_x;
-    string x_string = stream2.str();
-    stringstream stream3;
-    stream3 << fixed << setprecision(1) << Curr_Temp.m_y;
-    string y_string = stream3.str();
-    stringstream stream4;
-    stream4 << fixed << setprecision(1) << Curr_Temp.m_temps;
-    string temp_string = stream4.str();
-    message = message + "vname=" + m_report_name + ";utc=" + time_string + ";x=" + x_string + ";y=" + y_string + ";temp=" + temp_string+":";
-    if(i >=43)
-      break;
-    }
-    for(int n =0; n>=i; n++){
-      Report_Temps.pop_front();
-    }
+      Temps Curr_Temp = *it;
+      i = i+1;
+      stringstream stream1;
+      stream1 << fixed << setprecision(1) << Curr_Temp.m_time;
+      string time_string = stream1.str();
+      stringstream stream2;
+      stream2 << fixed << setprecision(1) << Curr_Temp.m_x;
+      string x_string = stream2.str();
+      stringstream stream3;
+      stream3 << fixed << setprecision(1) << Curr_Temp.m_y;
+      string y_string = stream3.str();
+      stringstream stream4;
+      stream4 << fixed << setprecision(1) << Curr_Temp.m_temps;
+      string temp_string = stream4.str();
+      message = message + "vname=" + m_report_name + ";utc=" + time_string + ";x=" + x_string + ";y=" + y_string + ";temp=" + temp_string+":";
+      it = Report_Temps.erase(it);
+      if(i >=43)
+        break;
+      }
    postMessage("BBB",message);
    mes = mes + ",string_val=" + message;
    postMessage("NODE_MESSAGE_LOCAL",mes);
-   Report_Temps.clear();
    m_report_time = getBufferCurrTime();
   }
 

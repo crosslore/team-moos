@@ -142,7 +142,7 @@ fi
 
 
     #    uMAC targ_shoreside.moos
-    sleep 80
+    sleep 160
     uPokeDB targ_shoreside.moos RETURN_ALL=true
     sleep 5
     printf "Killing all processes ... \n"
