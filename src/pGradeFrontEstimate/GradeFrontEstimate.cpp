@@ -294,6 +294,7 @@ void GradeFrontEstimate::RegisterVariables()
   AppCastingMOOSApp::RegisterVariables();
   Register("UCTD_PARAMETER_ESTIMATE", 0);
   Register("UCTD_PARAMETER_ESTIMATE_DAVID", 0);
+  Register("UCTD_PARAMETER_ESTIMATE_GENETIC", 0);
   Register("UCTD_TRUE_PARAMETERS",0);
   Register("DEPLOY_ALL",0);
   Register("DB_UPTIME",0);

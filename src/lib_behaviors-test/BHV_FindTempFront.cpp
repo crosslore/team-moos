@@ -755,8 +755,8 @@ IvPFunction* BHV_FindTempFront::onRunState()
         location = "south";
       double y_one = a_one * (-50) + a_zero;
       double y_two = a_one * (165) + a_zero;
-      postMessage("WAVE_UPDATES","points=pts={-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");//}:-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");
-      postMessage("FIND_WL","true");
+     // postMessage("WAVE_UPDATES","points=pts={-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");//}:-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");
+     // postMessage("FIND_WL","true");
     }
   }
   if((m_osx < -50) && (m_osy < -5.0/2.0 * m_osx - 325.0 + buffer)){
@@ -776,8 +776,8 @@ IvPFunction* BHV_FindTempFront::onRunState()
         location = "north";
       if(Temp_New.m_temps > m_tave)
         location = "south";
-      postMessage("WAVE_UPDATES","points=pts={-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");// ":-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");
-      postMessage("FIND_WL","true");
+      //postMessage("WAVE_UPDATES","points=pts={-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");// ":-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");
+      //postMessage("FIND_WL","true");
     }
    }
 

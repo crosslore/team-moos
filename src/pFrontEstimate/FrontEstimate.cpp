@@ -243,6 +243,7 @@ bool CFrontEstimate::OnConnectToServer()
 {
   Register("SURVEY_UNDERWAY",0);
   Register("UCTD_MSMNT_REPORT",0);
+  Register("OTHER_TEMP",0);
   Register("APPCAST_REQ",0);
   Register("OFFSET",0);
   AppCastingMOOSApp::RegisterVariables();
