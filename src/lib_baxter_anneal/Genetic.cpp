@@ -22,7 +22,7 @@
 /*****************************************************************/
 
 
-#include "CSimAnneal2.h"
+#include "Genetic.h"
 
 using namespace std;
 

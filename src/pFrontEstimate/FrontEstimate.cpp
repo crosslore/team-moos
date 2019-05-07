@@ -266,7 +266,7 @@ bool CFrontEstimate::Iterate()
        (!concurrent && anneal_step == cooling_steps)))
     {
       vector<double> result;
-      anneal.getEstimate(result, 0);
+      anneal.getEstimate(result, false);
       offset =     result[0];
       angle  =     result[1];
       amplitude =  result[2];
@@ -279,7 +279,7 @@ bool CFrontEstimate::Iterate()
       
       postParameterReport();
 
-      anneal.getEstimate(result, 1);
+      anneal.getEstimate(result, true);
       doffset =     result[0];
       dangle  =     result[1];
       damplitude =  result[2];
