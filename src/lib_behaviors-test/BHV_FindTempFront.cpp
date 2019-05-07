@@ -511,7 +511,7 @@ void BHV_FindTempFront::reportOffsetAngle()
   if(a_zero - 20 > min_offset)
     min_offset = a_zero - 20;
 //  postMessage("OFFSET","max=" + to_string((int)ceil(max_offset)) + ",min=" + to_string((int)floor(min_offset)) + ",guess=" + to_string((int)round(a_zero)));
-  postMessage("OFFSET","max=78,min=78,guess=78");
+  postMessage("OFFSET","max=-78,min=-78,guess=-78");
   if(m_angle + 20 < max_angle)
     max_angle = m_angle + 20;
   if(m_angle - 20 > min_angle)
