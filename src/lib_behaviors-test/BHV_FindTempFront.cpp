@@ -623,7 +623,17 @@ IvPFunction* BHV_FindTempFront::onRunState()
   
    if(ok6){
    postMessage("AAA",m_other);
- }
+   size_t n = std::count(m_other.begin(), m_other.end(), ':');
+    for(int count=0; count !=n; count++){
+      Temps New_Temp;
+      string m_new = biteString(m_other,':');
+      New_Temp.m_temps = stod(tokStringParse(m_new,"temp",';','='));
+      New_Temp.m_x = stod(tokStringParse(m_new,"x",';','='));
+      New_Temp.m_y = stod(tokStringParse(m_new,"y",';','='));
+      New_Temp.m_time = stod(tokStringParse(m_new,"utc",';','=')); 
+      ave_temps_list.push_back(New_Temp);
+    }
+  }
 
 // //  string new_mes = "x=" + to_string(Temp_Other.m_x) + ",y=" + to_string(Temp_Other.m_y) +",radius=50,duration=6,fill=0.9,label=archie_ping,edge_color=white,fill_color=white,edge_size=1";
 
@@ -783,7 +793,7 @@ IvPFunction* BHV_FindTempFront::onRunState()
    mes =  "src_node=" + m_report_name;
    mes = mes + ",dest_node=" + "all";
    mes = mes + ",var_name="  + "OTHER_TEMP";
-   string message = "vname=" + m_report_name + ";utc=" + to_string(Best_Temp.m_time) + ";x=" + to_string(Best_Temp.m_x) + ";y=" + to_string(Best_Temp.m_y) + ";temp=" + to_string(Best_Temp.m_temps);
+   string message = "vname=" + m_report_name + ";utc=" + to_string(Best_Temp.m_time) + ";x=" + to_string(Best_Temp.m_x) + ";y=" + to_string(Best_Temp.m_y) + ";temp=" + to_string(Best_Temp.m_temps)+":";
    postMessage("BBB",message);
    mes = mes + ",string_val=" + Best_Temp.m_string;
    postMessage("NODE_MESSAGE_LOCAL",mes);
