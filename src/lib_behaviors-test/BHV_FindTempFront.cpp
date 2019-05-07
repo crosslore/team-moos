@@ -16,7 +16,8 @@
 #include "ZAIC_PEAK.h"
 #include <math.h>
 #include <numeric>
-
+#include <iomanip> // setprecision
+#include <sstream> 
 
 using namespace std;
 
@@ -646,7 +647,9 @@ IvPFunction* BHV_FindTempFront::onRunState()
   Temp_New.m_y = stod(tokStringParse(m_msmnt_report,"y",',','='));
   Temp_New.m_time = stod(tokStringParse(m_msmnt_report,"utc",',','='));
   Temp_New.m_string = m_msmnt_report;
-  Report_Temps.push_back(Temp_New);
+  if (abs(Temp_New.m_temps - m_tave) < 0.2 * abs(m_th - m_tc)){
+    Report_Temps.push_back(Temp_New);
+  }
 
 
 
@@ -782,20 +785,36 @@ IvPFunction* BHV_FindTempFront::onRunState()
    }
 
   if(m_curr_time >= m_report_time + 15.01 && Report_Temps.size() >= 1){
-    Temps Best_Temp = Report_Temps.front();
+    string message;
+    mes =  "src_node=" + m_report_name;
+    mes = mes + ",dest_node=" + "all";
+    mes = mes + ",var_name="  + "OTHER_TEMP";
+    int i =0;
     std::list<Temps>::iterator it;
     for (it = Report_Temps.begin(); it != Report_Temps.end(); ++it){
-      Temps Curr_Temp = *it;
-      if(abs(Curr_Temp.m_temps - m_tave) < Best_Temp.m_temps - m_tave){
-        Best_Temp = Curr_Temp;
-      }
-    } 
-   mes =  "src_node=" + m_report_name;
-   mes = mes + ",dest_node=" + "all";
-   mes = mes + ",var_name="  + "OTHER_TEMP";
-   string message = "vname=" + m_report_name + ";utc=" + to_string(Best_Temp.m_time) + ";x=" + to_string(Best_Temp.m_x) + ";y=" + to_string(Best_Temp.m_y) + ";temp=" + to_string(Best_Temp.m_temps)+":";
+    Temps Curr_Temp = *it;
+    i = i+1;
+    stringstream stream1;
+    stream1 << fixed << setprecision(1) << Curr_Temp.m_time;
+    string time_string = stream1.str();
+    stringstream stream2;
+    stream2 << fixed << setprecision(1) << Curr_Temp.m_x;
+    string x_string = stream2.str();
+    stringstream stream3;
+    stream3 << fixed << setprecision(1) << Curr_Temp.m_y;
+    string y_string = stream3.str();
+    stringstream stream4;
+    stream4 << fixed << setprecision(1) << Curr_Temp.m_temps;
+    string temp_string = stream4.str();
+    message = message + "vname=" + m_report_name + ";utc=" + time_string + ";x=" + x_string + ";y=" + y_string + ";temp=" + temp_string+":";
+    if(i >=43)
+      break;
+    }
+    for(int n =0; n>=i; n++){
+      Report_Temps.pop_front();
+    }
    postMessage("BBB",message);
-   mes = mes + ",string_val=" + Best_Temp.m_string;
+   mes = mes + ",string_val=" + message;
    postMessage("NODE_MESSAGE_LOCAL",mes);
    Report_Temps.clear();
    m_report_time = getBufferCurrTime();
