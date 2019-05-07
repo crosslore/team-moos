@@ -17,6 +17,7 @@
 #include <math.h>
 #include <numeric>
 
+
 using namespace std;
 
 //---------------------------------------------------------------
@@ -65,6 +66,9 @@ BHV_FindTempFront::BHV_FindTempFront(IvPDomain domain) :
   min_amplitude = 0;
   max_amplitude = 50;
 
+  m_curr_time = getBufferCurrTime();
+  m_report_time = getBufferCurrTime();
+
 
   // Provide a default behavior name
   IvPBehavior::setParam("name", "defaultname");
@@ -75,7 +79,8 @@ BHV_FindTempFront::BHV_FindTempFront(IvPDomain domain) :
   // Add any variables this behavior needs to subscribe for
   addInfoVars("NAV_X, NAV_Y, DESIRED_HEADING, NAV_HEADING");
   addInfoVars("UCTD_MSMNT_REPORT","no_warning");
-  addInfoVars("OPREG_ABSOLUTE_PERIM_DIST","no_warning");
+  addInfoVars("REPORT_NAME","no_warning");
+  addInfoVars("OTHER_TEMP","no_warning");
 
 }
 
@@ -277,7 +282,7 @@ void BHV_FindTempFront::refineTemps(double t_ave_new)
 
 void BHV_FindTempFront::onIdleState()
 {
-  bool ok1, ok2, ok3, ok4;
+  bool ok1, ok2, ok3, ok4, ok5;
   m_osx = getBufferDoubleVal("NAV_X", ok1);
   m_osy = getBufferDoubleVal("NAV_Y", ok2);
   m_curr_heading = getBufferDoubleVal("DESIRED_HEADING",ok4);
@@ -288,6 +293,11 @@ void BHV_FindTempFront::onIdleState()
   if(!ok3) {
     postWMessage("No temperature info in info_buffer.");
   }
+  
+  string m_new_report_name = getBufferStringVal("REPORT_NAME",ok5);
+
+  if(ok5)
+    m_report_name = m_new_report_name;
 
   //determine if a new max or min temperature exists.
   Temps Temp_New;
@@ -379,7 +389,7 @@ void BHV_FindTempFront::calcAmplitude()
       continue;
     if(Curr_Temp.m_temps < m_tave - 0.15 * (m_th - m_tc))
       continue;
-    if(Curr_Temp.m_x < 90 && Curr_Temp.m_x > -50){
+    if(Curr_Temp.m_x < 100 && Curr_Temp.m_x > -70){
       double A = Curr_Temp.m_x - 0;
       double B = Curr_Temp.m_y - (a_one * A + a_zero);
       double C = 40;
@@ -429,7 +439,7 @@ void BHV_FindTempFront::calcAmplitude()
   }
 }
 
-void BHV_FindTempFront::determineCoursePD(Temps New_Temp)
+void BHV_FindTempFront::determineCoursePID(Temps New_Temp)
 {
 // constants for PD control of heading
   std::list<Temps>::iterator it;
@@ -516,11 +526,9 @@ void BHV_FindTempFront::reportOffsetAngle()
   double wave_est = (wavelength_east_guess + wavelength_west_guess)/2;
   if(wave_est > reported_max_wavelength || wave_est < reported_min_wavelength)
     wave_est =(reported_max_wavelength + reported_min_wavelength)/2;
-  postMessage("WAVELENGTH","max=" + to_string((int)ceil(max_wavelength)) + ",min=" + to_string((int)floor(min_wavelength)) + ",guess=" + to_string((int)round(wave_est)));
+ // postMessage("WAVELENGTH","max=" + to_string((int)ceil(max_wavelength)) + ",min=" + to_string((int)floor(min_wavelength)) + ",guess=" + to_string((int)round(wave_est)));
+  postMessage("AMPLITUDE","max=" + to_string((int)ceil(max_amplitude_reported)) + ",min=" +to_string((int)floor(min_amplitude_reported)) + ",guess=" + to_string((int)round(amp)));
   postMessage("VIEW_VECTOR","x=-50,y=-170,mag="+to_string(143/2)+",ang=90,label=true_wavelength");
-  postMessage("VIEW_VECTOR","x=-50,y=-173,mag=" + to_string(reported_max_wavelength/2) + ",ang=90,label=max_wavelength");
-  postMessage("VIEW_VECTOR","x=-50,y=-176,mag=" + to_string(reported_min_wavelength/2) + ",ang=90,label=min_wavelength");
-  postMessage("VIEW_VECTOR","x=-50,y=-179,mag=" + to_string(wave_est/2) + ",ang=90,label=wavelength_guess");
 }
 
 //performs linear regression to approximate offset and angle
@@ -564,15 +572,15 @@ void BHV_FindTempFront::findEstimates(double x, double y, double temp)
     double angle_drawn = 90 - m_angle;
 
     string s = "x=0,y="+to_string(a_zero)+",mag=100,ang="+to_string(angle_drawn)+",label=one,edge_color=red";  
-    string s2 = "x=0,y="+to_string(a_zero)+",mag="+to_string(amp) + ",ang="+to_string(-m_angle)+",label=amp_guess,edge_color=red";
-    string s_min = "x=0,y="+to_string(a_zero)+",mag="+to_string(min_amplitude_reported) + ",ang="+to_string(-m_angle)+",label=amp_min,edge_color=red";
-    string s_max = "x=0,y="+to_string(a_zero)+",mag="+to_string(max_amplitude_reported) + ",ang="+to_string(-m_angle)+",label=amp_max,edge_color=red";
+    string s2 = "x=0,y=-78,mag="+to_string(amp) + ",ang=3,label=amp_guess,edge_color=red";
+    string s_min = "x=0,y=-78,mag="+to_string(min_amplitude_reported) + ",ang=3,label=amp_min,edge_color=red";
+    string s_max = "x=0,y=-78,mag="+to_string(max_amplitude_reported) + ",ang=3,label=amp_max,edge_color=red";
     //draw vector of guess and solution
     postMessage("VIEW_VECTOR",s);
     postMessage("VIEW_VECTOR","x=0,y=-78,mag=100,ang=93,label=truth");
     postMessage("VIEW_VECTOR",s2);
-        postMessage("VIEW_VECTOR",s_min);
-            postMessage("VIEW_VECTOR",s_max);
+    postMessage("VIEW_VECTOR",s_min);
+    postMessage("VIEW_VECTOR",s_max);
     postMessage("VIEW_VECTOR","x=0,y=-78,mag=34,ang=3,label=true_amplitude"); 
     calcAmplitude();
   }
@@ -585,14 +593,21 @@ void BHV_FindTempFront::findEstimates(double x, double y, double temp)
 
 IvPFunction* BHV_FindTempFront::onRunState()
 {
-  bool ok1, ok2, ok3, ok4;
+  bool ok1, ok2, ok3, ok4, ok5, ok6;
   IvPFunction *ipf = 0;
 
 //obtain O/S X,Y, and desired heading
   m_osx = getBufferDoubleVal("NAV_X", ok1);
   m_osy = getBufferDoubleVal("NAV_Y", ok2);
   m_curr_heading = getBufferDoubleVal("DESIRED_HEADING",ok4);
+  string mes;
+  string m_new_report_name = getBufferStringVal("REPORT_NAME",ok5);
 
+  if(ok5)
+    m_report_name = m_new_report_name;
+
+  m_curr_time = getBufferCurrTime();
+  
   if(!ok1 || !ok2) {
     postWMessage("No ownship X/Y info in info_buffer.");
     return(0);
@@ -603,11 +618,27 @@ IvPFunction* BHV_FindTempFront::onRunState()
     return(0);
   }
 
+  string m_other = getBufferStringVal("OTHER_TEMP", ok6);
+
+  
+   if(ok6){
+   postMessage("AAA",m_other);
+ }
+
+// //  string new_mes = "x=" + to_string(Temp_Other.m_x) + ",y=" + to_string(Temp_Other.m_y) +",radius=50,duration=6,fill=0.9,label=archie_ping,edge_color=white,fill_color=white,edge_size=1";
+
+//   //postMessage("VIEW_RANGE_PULSE",new_mes);
+// }
   //determine temperature at location
   Temps Temp_New;
   Temp_New.m_temps = stod(tokStringParse(m_msmnt_report,"temp",',','='));
   Temp_New.m_x = stod(tokStringParse(m_msmnt_report,"x",',','='));
   Temp_New.m_y = stod(tokStringParse(m_msmnt_report,"y",',','='));
+  Temp_New.m_time = stod(tokStringParse(m_msmnt_report,"utc",',','='));
+  Temp_New.m_string = m_msmnt_report;
+  Report_Temps.push_back(Temp_New);
+
+
 
 //checks temperature gradient. refine t_ave, t_h, t_c if necessary
   if(temp_last == 0)
@@ -673,10 +704,10 @@ IvPFunction* BHV_FindTempFront::onRunState()
     postMessage("SURVEY","true");
   }
 
-  determineCoursePD(Temp_New);
+  determineCoursePID(Temp_New);
 
 //buffer for approaching boundary  
-  double buffer = 15;
+  double buffer = 20;
 
 //logic statement to determine if a boundary is approached and turn ship
 //around.. additionally it sets the general easterly or westerly search
@@ -714,7 +745,7 @@ IvPFunction* BHV_FindTempFront::onRunState()
         location = "south";
       double y_one = a_one * (-50) + a_zero;
       double y_two = a_one * (165) + a_zero;
-      postMessage("WAVE_UPDATES","points=pts={-50,"+to_string(y_one)+":165,"+to_string(y_two) + ":-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");
+      postMessage("WAVE_UPDATES","points=pts={-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");//}:-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");
       postMessage("FIND_WL","true");
     }
   }
@@ -735,10 +766,31 @@ IvPFunction* BHV_FindTempFront::onRunState()
         location = "north";
       if(Temp_New.m_temps > m_tave)
         location = "south";
-      postMessage("WAVE_UPDATES","points=pts={-50,"+to_string(y_one)+":165,"+to_string(y_two) + ":-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");
+      postMessage("WAVE_UPDATES","points=pts={-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");// ":-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");
       postMessage("FIND_WL","true");
     }
    }
+
+  if(m_curr_time >= m_report_time + 15.01 && Report_Temps.size() >= 1){
+    Temps Best_Temp = Report_Temps.front();
+    std::list<Temps>::iterator it;
+    for (it = Report_Temps.begin(); it != Report_Temps.end(); ++it){
+      Temps Curr_Temp = *it;
+      if(abs(Curr_Temp.m_temps - m_tave) < Best_Temp.m_temps - m_tave){
+        Best_Temp = Curr_Temp;
+      }
+    } 
+   mes =  "src_node=" + m_report_name;
+   mes = mes + ",dest_node=" + "all";
+   mes = mes + ",var_name="  + "OTHER_TEMP";
+   string message = "vname=" + m_report_name + ";utc=" + to_string(Best_Temp.m_time) + ";x=" + to_string(Best_Temp.m_x) + ";y=" + to_string(Best_Temp.m_y) + ";temp=" + to_string(Best_Temp.m_temps);
+   postMessage("BBB",message);
+   mes = mes + ",string_val=" + Best_Temp.m_string;
+   postMessage("NODE_MESSAGE_LOCAL",mes);
+   Report_Temps.clear();
+   m_report_time = getBufferCurrTime();
+  }
+
 
   //build the IvP function
   ipf = buildFunctionWithZAIC();

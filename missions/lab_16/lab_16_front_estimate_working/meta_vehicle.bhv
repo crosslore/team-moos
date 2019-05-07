@@ -53,17 +53,14 @@ Behavior = BHV_Waypoint
   endflag      = FIND_TEMP = true //RETURN = true
 
          speed = 2   // meters per second
-//        radius = 5.0
-//   slip_radius = 15.0
-//          lead = 8
-//	  lead_damper=1
-	points = pts = {145,-180:160,-175}
-  //points = format=lawnmower, label=archie_survey, x=$(SURVEY_X), y=$(SURVEY_Y), width=$(WIDTH), height=$(HEIGHT),lane_width=$(LANE_WIDTH), rows=north-south, degs=$(DEGREES)
 
-        repeat = 0
-  visual_hints = nextpt_color=red, nextpt_lcolor=green
-  visual_hints = vertex_color=yellow, edge_color=gray25
-  visual_hints = vertex_size=1, edge_size=1
+#ifdef VNAME VNAME1
+  points = pts = {130,-180:155,-170}
+#elseifdef VNAME VNAME2
+  points = pts = {30,-180:155,-170}
+#endif
+activeflag = REPORT_NAME = $(VNAME)
+
 }
 
 //----------------------------------------------
@@ -157,3 +154,10 @@ Behavior = BHV_Waypoint
   visual_hints = vertex_size=1, edge_size=1
 }
 
+//------------------------------------------------
+Behavior = BHV_AvoidBoundary
+{
+  name       = avdboundary_
+  pwt        = 600
+  condition  = RETURN = false
+}

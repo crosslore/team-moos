@@ -62,3 +62,19 @@ TARGET_LINK_LIBRARIES(BHV_FindTempFront
    mbutil 
    geometry 
    ${SYSTEM_LIBS} )
+
+#--------------------------------------------------------
+#                                      BHV_AvoidBoundary
+#--------------------------------------------------------
+ADD_LIBRARY(BHV_AvoidBoundary SHARED 
+   BHV_AvoidBoundary.cpp)
+TARGET_LINK_LIBRARIES(BHV_AvoidBoundary
+   helmivp
+   behaviors 
+   ivpbuild 
+   logic 
+   ivpcore 
+   bhvutil 
+   mbutil 
+   geometry 
+   ${SYSTEM_LIBS} )

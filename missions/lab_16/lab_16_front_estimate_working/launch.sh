@@ -85,7 +85,7 @@ fi
 #-------------------------------------------------------
 
 VNAME1="archie"      # The first  vehicle community
-START_POS1="0,0"  
+START_POS1="20,0"  
 
 VNAME2="betty"
 START_POS2="0,0"
@@ -103,7 +103,7 @@ nsplug meta_vehicle.moos targ_$VNAME1.moos -f WARP=$TIME_WARP  \
 nsplug meta_vehicle.bhv targ_$VNAME1.bhv -f VNAME=$VNAME1      \
     START_POS=$START_POS1 SURVEY_X=$SURVEY_X SURVEY_Y=$SURVEY_Y \
         HEIGHT=$HEIGHT1   WIDTH=$WIDTH1 LANE_WIDTH=$LANE_WIDTH1 \
-        DEGREES=$DEGREES1
+        DEGREES=$DEGREES1  VNAME1=$VNAME1 VNAME2=$VNAME2     
 
 #start second vehicle:                                                                                                   
 nsplug meta_vehicle.moos targ_$VNAME2.moos -f WARP=$TIME_WARP  \
@@ -115,7 +115,7 @@ nsplug meta_vehicle.moos targ_$VNAME2.moos -f WARP=$TIME_WARP  \
 nsplug meta_vehicle.bhv targ_$VNAME2.bhv -f VNAME=$VNAME2      \
     START_POS=$START_POS2 SURVEY_X=$SURVEY_X SURVEY_Y=$SURVEY_Y \
         HEIGHT=$HEIGHT2   WIDTH=$WIDTH2 LANE_WIDTH=$LANE_WIDTH2 \
-        DEGREES=$DEGREES2
+        DEGREES=$DEGREES2  VNAME1=$VNAME1  VNAME2=$VNAME2     
 
 
 if [ ${JUST_MAKE} = "yes" ] ; then
@@ -128,10 +128,10 @@ fi
 
     printf "Launching $VNAME1 MOOS Community (WARP=%s) \n" $TIME_WARP
     pAntler targ_$VNAME1.moos >& /dev/null &
-    sleep 0.25
-   # printf "Launching $VNAME2 MOOS Community (WARP=%s) \n" $TIME_WARP
-   # pAntler targ_$VNAME2.moos >& /dev/null &
-    sleep 0.25
+    sleep 0.5
+    printf "Launching $VNAME2 MOOS Community (WARP=%s) \n" $TIME_WARP
+    pAntler targ_$VNAME2.moos >& /dev/null &
+    sleep 0.5
     printf "Launching $SNAME MOOS Community (WARP=%s) \n"  $TIME_WARP
     pAntler targ_shoreside.moos >& /dev/null &
     printf "Done \n"

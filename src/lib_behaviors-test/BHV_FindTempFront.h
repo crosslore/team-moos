@@ -37,7 +37,7 @@ public:
   void         courseAdjustBoundary();
   void         reportOffsetAngle();
   void         calculatePeriodEast(Temps New_Temp);
-  void         determineCoursePD(Temps New_Temp);
+  void         determineCoursePID(Temps New_Temp);
   IvPFunction* onRunState();
   IvPFunction* buildFunctionWithZAIC();
 
@@ -95,8 +95,13 @@ protected: // State variables
   double             wave_large;
   double             wave_small;
 
+  double             m_start_time;
+  double             m_report_time;
+  double             m_curr_time;
+
   bool               foundwave;
   Temps              Last_Temp;
+  std::string        m_report_name;
   std::string        direction;
   list<Temps>        Last_Ten;
 
@@ -113,6 +118,7 @@ protected: // State variables
   double             max_amplitude;
   double             min_wavelength;
   double             max_wavelength;
+  list<Temps>        Report_Temps;
 
 };
 

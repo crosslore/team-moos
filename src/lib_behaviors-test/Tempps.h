@@ -10,5 +10,6 @@ class Temps
     double m_x;
     double m_y;
     double m_time; 
+    std::string m_string;
 
 }; 
