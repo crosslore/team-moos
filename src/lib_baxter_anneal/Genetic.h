@@ -34,7 +34,7 @@
 #include <iostream>
 #include "MBUtils.h"
 
-class CMeasurement
+class Measurement
 {
  public:
   double t;
@@ -56,10 +56,10 @@ class Genetic
   bool setMaxVal(std::vector<double> val);
   void getEstimate(std::vector<double>& est, bool good);
   void clearMeas();
-  void addMeas(CMeasurement new_meas);
-  CMeasurement parseMeas(std::string report);
+  void addMeas(Measurement new_meas);
+  Measurement parseMeas(std::string report);
   double calcEnergy(bool good);
-  double heatBath(double temperature);
+  double run();
   double measModel(double t, double x, double y);
   double measModelGood(double t, double x, double y);
   
@@ -90,8 +90,8 @@ class Genetic
   double Energy_good;
   double Energy_best;
 
-  std::vector<CMeasurement> measurements;
-  std::vector<CMeasurement> model;
+  std::vector<Measurement> measurements;
+  std::vector<Measurement> model;
 
   CFrontSim front;
 

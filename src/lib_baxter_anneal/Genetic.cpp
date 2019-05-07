@@ -127,7 +127,7 @@ void Genetic::clearMeas()
   measurements.clear();
 }
 
-void Genetic::addMeas(CMeasurement new_meas)
+void Genetic::addMeas(Measurement new_meas)
 {
   int num_meas = measurements.size(); 
   measurements.push_back(new_meas);
@@ -144,7 +144,7 @@ void Genetic::addMeas(CMeasurement new_meas)
        << " model=" << model << " Energy =" << Energy << endl;
 }
 
-CMeasurement Genetic::parseMeas(string report)
+Measurement Genetic::parseMeas(string report)
 {
 //---------------------------------------------------------
 // Procedure: parseMeas
@@ -152,7 +152,7 @@ CMeasurement Genetic::parseMeas(string report)
 
   // Part 1: Parse the measurement
 
-  CMeasurement buf;
+  Measurement buf;
   string vname;
   vector<string> svector = parseString(report, ',');
   unsigned int i, vsize = svector.size();
@@ -173,7 +173,7 @@ CMeasurement Genetic::parseMeas(string report)
 }
 
 
-double Genetic::heatBath(double temperature)
+double Genetic::run()
 {
   for (unsigned int i=0; i< num_vars; i++)
     {
@@ -183,7 +183,7 @@ double Genetic::heatBath(double temperature)
       if (adaptive)
 	{
 	  // adaptive simulated annealing
-	  double delta = (-1+2*Ran.rand())*temperature*(var_max[i]-var_min[i]);
+	  double delta = (-1+2*Ran.rand())*(var_max[i]-var_min[i]);
 	  double new_val = variables[i] + delta;
 	  if (new_val > var_max[i])
 	    variables[i] = var_max[i];
@@ -192,7 +192,7 @@ double Genetic::heatBath(double temperature)
 	  else
 	    variables[i]=new_val;
 
-    delta = (-1+2*Ran.rand())*temperature*(var_max_best[i]-var_min_best[i]);
+    delta = (-1+2*Ran.rand())*(var_max_best[i]-var_min_best[i]);
     new_val = variables_good[i] + delta;
     if (new_val > var_max_best[i])
       variables_good[i] = var_max_best[i];
@@ -210,7 +210,7 @@ double Genetic::heatBath(double temperature)
 	}
 
       double new_Energy = calcEnergy(false);
-      double prob = exp(-(new_Energy-Energy)/(k*temperature));
+      double prob = exp(-(new_Energy-Energy)/(k));
       if (new_Energy < Energy || rand() <= prob)
 	{
     // if(new_Energy < Energy){
@@ -225,7 +225,7 @@ double Genetic::heatBath(double temperature)
 	}
 
       double new_Energy_good = calcEnergy(true);
-      prob = exp(-(new_Energy_good-Energy_good)/(k*temperature));
+      prob = exp(-(new_Energy_good-Energy_good)/(k));
       if (new_Energy_good < Energy_good || rand() <= prob)
   {
     // if(new_Energy_good < Energy_best){
@@ -241,7 +241,7 @@ double Genetic::heatBath(double temperature)
   variables_best[i] = variables_good[i];
 
   }
-  return(Energy);
+  return(50);
 }
 
 double Genetic::calcEnergy(bool good)
@@ -249,7 +249,7 @@ double Genetic::calcEnergy(bool good)
   double energy = 0;
   for (unsigned int i=0; i < measurements.size(); i++)
     {
-      CMeasurement m = measurements[i];
+      Measurement m = measurements[i];
       if(good) {
         energy += pow(m.temp - measModelGood(m.t,m.x,m.y),2);
       }

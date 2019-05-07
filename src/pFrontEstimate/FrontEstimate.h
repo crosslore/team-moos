@@ -29,6 +29,7 @@
 //#include "MOOSUtilityLib/MOOSGeodesy.h"
 #include "CSimAnneal2.h"
 #include "CFrontSim2.h"
+#include "Genetic.h"
 #include <string>
 #include "MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h"
 
@@ -47,6 +48,7 @@ class CFrontEstimate : public AppCastingMOOSApp
  protected:
 
   CSimAnneal anneal;
+  Genetic genetic;
 
   bool in_survey;
   bool completed;
@@ -76,6 +78,16 @@ class CFrontEstimate : public AppCastingMOOSApp
   double dbeta;
   double dT_N;
   double dT_S;
+  // Genetic Front parameters
+  double goffset;
+  double gangle;
+  double gamplitude;
+  double gperiod;
+  double gwavelength;
+  double galpha;
+  double gbeta;
+  double gT_N;
+  double gT_S;
   // lower limits for annealer
   double min_offset;
   double min_angle;
@@ -109,6 +121,7 @@ class CFrontEstimate : public AppCastingMOOSApp
 
   void postParameterReport();
   void postParameterReportDavid();
+  void postParameterReportGenetic();
 };
 
 #endif 

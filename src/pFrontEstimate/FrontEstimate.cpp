@@ -36,6 +36,8 @@ CFrontEstimate::CFrontEstimate()
   num_meas = 0;
   in_survey = false;
   anneal.clearMeas();
+  genetic.clearMeas();
+
   anneal_step = 0;
   concurrent = false;
   adaptive   = false;
@@ -193,6 +195,8 @@ bool CFrontEstimate::OnStartUp()
 
   // Initialize annealer
   anneal.setVars(num_param, temp_fac, adaptive);
+  genetic.setVars(num_param, temp_fac, adaptive);
+
   vector<double> vars;
   vars.push_back(min_offset);
   vars.push_back(min_angle);
@@ -204,6 +208,8 @@ bool CFrontEstimate::OnStartUp()
   vars.push_back(min_T_N);
   vars.push_back(min_T_S);
   anneal.setMinVal(vars);
+  genetic.setMinVal(vars);
+
   vars.clear();
   vars.push_back(max_offset);
   vars.push_back(max_angle);
@@ -215,6 +221,8 @@ bool CFrontEstimate::OnStartUp()
   vars.push_back(max_T_N);
   vars.push_back(max_T_S);
   anneal.setMaxVal(vars);
+  genetic.setMaxVal(vars);
+
   vars.clear();
   vars.push_back(0.5*(max_offset+min_offset));
   vars.push_back(0.5*(max_angle+min_angle));
@@ -226,6 +234,7 @@ bool CFrontEstimate::OnStartUp()
   vars.push_back(0.5*(max_T_N+min_T_N));
   vars.push_back(0.5*(max_T_S+min_T_S));
   anneal.setInitVal(vars);
+  genetic.setInitVal(vars);
 
   return(true);
 }
@@ -292,6 +301,21 @@ bool CFrontEstimate::Iterate()
       
       postParameterReportDavid();
 
+      genetic.run();
+
+      genetic.getEstimate(result, true);
+      goffset =     result[0];
+      gangle  =     result[1];
+      gamplitude =  result[2];
+      gperiod =     result[3];
+      gwavelength = result[4];
+      galpha =      result[5];
+      gbeta =       result[6];
+      gT_N  =       result[7];
+      gT_S  =       result[8];
+      
+      postParameterReportGenetic();
+
       report_sent = true;
       new_anneal_report=true;
     }
@@ -330,9 +354,14 @@ bool CFrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
       if (rMsg.m_sKey == "UCTD_MSMNT_REPORT" && in_survey)
 	{
 	  value = rMsg.m_sVal;
-	  CMeasurement buf;
+    CMeasurement buf;
+    Measurement genbuf;
 	  buf = anneal.parseMeas(value);
-	  anneal.addMeas(buf);
+    anneal.addMeas(buf);
+
+    genbuf = genetic.parseMeas(value);
+    genetic.addMeas(genbuf);
+
 	  num_meas += 1;
 	  MOOSTrace("New measurement added, Total = %d\n", num_meas);
 	}
@@ -393,7 +422,21 @@ void CFrontEstimate::postParameterReportDavid()
   m_Comms.Notify("UCTD_PARAMETER_ESTIMATE_DAVID", sval);
 }
 
-
+void CFrontEstimate::postParameterReportGenetic()
+{
+  string sval;
+  sval = "vname=David";
+  sval += ",offset=" + doubleToString(goffset);
+  sval += ",angle=" + doubleToString(gangle);
+  sval += ",amplitude=" + doubleToString(gamplitude);
+  sval += ",period=" + doubleToString(gperiod);
+  sval += ",wavelength=" + doubleToString(gwavelength);
+  sval += ",alpha=" + doubleToString(galpha);
+  sval += ",beta=" + doubleToString(gbeta);
+  sval += ",tempnorth=" + doubleToString(gT_N);
+  sval += ",tempsouth=" + doubleToString(gT_S);
+  m_Comms.Notify("UCTD_PARAMETER_ESTIMATE_GENETIC", sval);
+}
 
 
 
