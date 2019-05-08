@@ -74,6 +74,21 @@ class Genetic
   double k;
   bool adaptive;
 
+  //Genetic Specific
+  double max_it;
+  double popsize;
+  double mutrate;
+  double cselection;
+  double selection;
+  double Nt;
+  double keep;
+  double nmut;
+  double M;
+  double iga;
+  std::vector<std::vector<int> > par;
+  std::vector<double> pop_cost;
+
+
   std::vector<double> variables;
   std::vector<double> var_min;
   std::vector<double> var_max;

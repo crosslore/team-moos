@@ -33,6 +33,10 @@ Genetic::Genetic()
   Energy = 0;
   Energy_good = 0;
   Energy_best = 10000000;
+  max_it = 10000;
+  popsize = 10;             //set population size
+  mutrate = 0.1;            //set mutation rate
+  cselection = 0.5;         //fraction of population kept
 }
 
 Genetic::~Genetic()
@@ -58,6 +62,18 @@ void Genetic::setVars( int num, double temp_fac, bool adapt)
   num_vars = num;
   k = temp_fac;
   adaptive = adapt;
+
+  selection = cselection;               //fraction of population kept
+  Nt = num_vars;                        //continuous parameter GA Nt=#variables
+  keep = floor(selection*popsize);;     //population members that survive
+  nmut = ceil((popsize-1)*Nt*mutrate);; //set mutation rate
+  M = ceil((popsize-keep)/2);           //number of matings
+  iga = 0;                              //generation counter initialized
+  
+  for (int i = 0; i < popsize; i++) { 
+          for (int j = 0; j < Nt; j++) 
+              par[i][j] = 1;  
+      } 
 }
 
 bool Genetic::setInitVal(vector<double> var_init)
@@ -175,6 +191,16 @@ Measurement Genetic::parseMeas(string report)
 
 double Genetic::run()
 {
+
+  for (int i = 0; i < popsize; i++) { 
+    for (int j = 0; j < Nt; j++) {
+      variables[j] = par[i][j];
+    }
+
+    pop_cost[i] = calcEnergy(false);  
+  } 
+  
+
   for (unsigned int i=0; i< num_vars; i++)
     {
       double old = variables[i];
