@@ -47,7 +47,6 @@ Behavior = BHV_Waypoint
   condition    = MODE==SURVEYING
   perpetual    = true
   updates      = SURVEY_UPDATES
-  activeflag   = SURVEY_UNDERWAY = true
   //inactiveflag = SURVEY_UNDERWAY = false
   endflag      = FIRST_SURVEY = false
   endflag      = FIND_TEMP = true //RETURN = true
@@ -89,7 +88,7 @@ Behavior = BHV_FindTempFront
   name        = find_temp
   pwt         = 100
   condition   = MODE == FINDTEMP
-  activeflag   = SURVEY_UNDERWAY = true
+  //activeflag   = SURVEY_UNDERWAY = true
   perpetual   = true
 }
 
@@ -122,12 +121,12 @@ Behavior = BHV_AvoidCollision
            extrapolate = true
                  decay = 30,60
 
-        pwt_outer_dist = 50
+        pwt_outer_dist = 40
         pwt_inner_dist = 20
         completed_dist = 75
      min_util_cpa_dist = 8
      max_util_cpa_dist = 25
-             pwt_grade = linear
+             pwt_grade = quadratic
    bearing_line_config = white:0, green:0.65, yellow:0.8, red:1.0
 }
 //----------------------------------------------
@@ -158,6 +157,6 @@ Behavior = BHV_Waypoint
 Behavior = BHV_AvoidBoundary
 {
   name       = avdboundary_
-  pwt        = 600
+  pwt        = 400
   condition  = RETURN = false
 }

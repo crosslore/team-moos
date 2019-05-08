@@ -153,7 +153,7 @@ IvPFunction* BHV_AvoidBoundary::onRunState()
     change_course = true;
    }
 
-  m_speed_desired = 2.0;
+  m_speed_desired = 0.8;
   if(change_course)
     ipf = buildFunctionWithZAIC();
   // Part N: Prior to returning the IvP function, apply the priority wt

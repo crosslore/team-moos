@@ -23,4 +23,6 @@ ProcessConfig = uFldNodeBroker
   BRIDGE = src=OTHER_POS
   BRIDGE = src=REPORT_NAME
   BRIDGE = src=OTHER_TEMP
+  BRIDGE = src=SURVEY_UNDERWAY
+  BRIDGE = src=SURVEY
 }

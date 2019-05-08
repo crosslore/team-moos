@@ -49,7 +49,7 @@ BHV_FindTempFront::BHV_FindTempFront(IvPDomain domain) :
   foundwave = false;
   wavelength_west_guess = 0;
   wavelength_east_guess = 0;
-  m_course_desired = 2;
+  m_speed_desired = 2;
   wavelength_east_guess = 0;
   wave_large = 0;
   wave_small = 1000;
@@ -69,7 +69,7 @@ BHV_FindTempFront::BHV_FindTempFront(IvPDomain domain) :
 
   m_curr_time = getBufferCurrTime();
   m_report_time = getBufferCurrTime();
-
+  postMessage("SURVEY_UNDERWAY","true");
 
   // Provide a default behavior name
   IvPBehavior::setParam("name", "defaultname");
@@ -283,7 +283,7 @@ void BHV_FindTempFront::refineTemps(double t_ave_new)
 
 void BHV_FindTempFront::onIdleState()
 {
-  bool ok1, ok2, ok3, ok4, ok5;
+  bool ok1, ok2, ok3, ok4, ok5, ok6;
   m_osx = getBufferDoubleVal("NAV_X", ok1);
   m_osy = getBufferDoubleVal("NAV_Y", ok2);
   m_curr_heading = getBufferDoubleVal("DESIRED_HEADING",ok4);
@@ -299,6 +299,11 @@ void BHV_FindTempFront::onIdleState()
 
   if(ok5)
     m_report_name = m_new_report_name;
+
+  string m_other = getBufferStringVal("OTHER_TEMP", ok6);
+  if(ok6){
+    handleTempReport(m_other);
+  }
 
   //determine if a new max or min temperature exists.
   Temps Temp_New;
@@ -427,15 +432,15 @@ void BHV_FindTempFront::calcAmplitude()
       if(max_amp !=0 && min_amp !=0)
         amp = (max_amp + abs(min_amp))/2;
     }
-    if(max_amp > abs(min_amp) && (max_amp * 1.15 < max_amplitude)){
-      max_amplitude_reported = max_amp * 1.25;
-      if(abs(min_amp) * 0.75 > min_amplitude)
-      min_amplitude_reported = abs(min_amp) * 0.75;
+    if(max_amp > abs(min_amp) && (max_amp * 1.3 < max_amplitude)){
+      max_amplitude_reported = max_amp * 1.3;
+      if(abs(min_amp) * 0.7 > min_amplitude)
+        min_amplitude_reported = abs(min_amp) * 0.7;
     }
-    if(max_amp < abs(min_amp) && abs(min_amp) * 1.25 < max_amplitude){
-      max_amplitude_reported = abs(min_amp) * 1.25;
-      if(max_amp * 0.75 > min_amplitude)
-      min_amplitude_reported = max_amp * 0.75; 
+    if(max_amp < abs(min_amp) && abs(min_amp) * 1.3 > max_amplitude){
+      max_amplitude_reported = abs(min_amp) * 1.3;
+      if(abs(max_amp) * 0.7 > min_amplitude)
+        min_amplitude_reported = abs(max_amp) * 0.7; 
     }
   }
 }
@@ -496,13 +501,13 @@ void BHV_FindTempFront::determineCoursePID(Temps New_Temp)
   if(Last_Ten.size()>10)
     Last_Ten.pop_front();
   if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.4)
-    m_course_desired = 1.8;
+    m_speed_desired = 1.8;
   if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.3)
-    m_course_desired = 1.6;
+    m_speed_desired = 1.6;
   if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.2)
-    m_course_desired = 1.4;
+    m_speed_desired = 1.4;
   if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.1)
-    m_course_desired = 1.2;
+    m_speed_desired = 1.2;
 }
 //produces a report to give estimate for offset and angle
 void BHV_FindTempFront::reportOffsetAngle()
@@ -542,6 +547,7 @@ void BHV_FindTempFront::findEstimates(double x, double y, double temp)
 
 //if temperature within allowance band, perform a linear regression
   if ((temp > t_ave_low) && (temp < t_ave_high)){
+
     Temps New_Temp;
     New_Temp.m_x = x;
     New_Temp.m_y = y;
@@ -587,6 +593,58 @@ void BHV_FindTempFront::findEstimates(double x, double y, double temp)
   }
 }
 
+void BHV_FindTempFront::handleTempReport(std::string s)
+{
+  size_t n = std::count(s.begin(), s.end(), ':');
+    for(int count=0; count !=n; count++){
+      Temps New_Temp;
+      string m_new = biteString(s,':');
+      postMessage("AAA",m_new);
+      New_Temp.m_temps = stod(tokStringParse(m_new,"temp",';','='));
+      New_Temp.m_x = stod(tokStringParse(m_new,"x",';','='));
+      New_Temp.m_y = stod(tokStringParse(m_new,"y",';','='));
+      New_Temp.m_time = stod(tokStringParse(m_new,"utc",';','=')); 
+      ave_temps_list.push_back(New_Temp);
+    }
+
+}
+
+void BHV_FindTempFront::makeTempReport()
+{
+  std::string mes;
+  if(m_curr_time >= m_report_time + 15.01 && Report_Temps.size() >= 1){
+    string message;
+    mes =  "src_node=" + m_report_name;
+    mes = mes + ",dest_node=" + "all";
+    mes = mes + ",var_name="  + "OTHER_TEMP";
+    int i =0;
+    std::list<Temps>::iterator it;
+    for (it = Report_Temps.begin(); it != Report_Temps.end(); ++it){
+      Temps Curr_Temp = *it;
+      i = i+1;
+      stringstream stream1;
+      stream1 << fixed << setprecision(1) << Curr_Temp.m_time;
+      string time_string = stream1.str();
+      stringstream stream2;
+      stream2 << fixed << setprecision(1) << Curr_Temp.m_x;
+      string x_string = stream2.str();
+      stringstream stream3;
+      stream3 << fixed << setprecision(1) << Curr_Temp.m_y;
+      string y_string = stream3.str();
+      stringstream stream4;
+      stream4 << fixed << setprecision(1) << Curr_Temp.m_temps;
+      string temp_string = stream4.str();
+      message = message + "vname=" + m_report_name + ";utc=" + time_string + ";x=" + x_string + ";y=" + y_string + ";temp=" + temp_string+":";
+      it = Report_Temps.erase(it);
+      if(i >=43)
+        break;
+      }
+   postMessage("BBB",message);
+   mes = mes + ",string_val=" + message;
+   postMessage("NODE_MESSAGE_LOCAL",mes);
+   m_report_time = getBufferCurrTime();
+  }
+}
 
 //---------------------------------------------------------------
 // Procedure: onRunState()
@@ -620,35 +678,23 @@ IvPFunction* BHV_FindTempFront::onRunState()
   }
 
   string m_other = getBufferStringVal("OTHER_TEMP", ok6);
-
-  
-   if(ok6){
-   postMessage("AAA",m_other);
-   size_t n = std::count(m_other.begin(), m_other.end(), ':');
-    for(int count=0; count !=n; count++){
-      Temps New_Temp;
-      string m_new = biteString(m_other,':');
-      New_Temp.m_temps = stod(tokStringParse(m_new,"temp",';','='));
-      New_Temp.m_x = stod(tokStringParse(m_new,"x",';','='));
-      New_Temp.m_y = stod(tokStringParse(m_new,"y",';','='));
-      New_Temp.m_time = stod(tokStringParse(m_new,"utc",';','=')); 
-      ave_temps_list.push_back(New_Temp);
-    }
+  if(ok6){
+    handleTempReport(m_other);
   }
 
-// //  string new_mes = "x=" + to_string(Temp_Other.m_x) + ",y=" + to_string(Temp_Other.m_y) +",radius=50,duration=6,fill=0.9,label=archie_ping,edge_color=white,fill_color=white,edge_size=1";
 
-//   //postMessage("VIEW_RANGE_PULSE",new_mes);
-// }
-  //determine temperature at location
   Temps Temp_New;
   Temp_New.m_temps = stod(tokStringParse(m_msmnt_report,"temp",',','='));
   Temp_New.m_x = stod(tokStringParse(m_msmnt_report,"x",',','='));
   Temp_New.m_y = stod(tokStringParse(m_msmnt_report,"y",',','='));
   Temp_New.m_time = stod(tokStringParse(m_msmnt_report,"utc",',','='));
   Temp_New.m_string = m_msmnt_report;
+
   if (abs(Temp_New.m_temps - m_tave) < 0.2 * abs(m_th - m_tc)){
-    Report_Temps.push_back(Temp_New);
+    if((Temp_New.m_x != Temp_Old.m_x) && (Temp_New.m_y != Temp_Old.m_y)){
+      postMessage("SURVEY","true");
+      m_survey_start = true;
+    }
   }
 
 
@@ -664,9 +710,14 @@ IvPFunction* BHV_FindTempFront::onRunState()
 
 //only start linear regression solver if survey has started
   if(m_survey_start){
-   findEstimates(Temp_New.m_x,Temp_New.m_y,Temp_New.m_temps); 
+    if((Temp_New.m_x != Temp_Old.m_x) && (Temp_New.m_y != Temp_Old.m_y)){ 
+     findEstimates(Temp_New.m_x,Temp_New.m_y,Temp_New.m_temps); 
+     Report_Temps.push_back(Temp_New);
+    }
   }
 
+  Temp_Old = Temp_New;
+  
   // //determine if new temp is max or min and store
   // if(Temp_New.m_temps > m_th){
   //   m_th = ceil(Temp_New.m_temps);
@@ -712,10 +763,6 @@ IvPFunction* BHV_FindTempFront::onRunState()
     }
   }
 
-  if (m_change_course && !m_survey_start){
-    m_survey_start = true;
-    postMessage("SURVEY","true");
-  }
 
   determineCoursePID(Temp_New);
 
@@ -726,20 +773,20 @@ IvPFunction* BHV_FindTempFront::onRunState()
 //around.. additionally it sets the general easterly or westerly search
 //pattern
   if(m_osx > 180 - buffer){
-    m_heading_desired = 270;
+  //  m_heading_desired = 270;
     m_mid_heading = 270;
     direction = "west";
     m_change_course = true;
     m_course_time = getBufferCurrTime();
   }
   if((m_osx < 100) && (m_osx > -50) && (m_osy > (2.0/5.0 * m_osx - 20.0 - buffer))){
-    m_heading_desired = 180;
+    //m_heading_desired = 180;
     //m_mid_heading = 90;
     m_change_course = true;
     m_course_time = getBufferCurrTime();
   }
   if((m_osx < -50) && (m_osy > 7.0/10.0 * m_osx - 5.0 - buffer)){
-    m_heading_desired = 90;
+    //m_heading_desired = 90;
     direction = "east";
     m_mid_heading = 90;
     m_change_course = true;
@@ -758,14 +805,14 @@ IvPFunction* BHV_FindTempFront::onRunState()
         location = "south";
       double y_one = a_one * (-50) + a_zero;
       double y_two = a_one * (165) + a_zero;
-     // postMessage("WAVE_UPDATES","points=pts={-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");//}:-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");
-     // postMessage("FIND_WL","true");
+      postMessage("WAVE_UPDATES","points=pts={-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");//}:-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");
+      postMessage("FIND_WL","true");
     }
   }
   if((m_osx < -50) && (m_osy < -5.0/2.0 * m_osx - 325.0 + buffer)){
     m_change_course = true;
     m_mid_heading = 90;
-    m_heading_desired = 90;
+   // m_heading_desired = 90;
     direction = "east";
     m_course_time = getBufferCurrTime();
     double y_one = a_one * (-50) + a_zero;
@@ -784,38 +831,9 @@ IvPFunction* BHV_FindTempFront::onRunState()
     }
    }
 
-  if(m_curr_time >= m_report_time + 15.01 && Report_Temps.size() >= 1){
-    string message;
-    mes =  "src_node=" + m_report_name;
-    mes = mes + ",dest_node=" + "all";
-    mes = mes + ",var_name="  + "OTHER_TEMP";
-    int i =0;
-    std::list<Temps>::iterator it;
-    for (it = Report_Temps.begin(); it != Report_Temps.end(); ++it){
-      Temps Curr_Temp = *it;
-      i = i+1;
-      stringstream stream1;
-      stream1 << fixed << setprecision(1) << Curr_Temp.m_time;
-      string time_string = stream1.str();
-      stringstream stream2;
-      stream2 << fixed << setprecision(1) << Curr_Temp.m_x;
-      string x_string = stream2.str();
-      stringstream stream3;
-      stream3 << fixed << setprecision(1) << Curr_Temp.m_y;
-      string y_string = stream3.str();
-      stringstream stream4;
-      stream4 << fixed << setprecision(1) << Curr_Temp.m_temps;
-      string temp_string = stream4.str();
-      message = message + "vname=" + m_report_name + ";utc=" + time_string + ";x=" + x_string + ";y=" + y_string + ";temp=" + temp_string+":";
-      it = Report_Temps.erase(it);
-      if(i >=43)
-        break;
-      }
-   postMessage("BBB",message);
-   mes = mes + ",string_val=" + message;
-   postMessage("NODE_MESSAGE_LOCAL",mes);
-   m_report_time = getBufferCurrTime();
-  }
+   makeTempReport();
+
+
 
 
   //build the IvP function
@@ -832,7 +850,7 @@ IvPFunction* BHV_FindTempFront::onRunState()
 IvPFunction *BHV_FindTempFront::buildFunctionWithZAIC() 
 {
   ZAIC_PEAK spd_zaic(m_domain, "speed");
-  spd_zaic.setSummit(m_course_desired);
+  spd_zaic.setSummit(m_speed_desired);
   spd_zaic.setPeakWidth(0.5);
   spd_zaic.setBaseWidth(1.0);
   spd_zaic.setSummitDelta(0.8);  

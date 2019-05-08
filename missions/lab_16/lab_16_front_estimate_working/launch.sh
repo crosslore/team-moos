@@ -9,8 +9,8 @@ do
 
 TIME_WARP=1
 JUST_MAKE="no"
-COOL_FAC=50
-COOL_STEPS=2000
+COOL_FAC=25
+COOL_STEPS=1000
 CONCURRENT="true"
 ADAPTIVE="false"
 SURVEY_X=70
@@ -142,7 +142,11 @@ fi
 
 
     #    uMAC targ_shoreside.moos
-    sleep 160
+    sleep 65
+    uPokeDB targ_$VNAME1.moos SURVEY_UNDERWAY=false
+    sleep 0.5 
+    uPokeDB targ_$VNAME2.moos SURVEY_UNDERWAY=false
+    sleep 15
     uPokeDB targ_shoreside.moos RETURN_ALL=true
     sleep 5
     printf "Killing all processes ... \n"

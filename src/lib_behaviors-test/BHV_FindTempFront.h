@@ -38,6 +38,8 @@ public:
   void         reportOffsetAngle();
   void         calculatePeriodEast(Temps New_Temp);
   void         determineCoursePID(Temps New_Temp);
+  void         handleTempReport(std::string s);
+  void         makeTempReport();
   IvPFunction* onRunState();
   IvPFunction* buildFunctionWithZAIC();
 
@@ -54,7 +56,7 @@ protected: // State variables
   double             m_tc;
   double             m_tc_y;
   double             m_heading_desired;
-  double             m_course_desired;
+  double             m_speed_desired;
   double             m_curr_heading;
   bool               m_change_course;
   bool               m_top_hot;
@@ -101,6 +103,7 @@ protected: // State variables
 
   bool               foundwave;
   Temps              Last_Temp;
+  Temps              Temp_Old;
   std::string        m_report_name;
   std::string        direction;
   list<Temps>        Last_Ten;

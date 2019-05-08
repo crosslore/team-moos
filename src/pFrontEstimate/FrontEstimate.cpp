@@ -374,9 +374,8 @@ bool CFrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
 
 
     size_t n = std::count(value.begin(), value.end(), ':');
-    reportEvent(to_string(n));
     vector<string> str_vector = parseString(value, ':');
-    reportEvent("vector size = " + to_string(str_vector.size()));
+
     for(unsigned int i=0; i<str_vector.size(); i++){
       if (str_vector[i] == "")
         return(true);
@@ -386,14 +385,13 @@ bool CFrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
       string y = tokStringParse(str_vector[i],"y",';','=');
       string time = tokStringParse(str_vector[i],"utc",';','='); 
       string new_value = "vname=" + vname + ",utc=" + time + ",x=" + x + ",y=" + y + ",temp=" + temp;
-
+      reportEvent(new_value);    
+      CMeasurement buf;
+      buf = anneal.parseMeas(new_value);
+      anneal.addMeas(buf);
+      num_meas += 1;
+      MOOSTrace("New measurement added, Total = %d\n", num_meas);
     }
-  //     CMeasurement buf;
-  //     buf = anneal.parseMeas(value);
-  //     anneal.addMeas(buf);
-  //     num_meas += 1;
-  //     MOOSTrace("New measurement added, Total = %d\n", num_meas);
-    
    }
       else if (rMsg.m_sKey == "SURVEY_UNDERWAY")
 	{
