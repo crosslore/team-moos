@@ -47,7 +47,7 @@ Behavior = BHV_Waypoint
   condition    = MODE==SURVEYING
   perpetual    = true
   updates      = SURVEY_UPDATES
-  //inactiveflag = SURVEY_UNDERWAY = false
+  //activeflag = SURVEY_UNDERWAY = true
   endflag      = FIRST_SURVEY = false
   endflag      = FIND_TEMP = true //RETURN = true
 
@@ -110,7 +110,7 @@ Behavior = BHV_OpRegion
 Behavior = BHV_AvoidCollision
 {
   name       = avdcollision_
-  pwt        = 300
+  pwt        = 200
   condition  = AVOID = true
   updates    = CONTACT_INFO
   endflag    = CONTACT_RESOLVED = $[CONTACT]
@@ -121,12 +121,12 @@ Behavior = BHV_AvoidCollision
            extrapolate = true
                  decay = 30,60
 
-        pwt_outer_dist = 40
+        pwt_outer_dist = 50
         pwt_inner_dist = 20
         completed_dist = 75
      min_util_cpa_dist = 8
      max_util_cpa_dist = 25
-             pwt_grade = quadratic
+             pwt_grade = linear
    bearing_line_config = white:0, green:0.65, yellow:0.8, red:1.0
 }
 //----------------------------------------------

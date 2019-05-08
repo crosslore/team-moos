@@ -18,6 +18,7 @@ Processconfig = ANTLER
   Run = pMarinePID         @ NewConsole = false
   Run = pHelmIvP           @ NewConsole = false
   Run = uProcessWatch      @ NewConsole = false
+    Run = pFrontEstimate     @ NewConsole = false
 
   Run = pShare             @ NewConsole = false
   Run = pHostInfo          @ NewConsole = false
@@ -25,7 +26,6 @@ Processconfig = ANTLER
   Run = uFldMessageHandler @ NewConsole = false
   
   Run = uTimerScript       @ NewConsole = false
-  Run = pFrontEstimate     @ NewConsole = false
   Run = pBasicContactMgr   @ NewConsole = false
 
 }

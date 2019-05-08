@@ -36,6 +36,8 @@ public:
   void         calculateWavelengthEast();
   void         courseAdjustBoundary();
   void         reportOffsetAngle();
+
+  void         updateParam();
   void         calculatePeriodEast(Temps New_Temp);
   void         determineCoursePID(Temps New_Temp);
   void         handleTempReport(std::string s);
@@ -107,6 +109,12 @@ protected: // State variables
   std::string        m_report_name;
   std::string        direction;
   list<Temps>        Last_Ten;
+
+  bool               T_N_updated;
+  bool               T_S_updated;
+  bool               initial_leg;
+  bool               Offset_updated;
+  bool               first_temp_path;
 
 
   double             min_T_N;

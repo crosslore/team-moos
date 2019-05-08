@@ -51,7 +51,17 @@ setMaxVal(max,0);
 
 }
 
+void CSimAnneal::updateParam(int param, int min, int max, int guess)
+{
 
+offset_guess = guess;
+offset_guess_min = min;
+offset_guess_max = max;
+
+setMinVal(min,param);
+setMaxVal(max,param);
+
+}
 
 void CSimAnneal::setVars( int num, double temp_fac, bool adapt)
 {

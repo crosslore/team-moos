@@ -67,9 +67,15 @@ BHV_FindTempFront::BHV_FindTempFront(IvPDomain domain) :
   min_amplitude = 0;
   max_amplitude = 50;
 
+  T_N_updated = false;
+  initial_leg = false;
+  T_S_updated = false;
+  Offset_updated = false;
+  first_temp_path = false;
+
   m_curr_time = getBufferCurrTime();
   m_report_time = getBufferCurrTime();
-  postMessage("SURVEY_UNDERWAY","true");
+  //postMessage("SURVEY_UNDERWAY","true");
 
   // Provide a default behavior name
   IvPBehavior::setParam("name", "defaultname");
@@ -265,7 +271,7 @@ void BHV_FindTempFront::findWavelength(Temps New_Temp)
       }
     }
   }
-  reportOffsetAngle();
+  first_temp_path = true;
 }
 
 //refines Temperatures based on largest gradient seen
@@ -283,6 +289,7 @@ void BHV_FindTempFront::refineTemps(double t_ave_new)
 
 void BHV_FindTempFront::onIdleState()
 {
+  postMessage("SURVEY_UNDERWAY","true");
   bool ok1, ok2, ok3, ok4, ok5, ok6;
   m_osx = getBufferDoubleVal("NAV_X", ok1);
   m_osy = getBufferDoubleVal("NAV_Y", ok2);
@@ -352,21 +359,8 @@ void BHV_FindTempFront::postConfigStatus()
 
 void BHV_FindTempFront::onIdleToRunState()
 {
-//Publishes North and South Temperatures to Front Estimate to reduce bounds 
-//for annealing once FindTempFront is in the run state.
-  if(!temp_report){
-      if(m_tc + 1 < max_T_N)
-    max_T_N = m_tc + 1;
-  if(m_tc - 2 > min_T_N)
-    min_T_N = m_tc - 2;
-  if(m_th + 2 < max_T_S)
-    max_T_S = m_th + 2; 
-  if(m_th - 1 > min_T_S)
-    min_T_S = m_th - 1;
-    postMessage("TEMP_NORTH","max=" + to_string((int)max_T_N) + ",min=" + to_string((int)min_T_N) + ",guess=" + to_string((int)m_tc));
-    postMessage("TEMP_SOUTH","max=" + to_string((int)max_T_S) + ",min=" + to_string((int)min_T_S) + ",guess=" + to_string((int)m_th));
-    temp_report = true;
-  }
+  initial_leg = true;
+  postMessage("SURVEY_UNDERWAY","true");
 }
 
 //---------------------------------------------------------------
@@ -510,14 +504,47 @@ void BHV_FindTempFront::determineCoursePID(Temps New_Temp)
     m_speed_desired = 1.2;
 }
 //produces a report to give estimate for offset and angle
+void BHV_FindTempFront::updateParam()
+{
+  if(!T_N_updated && initial_leg){
+    if(m_tc + 1 < max_T_N)
+      max_T_N = m_tc + 1;
+    if(m_tc - 2 > min_T_N)
+      min_T_N = m_tc - 2;
+    postMessage("PARAM_UPDATE","param=7,max=" + to_string((int)max_T_N) + ",min=" + to_string((int)min_T_N) + ",guess=" + to_string((int)m_tc));
+    T_N_updated = true;
+    return;
+  }
+  if(!T_S_updated && initial_leg){
+    if(m_th + 2 < max_T_S)
+      max_T_S = m_th + 2; 
+    if(m_th - 1 > min_T_S)
+      min_T_S = m_th - 1;
+    postMessage("PARAM_UPDATE","param=8,max=" + to_string((int)max_T_S) + ",min=" + to_string((int)min_T_S) + ",guess=" + to_string((int)m_th));
+    T_S_updated = true;
+    return;
+  }
+  if(!Offset_updated && first_temp_path){
+    if(a_zero + 20 < max_offset)
+      max_offset = a_zero + 20;
+    if(a_zero - 20 > min_offset)
+      min_offset = a_zero - 20;
+    postMessage("PARAM_UPDATE","param=0,max=" + to_string((int)ceil(max_offset)) + ",min=" + to_string((int)floor(min_offset)) + ",guess=" + to_string((int)round(a_zero)));
+    Offset_updated = true;
+    postMessage("SURVEY_UNDERWAY","true");
+    return;
+  }
+
+
+
+   T_N_updated = false;
+   T_S_updated = false;
+   Offset_updated = false;
+  return;
+}
+
 void BHV_FindTempFront::reportOffsetAngle()
 {
-  if(a_zero + 20 < max_offset)
-    max_offset = a_zero + 20;
-  if(a_zero - 20 > min_offset)
-    min_offset = a_zero - 20;
-//  postMessage("OFFSET","max=" + to_string((int)ceil(max_offset)) + ",min=" + to_string((int)floor(min_offset)) + ",guess=" + to_string((int)round(a_zero)));
-  postMessage("OFFSET","max=-78,min=-78,guess=-78");
   if(m_angle + 20 < max_angle)
     max_angle = m_angle + 20;
   if(m_angle - 20 > min_angle)
@@ -773,20 +800,20 @@ IvPFunction* BHV_FindTempFront::onRunState()
 //around.. additionally it sets the general easterly or westerly search
 //pattern
   if(m_osx > 180 - buffer){
-  //  m_heading_desired = 270;
+    m_heading_desired = 270;
     m_mid_heading = 270;
     direction = "west";
     m_change_course = true;
     m_course_time = getBufferCurrTime();
   }
   if((m_osx < 100) && (m_osx > -50) && (m_osy > (2.0/5.0 * m_osx - 20.0 - buffer))){
-    //m_heading_desired = 180;
+    m_heading_desired = 180;
     //m_mid_heading = 90;
     m_change_course = true;
     m_course_time = getBufferCurrTime();
   }
   if((m_osx < -50) && (m_osy > 7.0/10.0 * m_osx - 5.0 - buffer)){
-    //m_heading_desired = 90;
+    m_heading_desired = 90;
     direction = "east";
     m_mid_heading = 90;
     m_change_course = true;
@@ -812,7 +839,7 @@ IvPFunction* BHV_FindTempFront::onRunState()
   if((m_osx < -50) && (m_osy < -5.0/2.0 * m_osx - 325.0 + buffer)){
     m_change_course = true;
     m_mid_heading = 90;
-   // m_heading_desired = 90;
+    m_heading_desired = 90;
     direction = "east";
     m_course_time = getBufferCurrTime();
     double y_one = a_one * (-50) + a_zero;
@@ -830,7 +857,7 @@ IvPFunction* BHV_FindTempFront::onRunState()
       postMessage("FIND_WL","true");
     }
    }
-
+   updateParam();
    makeTempReport();
 
 

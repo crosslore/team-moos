@@ -64,6 +64,8 @@ class CSimAnneal
   double measModelGood(double t, double x, double y);
   
   void updateOffset(int min, int max, int guess);
+  void updateParam(int param, int min, int max, int guess);
+  
   bool setMinVal(int val, int i);
   bool setMaxVal(int val, int i);
 
