@@ -60,7 +60,7 @@ TARGET_LINK_LIBRARIES(BHV_FindTempFront
    ivpcore 
    bhvutil 
    mbutil 
-   geometry 
+  geometry
    ${SYSTEM_LIBS} )
 
 #--------------------------------------------------------
@@ -76,5 +76,5 @@ TARGET_LINK_LIBRARIES(BHV_AvoidBoundary
    ivpcore 
    bhvutil 
    mbutil 
-   geometry 
+   geometry
    ${SYSTEM_LIBS} )

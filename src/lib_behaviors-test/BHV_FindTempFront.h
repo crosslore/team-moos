@@ -14,6 +14,7 @@
 #include <list>
 #include "ZAIC_PEAK.h"
 #include "temps.h"
+#include <algorithm>
 
 class BHV_FindTempFront : public IvPBehavior {
 public:
@@ -35,7 +36,7 @@ public:
   void         calculateWavelengthWest();
   void         calculateWavelengthEast();
   void         courseAdjustBoundary();
-  void         reportOffsetAngle();
+  // void         reportOffsetAngle();
 
   void         updateParam();
   void         calculatePeriodEast(Temps New_Temp);
@@ -114,6 +115,8 @@ protected: // State variables
   bool               T_S_updated;
   bool               initial_leg;
   bool               Offset_updated;
+  bool               Angle_updated;
+  bool               Amplitude_updated;
   bool               first_temp_path;
 
 

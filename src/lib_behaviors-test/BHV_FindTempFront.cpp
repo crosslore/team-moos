@@ -507,8 +507,8 @@ void BHV_FindTempFront::determineCoursePID(Temps New_Temp)
 void BHV_FindTempFront::updateParam()
 {
   if(!T_N_updated && initial_leg){
-    if(m_tc + 1 < max_T_N)
-      max_T_N = m_tc + 1;
+    if(m_tc + 2 < max_T_N)
+      max_T_N = m_tc + 2;
     if(m_tc - 2 > min_T_N)
       min_T_N = m_tc - 2;
     postMessage("PARAM_UPDATE","param=7,max=" + to_string((int)max_T_N) + ",min=" + to_string((int)min_T_N) + ",guess=" + to_string((int)m_tc));
@@ -518,8 +518,8 @@ void BHV_FindTempFront::updateParam()
   if(!T_S_updated && initial_leg){
     if(m_th + 2 < max_T_S)
       max_T_S = m_th + 2; 
-    if(m_th - 1 > min_T_S)
-      min_T_S = m_th - 1;
+    if(m_th - 2 > min_T_S)
+      min_T_S = m_th - 2;
     postMessage("PARAM_UPDATE","param=8,max=" + to_string((int)max_T_S) + ",min=" + to_string((int)min_T_S) + ",guess=" + to_string((int)m_th));
     T_S_updated = true;
     return;
@@ -531,38 +531,47 @@ void BHV_FindTempFront::updateParam()
       min_offset = a_zero - 20;
     postMessage("PARAM_UPDATE","param=0,max=" + to_string((int)ceil(max_offset)) + ",min=" + to_string((int)floor(min_offset)) + ",guess=" + to_string((int)round(a_zero)));
     Offset_updated = true;
-    postMessage("SURVEY_UNDERWAY","true");
+    return;
+  }
+  if(!Angle_updated && first_temp_path){
+    if(m_angle + 15 < max_angle)
+      max_angle = m_angle + 15;
+    if(m_angle - 15 > min_angle)
+      min_angle = m_angle - 15;
+    postMessage("PARAM_UPDATE","param=1,max=" + to_string((int)ceil(max_angle)) + ",min=" + to_string((int)floor(min_angle)) + ",guess=" + to_string((int)round(m_angle)));
+    Angle_updated = true;
+    return;
+  }
+  if(!Amplitude_updated && first_temp_path){
+    postMessage("PARAM_UPDATE","param=2,max=" + to_string((int)ceil(max_amplitude_reported)) + ",min=" +to_string((int)floor(min_amplitude_reported)) + ",guess=" + to_string((int)round(amp)));
+    Amplitude_updated = true;
     return;
   }
 
-
-
-   T_N_updated = false;
-   T_S_updated = false;
-   Offset_updated = false;
+   // T_N_updated = false;
+   // T_S_updated = false;
+   // Offset_updated = false;
+   // Angle_updated = false;
+   // Amplitude_updated = false;
   return;
 }
 
-void BHV_FindTempFront::reportOffsetAngle()
-{
-  if(m_angle + 20 < max_angle)
-    max_angle = m_angle + 20;
-  if(m_angle - 20 > min_angle)
-    min_angle = m_angle - 20;
-  postMessage("ANGLE","max=" + to_string((int)ceil(max_angle)) + ",min=" + to_string((int)floor(min_angle)) + ",guess=" + to_string((int)round(m_angle)));
-  double reported_min_wavelength = min_wavelength;
-  double reported_max_wavelength = max_wavelength;
-  if(wave_large < max_wavelength)
-    reported_max_wavelength = wave_large;
-  if(wave_small > min_wavelength)
-    reported_min_wavelength = wave_small;
-  double wave_est = (wavelength_east_guess + wavelength_west_guess)/2;
-  if(wave_est > reported_max_wavelength || wave_est < reported_min_wavelength)
-    wave_est =(reported_max_wavelength + reported_min_wavelength)/2;
- // postMessage("WAVELENGTH","max=" + to_string((int)ceil(max_wavelength)) + ",min=" + to_string((int)floor(min_wavelength)) + ",guess=" + to_string((int)round(wave_est)));
-  postMessage("AMPLITUDE","max=" + to_string((int)ceil(max_amplitude_reported)) + ",min=" +to_string((int)floor(min_amplitude_reported)) + ",guess=" + to_string((int)round(amp)));
-  postMessage("VIEW_VECTOR","x=-50,y=-170,mag="+to_string(143/2)+",ang=90,label=true_wavelength");
-}
+// void BHV_FindTempFront::reportOffsetAngle()
+// {
+
+//   double reported_min_wavelength = min_wavelength;
+//   double reported_max_wavelength = max_wavelength;
+//   if(wave_large < max_wavelength)
+//     reported_max_wavelength = wave_large;
+//   if(wave_small > min_wavelength)
+//     reported_min_wavelength = wave_small;
+//   double wave_est = (wavelength_east_guess + wavelength_west_guess)/2;
+//   if(wave_est > reported_max_wavelength || wave_est < reported_min_wavelength)
+//     wave_est =(reported_max_wavelength + reported_min_wavelength)/2;
+//  // postMessage("WAVELENGTH","max=" + to_string((int)ceil(max_wavelength)) + ",min=" + to_string((int)floor(min_wavelength)) + ",guess=" + to_string((int)round(wave_est)));
+ 
+//   postMessage("VIEW_VECTOR","x=-50,y=-170,mag="+to_string(143/2)+",ang=90,label=true_wavelength");
+// }
 
 //performs linear regression to approximate offset and angle
 void BHV_FindTempFront::findEstimates(double x, double y, double temp)
@@ -794,7 +803,7 @@ IvPFunction* BHV_FindTempFront::onRunState()
   determineCoursePID(Temp_New);
 
 //buffer for approaching boundary  
-  double buffer = 20;
+  double buffer = 25;
 
 //logic statement to determine if a boundary is approached and turn ship
 //around.. additionally it sets the general easterly or westerly search
@@ -832,8 +841,8 @@ IvPFunction* BHV_FindTempFront::onRunState()
         location = "south";
       double y_one = a_one * (-50) + a_zero;
       double y_two = a_one * (165) + a_zero;
-      postMessage("WAVE_UPDATES","points=pts={-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");//}:-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");
-      postMessage("FIND_WL","true");
+ //     postMessage("WAVE_UPDATES","points=pts={-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");//}:-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");
+//      postMessage("FIND_WL","true");
     }
   }
   if((m_osx < -50) && (m_osy < -5.0/2.0 * m_osx - 325.0 + buffer)){
@@ -853,8 +862,8 @@ IvPFunction* BHV_FindTempFront::onRunState()
         location = "north";
       if(Temp_New.m_temps > m_tave)
         location = "south";
-      postMessage("WAVE_UPDATES","points=pts={-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");// ":-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");
-      postMessage("FIND_WL","true");
+   //   postMessage("WAVE_UPDATES","points=pts={-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");// ":-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");
+   //   postMessage("FIND_WL","true");
     }
    }
    updateParam();
