@@ -14,6 +14,7 @@
 #include <list>
 #include "ZAIC_PEAK.h"
 #include "temps.h"
+#include <algorithm>
 
 class BHV_FindTempFront : public IvPBehavior {
 public:
