@@ -45,3 +45,4 @@ rm -f   $VERBOSE   targ_*
 rm -f   $VERBOSE   .LastOpenedMOOSLogDirectory
 
 rm -f   $VERBOSE   output.txt
+rm -f   $VERBOSE   genetic.txt
