@@ -195,7 +195,7 @@ bool CFrontEstimate::OnStartUp()
 
   // Initialize annealer
   anneal.setVars(num_param, temp_fac, adaptive);
-//  genetic.setVars(num_param, temp_fac, adaptive);
+  genetic.setVars(num_param, temp_fac, adaptive);
 
   vector<double> vars;
   vars.push_back(min_offset);
@@ -208,7 +208,7 @@ bool CFrontEstimate::OnStartUp()
   vars.push_back(min_T_N);
   vars.push_back(min_T_S);
   anneal.setMinVal(vars);
-//  genetic.setMinVal(vars);
+  genetic.setMinVal(vars);
 
   vars.clear();
   vars.push_back(max_offset);
@@ -221,7 +221,7 @@ bool CFrontEstimate::OnStartUp()
   vars.push_back(max_T_N);
   vars.push_back(max_T_S);
   anneal.setMaxVal(vars);
-//  genetic.setMaxVal(vars);
+  genetic.setMaxVal(vars);
 
   vars.clear();
   vars.push_back(0.5*(max_offset+min_offset));
@@ -234,7 +234,8 @@ bool CFrontEstimate::OnStartUp()
   vars.push_back(0.5*(max_T_N+min_T_N));
   vars.push_back(0.5*(max_T_S+min_T_S));
   anneal.setInitVal(vars);
-//  genetic.setInitVal(vars);
+  genetic.setInitVal(vars);
+  reportEvent("Here");
 
   return(true);
 }
@@ -257,6 +258,9 @@ bool CFrontEstimate::Iterate()
   AppCastingMOOSApp::Iterate();
   double curr_time = MOOSTime();
   //double temperature;
+
+  reportEvent(genetic.run());
+
   new_anneal_report=false;
   if (concurrent)
     temperature = exp(- 2*double(anneal_step)/double(cooling_steps));
@@ -303,20 +307,20 @@ bool CFrontEstimate::Iterate()
       
       postParameterReportDavid();
 
-      // genetic.run();
+      genetic.run();
 
-      // genetic.getEstimate(result, true);
-      // goffset =     result[0];
-      // gangle  =     result[1];
-      // gamplitude =  result[2];
-      // gperiod =     result[3];
-      // gwavelength = result[4];
-      // galpha =      result[5];
-      // gbeta =       result[6];
-      // gT_N  =       result[7];
-      // gT_S  =       result[8];
+      genetic.getEstimate(result, true);
+      goffset =     result[0];
+      gangle  =     result[1];
+      gamplitude =  result[2];
+      gperiod =     result[3];
+      gwavelength = result[4];
+      galpha =      result[5];
+      gbeta =       result[6];
+      gT_N  =       result[7];
+      gT_S  =       result[8];
       
-      // postParameterReportGenetic();
+      postParameterReportGenetic();
 
       report_sent = true;
       new_anneal_report=true;
@@ -352,8 +356,8 @@ bool CFrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
     buf = anneal.parseMeas(value);
     anneal.addMeas(buf);
 
-    // genbuf = genetic.parseMeas(value);
-    // genetic.addMeas(genbuf);
+    genbuf = genetic.parseMeas(value);
+    genetic.addMeas(genbuf);
 
     num_meas += 1;
     MOOSTrace("New measurement added, Total = %d\n", num_meas);
@@ -366,7 +370,7 @@ bool CFrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
     int min = stoi(tokStringParse(value, "min", ',','='));
     int max = stoi(tokStringParse(value, "max", ',','='));
     int guess = stoi(tokStringParse(value, "guess", ',','='));
-    reportEvent(to_string(guess));
+    // reportEvent(to_string(guess));
     anneal.updateParam(param, min, max, guess);
  
   }
@@ -374,7 +378,7 @@ bool CFrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
    else if (rMsg.m_sKey == "OTHER_TEMP" && in_survey)
    {
      value = rMsg.m_sVal;
-     reportEvent(value);
+     // reportEvent(value);
 
 
     size_t n = std::count(value.begin(), value.end(), ':');
@@ -389,7 +393,7 @@ bool CFrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
       string y = tokStringParse(str_vector[i],"y",';','=');
       string time = tokStringParse(str_vector[i],"utc",';','='); 
       string new_value = "vname=" + vname + ",utc=" + time + ",x=" + x + ",y=" + y + ",temp=" + temp;
-      reportEvent(new_value);    
+      // reportEvent(new_value);    
       CMeasurement buf;
       buf = anneal.parseMeas(new_value);
       anneal.addMeas(buf);
@@ -454,21 +458,21 @@ void CFrontEstimate::postParameterReportDavid()
   m_Comms.Notify("UCTD_PARAMETER_ESTIMATE_DAVID", sval);
 }
 
-// void CFrontEstimate::postParameterReportGenetic()
-// {
-//   string sval;
-//   sval = "vname=David";
-//   sval += ",offset=" + doubleToString(goffset);
-//   sval += ",angle=" + doubleToString(gangle);
-//   sval += ",amplitude=" + doubleToString(gamplitude);
-//   sval += ",period=" + doubleToString(gperiod);
-//   sval += ",wavelength=" + doubleToString(gwavelength);
-//   sval += ",alpha=" + doubleToString(galpha);
-//   sval += ",beta=" + doubleToString(gbeta);
-//   sval += ",tempnorth=" + doubleToString(gT_N);
-//   sval += ",tempsouth=" + doubleToString(gT_S);
-//   m_Comms.Notify("UCTD_PARAMETER_ESTIMATE_GENETIC", sval);
-// }
+void CFrontEstimate::postParameterReportGenetic()
+{
+  string sval;
+  sval = "vname=Genetic";
+  sval += ",offset=" + doubleToString(goffset);
+  sval += ",angle=" + doubleToString(gangle);
+  sval += ",amplitude=" + doubleToString(gamplitude);
+  sval += ",period=" + doubleToString(gperiod);
+  sval += ",wavelength=" + doubleToString(gwavelength);
+  sval += ",alpha=" + doubleToString(galpha);
+  sval += ",beta=" + doubleToString(gbeta);
+  sval += ",tempnorth=" + doubleToString(gT_N);
+  sval += ",tempsouth=" + doubleToString(gT_S);
+  m_Comms.Notify("UCTD_PARAMETER_ESTIMATE_GENETIC", sval);
+}
 
 
 

@@ -1,5 +1,5 @@
 /*****************************************************************/
-/*    NAME: Henrik Schmidt                                       */
+/*    NAME: David Baxter (Adapted from Henrik Schmidt)           */
 /*    ORGN: Dept of Mechanical Eng / CSAIL, MIT Cambridge MA     */
 /*    FILE:                                                      */
 /*    DATE:                                                      */
@@ -30,11 +30,13 @@ Genetic::Genetic()
 {
   got_min = false;
   got_max = false;
+  got_init = false;
+  check = true;
+  count = 0;
   Energy = 0;
-  Energy_good = 0;
-  Energy_best = 10000000;
+
   max_it = 10000;
-  popsize = 10;             //set population size
+  popsize = 8;             //set population size
   mutrate = 0.1;            //set mutation rate
   cselection = 0.5;         //fraction of population kept
 }
@@ -43,18 +45,27 @@ Genetic::~Genetic()
 {
 }
 
-void Genetic::updateOffset(int min, int max, int guess)
+bool Chromosome::operator<(const Chromosome& someChrom) const
 {
+  double d1,d2;
 
-offset_guess = guess;
-offset_guess_min = min;
-offset_guess_max = max;
 
-setMinVal(min,0);
-setMaxVal(max,0);
+ d1 = cost;
+ d2 = someChrom.cost;
 
+ if(d1 < d2)
+    return(true);
+
+ return(false);
 }
 
+void Genetic::updateParam(int param, int min, int max, int guess)
+{
+
+setMinVal(min,param);
+setMaxVal(max,param);
+
+}
 
 
 void Genetic::setVars( int num, double temp_fac, bool adapt)
@@ -66,14 +77,56 @@ void Genetic::setVars( int num, double temp_fac, bool adapt)
   selection = cselection;               //fraction of population kept
   Nt = num_vars;                        //continuous parameter GA Nt=#variables
   keep = floor(selection*popsize);;     //population members that survive
-  nmut = ceil((popsize-1)*Nt*mutrate);; //set mutation rate
+  nmut = ceil((popsize-1)*Nt*mutrate);; //set mutation number
   M = ceil((popsize-keep)/2);           //number of matings
   iga = 0;                              //generation counter initialized
   
+  //Initialize population empty shell
   for (int i = 0; i < popsize; i++) { 
-          for (int j = 0; j < Nt; j++) 
-              par[i][j] = 1;  
-      } 
+    Chromosome chrom;
+    population.push_back(chrom);
+  } 
+
+  //Calc Reproduction Priority Weights
+  int prob_den = cumlsum(keep);
+  double cumprob;
+  double pos;
+    for (int i = 1; i <= keep; ++i)
+  {
+    pos = i;
+    prob.push_back(pos/prob_den);
+  }
+  reverse(prob.begin(), prob.end()); // Most chance of top rank
+  odds.push_back(0);
+  for (int i = 0; i <keep; ++i)
+  {
+    cumprob += prob[i];
+    odds.push_back(cumprob);
+  }
+
+
+  //Initialize Mating vector empty shells
+  for (int i = 0; i < M; ++i)
+  {
+    pick1.push_back(0);
+    pick2.push_back(0);
+    ma.push_back(0);
+    pa.push_back(0);
+    xp.push_back(0);
+    mix.push_back(0);
+    // spread.push_back(0);
+  }
+
+  //Initialize Mate 1 indicies
+  for (int i = 0; i < keep; i+=2)
+  {
+    ix.push_back(i+keep);
+  }
+for (int i = 0; i < nmut; ++i)
+{
+  mut_row.push_back(ceil(Ran.rand()*(popsize-1)));
+  mut_col.push_back(floor(Ran.rand()*(Nt)));
+}
 }
 
 bool Genetic::setInitVal(vector<double> var_init)
@@ -84,8 +137,17 @@ bool Genetic::setInitVal(vector<double> var_init)
 	return(false);
     }
   variables = var_init;
-  variables_good = var_init;
   variables_best = var_init;
+  got_init = true;
+
+  // Initialize a random population
+  for (int i = 0; i < popsize; i++) { 
+    for (int j = 0; j < var_init.size(); j++) { 
+      double m = var_min[j]+Ran.rand()*(var_max[j]-var_min[j]);
+      population[i].variables.push_back(m);
+    }
+  }
+
   return(true);
 }
 
@@ -97,7 +159,6 @@ bool Genetic::setMinVal(vector<double> var)
 	return(false);
     }
   var_min = var;
-  var_min_best = var;
   got_min = true;
   return(true);
 }
@@ -110,32 +171,30 @@ bool Genetic::setMaxVal(vector<double> var)
 	return(false);
     }
   var_max = var;
-  var_max_best = var;
   got_max = true;
   return(true);
 }
 
 bool Genetic::setMinVal(int var, int i)
 {
-  var_min_best[i] = var;
+  var_min[i] = var;
   return(true);
 }
 
 bool Genetic::setMaxVal(int var, int i)
 {
-  var_max_best[i] = var;
+  var_max[i] = var;
   return(true);
+}
+
+int Genetic::cumlsum(int n)
+{
+  return (n == 1) ? 1 : cumlsum(n - 1) + n;
 }
 
 void Genetic::getEstimate(vector<double>& var_est, bool good)
 {
-  if(good){
-    var_est = variables_best;
-  }
-  else {
-    var_est = variables;
-  }
-  
+    var_est = population[0].variables; 
 }
 
 void Genetic::clearMeas()
@@ -147,17 +206,10 @@ void Genetic::addMeas(Measurement new_meas)
 {
   int num_meas = measurements.size(); 
   measurements.push_back(new_meas);
-  // update energy
-  double model = measModel(new_meas.t, new_meas.x, new_meas.y);
-  Energy = sqrt((num_meas*pow(Energy,2) + pow(new_meas.temp - model,2))/(num_meas+1)); 
-
-  double model_good = measModelGood(new_meas.t, new_meas.x, new_meas.y);
-  Energy_good = sqrt((num_meas*pow(Energy_good,2) + pow(new_meas.temp - model_good,2))/(num_meas+1)); 
-
 
   cout << ">>> Num_Meas=" << num_meas+1 << " new_meas.temp=" << new_meas.temp << endl; 
   cout << "t,x,y=" << new_meas.t << "," << new_meas.x << "," << new_meas.y 
-       << " model=" << model << " Energy =" << Energy << endl;
+       << endl;
 }
 
 Measurement Genetic::parseMeas(string report)
@@ -189,116 +241,158 @@ Measurement Genetic::parseMeas(string report)
 }
 
 
-double Genetic::run()
+string Genetic::run()
 {
 
-  for (int i = 0; i < popsize; i++) { 
-    for (int j = 0; j < Nt; j++) {
-      variables[j] = par[i][j];
-    }
 
-    pop_cost[i] = calcEnergy(false);  
-  } 
+  count +=1;
+  string tmp;
+  // for (int i = 0; i < Nt; ++i)
+  // {
+  //   tmp += to_string(population[0].variables[i]);
+  //   tmp += "   ";  
+  // }
+
+  // if((check) && (count>400)) {
+  //   calcCost();
+  //   sort(population.begin(),population.end());
+  //   check = false;
+
+  //   //Pair and Mate
+  //   mate();
+  //   mutate();
+
+  // }
+
+    if((check) && (count>1400)) {
+    check = false;
+
+
+  calcCost();
+  sort(population.begin(),population.end());
+for (int i = 0; i < max_it; ++i)
+{
   
+  mate();
+  mutate();
+  calcCost();
+  sort(population.begin(),population.end());
 
-  for (unsigned int i=0; i< num_vars; i++)
-    {
-      double old = variables[i];
-      double old_good = variables_good[i];
-
-      if (adaptive)
-	{
-	  // adaptive simulated annealing
-	  double delta = (-1+2*Ran.rand())*(var_max[i]-var_min[i]);
-	  double new_val = variables[i] + delta;
-	  if (new_val > var_max[i])
-	    variables[i] = var_max[i];
-	  else if (new_val < var_min[i])
-	    variables[i] = var_min[i];
-	  else
-	    variables[i]=new_val;
-
-    delta = (-1+2*Ran.rand())*(var_max_best[i]-var_min_best[i]);
-    new_val = variables_good[i] + delta;
-    if (new_val > var_max_best[i])
-      variables_good[i] = var_max_best[i];
-    else if (new_val < var_min_best[i])
-      variables_good[i] = var_min_best[i];
-    else
-      variables_good[i]=new_val;
-
-	}
-      else
-	{
-	  // traditional
-    variables[i] = var_min[i] + Ran.rand()*(var_max[i]-var_min[i]);
-    variables_good[i] = var_min_best[i] + Ran.rand()*(var_max_best[i]-var_min_best[i]);
-	}
-
-      double new_Energy = calcEnergy(false);
-      double prob = exp(-(new_Energy-Energy)/(k));
-      if (new_Energy < Energy || rand() <= prob)
-	{
-    // if(new_Energy < Energy){
-    //   variables_best[i] = variables[i];
-    //   Energy_best = new_Energy; 
-    // }
-	  Energy = new_Energy;
-	}
-      else
-	{
-    variables[i] = old;
-	}
-
-      double new_Energy_good = calcEnergy(true);
-      prob = exp(-(new_Energy_good-Energy_good)/(k));
-      if (new_Energy_good < Energy_good || rand() <= prob)
-  {
-    // if(new_Energy_good < Energy_best){
-      // variables_best[i] = variables_good[i];
-      // Energy_best = new_Energy_good; 
-    // }
-    Energy_good = new_Energy_good;
-  }
-      else
-  {
-    variables_good[i] = old_good;
-  }
-  variables_best[i] = variables_good[i];
-
-  }
-  return(50);
 }
 
-double Genetic::calcEnergy(bool good)
+
+  //   for (int i = 0; i < popsize; ++i)
+  // {
+  //   tmp += to_string(population[i].cost);
+  //   tmp += "   ";  
+  // }
+  }
+
+    for (int i = 0; i < Nt; ++i)
+  {
+    tmp += to_string(population[0].variables[i]);
+    // tmp += to_string(mix[i]);
+    tmp += "   ";  
+  }
+
+  tmp += to_string(population[0].cost);
+
+    return(tmp);
+  
+  // else {
+  //   return(10.3);
+  // }
+}
+
+double Genetic::calcEnergy(int chrom)
 {
   double energy = 0;
   for (unsigned int i=0; i < measurements.size(); i++)
     {
       Measurement m = measurements[i];
-      if(good) {
-        energy += pow(m.temp - measModelGood(m.t,m.x,m.y),2);
-      }
-      else{
-        energy += pow(m.temp - measModel(m.t,m.x,m.y),2);
-      }
+      energy += pow(m.temp - measModel(m.t,m.x,m.y,chrom),2);
     }
   energy /= measurements.size();
   energy = sqrt(energy);
   return(energy);
 }
 
-double Genetic::measModel(double t, double x, double y)
+void Genetic::calcCost()
 {
-  double offset     = variables[0];
-  double angle      = variables[1];
-  double amplitude  = variables[2];
-  double period     = variables[3];
-  double wavelength = variables[4];
-  double alpha      = variables[5];
-  double beta       = variables[6];
-  double temp_N     = variables[7];
-  double temp_S     = variables[8];
+  for (int i = 0; i < popsize; i++) { 
+    population[i].cost = calcEnergy(i);
+  }
+
+}
+
+void Genetic::mate()
+{
+
+for (int i = 0; i < M; ++i)
+{
+  pick1[i] = Ran.rand();
+  pick2[i] = Ran.rand();
+}
+// ma and pa contain the indicies of the chromosomes that will mate
+for (int ic = 0; ic < M; ++ic)
+{
+  for (int id = 1; id <= keep; ++id)
+  {
+    if((pick1[ic]<=odds[id]) && (pick1[ic]>odds[id-1])) {
+      ma[ic]=id-1;
+    }
+    if((pick2[ic]<=odds[id]) && (pick2[ic]>odds[id-1])) {
+      pa[ic]=id-1;
+    }
+  }
+}
+
+// Performs mating using blended crossover
+for (int i = 0; i < M; ++i)
+{
+  xp[i] = floor(Ran.rand()*Nt); //crossover point
+  mix[i] = Ran.rand();          //mixing parameter
+}
+
+double xy;
+for (int i = 0; i < M; ++i)
+{
+  // xy = population[ma[i]].variables[xp[i]]-population[pa[i]].variables[xp[i]];
+  //MATE
+  for (int j = 0; j < Nt; ++j)
+  {
+    population[ix[i]].variables[j] = population[ma[i]].variables[j]*mix[i]+population[pa[i]].variables[j]*(1-mix[i]);
+    population[ix[i]+1].variables[j] = population[pa[i]].variables[j]*mix[i]+population[ma[i]].variables[j]*(1-mix[i]);
+  }
+}
+
+}
+
+void Genetic::mutate()
+{
+  for (int i = 0; i < nmut; ++i)
+  {
+  mut_row[i] = ceil(Ran.rand()*(popsize-1));
+  mut_col[i] = floor(Ran.rand()*(Nt));
+  }
+
+  for (int i = 0; i < nmut; ++i)
+  {
+    population[mut_row[i]].variables[mut_col[i]] = var_min[mut_col[i]]+Ran.rand()*(var_max[mut_col[i]]-var_min[mut_col[i]]);
+  }
+}
+
+double Genetic::measModel(double t, double x, double y, int chrom)
+{
+  double offset     = population[chrom].variables[0];
+  double angle      = population[chrom].variables[1];
+  double amplitude  = population[chrom].variables[2];
+  double period     = population[chrom].variables[3];
+  double wavelength = population[chrom].variables[4];
+  double alpha      = population[chrom].variables[5];
+  double beta       = population[chrom].variables[6];
+  double temp_N     = population[chrom].variables[7];
+  double temp_S     = population[chrom].variables[8];
 
   front.setVars(offset,angle,amplitude,period,wavelength,alpha,beta,temp_N,temp_S);
   // here you put your intelligent model of the temeperature field
@@ -306,23 +400,7 @@ double Genetic::measModel(double t, double x, double y)
   return(temp) ;
 }
 
-double Genetic::measModelGood(double t, double x, double y)
-{
-  double offset     = variables_good[0];
-  double angle      = variables_good[1];
-  double amplitude  = variables_good[2];
-  double period     = variables_good[3];
-  double wavelength = variables_good[4];
-  double alpha      = variables_good[5];
-  double beta       = variables_good[6];
-  double temp_N     = variables_good[7];
-  double temp_S     = variables_good[8];
 
-  front.setVars(offset,angle,amplitude,period,wavelength,alpha,beta,temp_N,temp_S);
-  // here you put your intelligent model of the temeperature field
-  double temp = front.tempFunction(t,x,y);
-  return(temp) ;
-}
 
 
 

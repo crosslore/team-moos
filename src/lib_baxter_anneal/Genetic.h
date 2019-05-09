@@ -1,5 +1,5 @@
 /*****************************************************************/
-/*    NAME: Henrik Schmidt                                       */
+/*    NAME: David Baxter (Adapted from Henrik Schmidt)           */
 /*    ORGN: Dept of Mechanical Eng / CSAIL, MIT Cambridge MA     */
 /*    FILE:                                                      */
 /*    DATE:                                                      */
@@ -42,6 +42,16 @@ class Measurement
   double y;
   double temp;
 };
+
+class Chromosome
+{
+ public:
+  bool operator< (const Chromosome&) const;
+
+  std::vector<double> variables;
+  double cost;
+
+};
  
 class Genetic 
 {
@@ -58,14 +68,20 @@ class Genetic
   void clearMeas();
   void addMeas(Measurement new_meas);
   Measurement parseMeas(std::string report);
-  double calcEnergy(bool good);
-  double run();
-  double measModel(double t, double x, double y);
-  double measModelGood(double t, double x, double y);
-  
-  void updateOffset(int min, int max, int guess);
+  double calcEnergy(int chrom);
+  std::string run();
+  double measModel(double t, double x, double y, int chrom);
+
+  void updateParam(int param, int min, int max, int guess);
+  void calcCost();
+  void mate();
+  void mutate();
+
   bool setMinVal(int val, int i);
   bool setMaxVal(int val, int i);
+
+  int cumlsum(int n);
+
 
  protected:
 
@@ -75,18 +91,32 @@ class Genetic
   bool adaptive;
 
   //Genetic Specific
-  double max_it;
-  double popsize;
-  double mutrate;
-  double cselection;
-  double selection;
-  double Nt;
-  double keep;
-  double nmut;
-  double M;
-  double iga;
+  double max_it;      //Max Iterations
+  double popsize;     //population size
+  double mutrate;     //mutation rate
+  double cselection;  //fraction of population kept
+  double selection;   //fraction of population kept
+  double Nt;          //continuous parameter GA Nt=#variables
+  double keep;        //population members that survive
+  double nmut;        //mutation number
+  double M;           //number of matings
+  double iga;         //generation counter
   std::vector<std::vector<int> > par;
   std::vector<double> pop_cost;
+  std::vector<double> prob;
+  std::vector<double> odds;
+  std::vector<double> pick1;
+  std::vector<double> pick2;
+  std::vector<int> ma;
+  std::vector<int> pa;
+  std::vector<int> xp; //crossoverpoint
+  std::vector<int> ix; //index Mate 1
+  std::vector<int> mut_row; //index Mute
+  std::vector<int> mut_col; //index Mute
+  std::vector<double> mix;
+  // std::vector<double> spread;
+
+  std::vector<Chromosome> population;
 
 
   std::vector<double> variables;
@@ -94,13 +124,15 @@ class Genetic
   std::vector<double> var_max;
   std::vector<double> var_norm;
   std::vector<double> variables_best;
-  std::vector<double> variables_good;
   std::vector<double> var_min_best;
   std::vector<double> var_max_best;
 
   bool got_min;
   bool got_max;
-  
+  bool got_init;
+  bool check;
+  int count;
+
   double Energy;
   double Energy_good;
   double Energy_best;
@@ -110,12 +142,6 @@ class Genetic
 
   CFrontSim front;
 
-  int offset_guess;
-  int offset_guess_min;
-  int offset_guess_max;
-
-  // void updateAmplitude(int min, int max, int guess);
-  // void updateAmplitude(int min, int max, int guess);
 
 
 };
