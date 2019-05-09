@@ -26,6 +26,8 @@
 
 using namespace std;
 
+bool debug = false;
+
 Genetic::Genetic()
 {
   got_min = false;
@@ -35,10 +37,10 @@ Genetic::Genetic()
   count = 0;
   Energy = 0;
 
-  max_it = 10000;
-  popsize = 8;             //set population size
-  mutrate = 0.1;            //set mutation rate
-  cselection = 0.5;         //fraction of population kept
+  max_it = 4;
+  popsize = 10;             //set population size
+  mutrate = 0.05;            //set mutation rate
+  cselection = 0.2;         //fraction of population kept
 }
 
 Genetic::~Genetic()
@@ -90,6 +92,33 @@ void Genetic::sendLog(string info, string name)
 }
 
 void Genetic::sendLog(vector<double> info, string name)
+{
+  if(vname == "archie")
+  {
+    ostringstream output;
+    // output << "vname," << vname << ",error," << error << ",Elapsed Time," << m_curr_time-m_start_time << ",score," << score << ",Offset," << r_offset;
+    // output << ",Angle," << r_angle << ",Amplitude," << r_amplitude << ",Period," << r_period << ",Wavelength," << r_wavelength;
+    // output << ",Alpha," << r_alpha << ",Beta," << r_beta << ",Temp_North," << r_T_N << ",Temp_South," << r_T_S << endl; 
+    output << name+"," ;
+    for (int i = 0; i < info.size(); ++i)
+    {
+      output << to_string(info[i]) + ",";
+    }
+      output << endl;
+    
+    string output_string = output.str();
+
+
+    std::ofstream out;
+
+    out.open("genetic.txt", ios::out | ios::app );
+    out << output.str();
+    out.close();
+
+  }
+}
+
+void Genetic::sendLog(vector<int> info, string name)
 {
   if(vname == "archie")
   {
@@ -218,6 +247,9 @@ for (int i = 0; i < nmut; ++i)
   sendLog(to_string(mut_col[i]),"mut_col");
 
 }
+
+  sendLog("");
+
 }
 
 bool Genetic::setInitVal(vector<double> var_init)
@@ -240,6 +272,8 @@ bool Genetic::setInitVal(vector<double> var_init)
   sendLog(population[i].variables,"population" + to_string(i));
 
   }
+  sendLog("");
+
 
   return(true);
 }
@@ -267,6 +301,8 @@ bool Genetic::setMaxVal(vector<double> var)
     }
   var_max = var;
   sendLog(var_max,"var_max");
+  sendLog("");
+
 
   got_max = true;
   return(true);
@@ -365,13 +401,29 @@ string Genetic::run()
 
 for (int i = 0; i < max_it; ++i)
 {
+    // sendLog("ROUND"+to_string(i));
+
   
   mate();
   mutate();
   calcCost();
   sort(population.begin(),population.end());
 
+  // for (int k = 0; k < popsize; ++k)
+  // {
+
+  //   sendLog(to_string(population[k].cost),"cost"+to_string(k));
+  // }
+  // sendLog("");
+
 }
+
+
+  for (int k = 0; k < popsize; ++k)
+  {
+    sendLog(population[k].variables,"population"+to_string(k));
+    sendLog(to_string(population[k].cost),"cost"+to_string(k));
+  }
 
 
   }
@@ -414,11 +466,23 @@ void Genetic::calcCost()
 void Genetic::mate()
 {
 
+if(debug) {
+  sendLog("");
+}
+
+
 for (int i = 0; i < M; ++i)
 {
   pick1[i] = Ran.rand();
   pick2[i] = Ran.rand();
 }
+if(debug) {
+  sendLog(pick1,"pick1");
+  sendLog(pick2,"pick2");
+  sendLog("");
+}
+
+
 // ma and pa contain the indicies of the chromosomes that will mate
 for (int ic = 0; ic < M; ++ic)
 {
@@ -433,6 +497,12 @@ for (int ic = 0; ic < M; ++ic)
   }
 }
 
+if(debug) {
+  sendLog(ma,"ma");
+  sendLog(pa,"pa");
+  sendLog("");
+}
+
 // Performs mating using blended crossover
 for (int i = 0; i < M; ++i)
 {
@@ -440,16 +510,42 @@ for (int i = 0; i < M; ++i)
   mix[i] = Ran.rand();          //mixing parameter
 }
 
+if(debug) {
+  sendLog(xp,"xp");
+  sendLog(mix,"mix");
+  sendLog("");
+}
+
 double xy;
 for (int i = 0; i < M; ++i)
 {
   // xy = population[ma[i]].variables[xp[i]]-population[pa[i]].variables[xp[i]];
   //MATE
+  // for (int j = 0; j < Nt; ++j)
+  // {
+  //   population[ix[i]].variables[j] = population[ma[i]].variables[j]*mix[i]+population[pa[i]].variables[j]*(1-mix[i]);
+  //   population[ix[i]+1].variables[j] = population[pa[i]].variables[j]*mix[i]+population[ma[i]].variables[j]*(1-mix[i]);
+  // }
   for (int j = 0; j < Nt; ++j)
   {
-    population[ix[i]].variables[j] = population[ma[i]].variables[j]*mix[i]+population[pa[i]].variables[j]*(1-mix[i]);
-    population[ix[i]+1].variables[j] = population[pa[i]].variables[j]*mix[i]+population[ma[i]].variables[j]*(1-mix[i]);
+    if(j<xp[i]) {
+      population[ix[i]].variables[j] = population[ma[i]].variables[j];
+      population[ix[i]+1].variables[j] = population[pa[i]].variables[j];
+    }
+    else {
+      population[ix[i]].variables[j] = population[pa[i]].variables[j];
+      population[ix[i]+1].variables[j] = population[ma[i]].variables[j];
+
+    }
   }
+}
+
+if(debug) {
+  for (int k = 0; k < popsize; ++k)
+  {
+    sendLog(population[k].variables,"population" + to_string(k));
+  }
+  sendLog("");
 }
 
 }
@@ -462,10 +558,25 @@ void Genetic::mutate()
   mut_col[i] = floor(Ran.rand()*(Nt));
   }
 
+if(debug) {
+  sendLog(mut_row,"mut_row");
+  sendLog(mut_col,"mut_col");
+}
+
   for (int i = 0; i < nmut; ++i)
   {
     population[mut_row[i]].variables[mut_col[i]] = var_min[mut_col[i]]+Ran.rand()*(var_max[mut_col[i]]-var_min[mut_col[i]]);
   }
+
+  if(debug) {
+  for (int k = 0; k < popsize; ++k)
+  {
+    sendLog(population[k].variables,"population" + to_string(k));
+  }
+  sendLog("");
+  }
+
+
 }
 
 double Genetic::measModel(double t, double x, double y, int chrom)

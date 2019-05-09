@@ -88,6 +88,7 @@ class Genetic
 
   void sendLog(std::string info, std::string name);
   void sendLog(std::vector<double> info, std::string name);
+  void sendLog(std::vector<int> info, std::string name);
   void sendLog(std::string name);
 
 
