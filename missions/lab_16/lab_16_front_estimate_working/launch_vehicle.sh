@@ -15,6 +15,7 @@ HEIGHT1=150
 WIDTH1=120
 LANE_WIDTH1=25
 DEGREES1=270
+SHORE="multicast_9"
 
 for ARGI; do
     if [ "${ARGI}" = "--help" -o "${ARGI}" = "-h" ] ; then
@@ -49,6 +50,8 @@ for ARGI; do
     elif [ "${ARGI}" = "--adaptive" -o "${ARGI}" = "-a" ] ; then
         ADAPTIVE="true"
         UNDEFINED_ARG=""
+    elif [ "${ARGI:0:8}" = "--shore=" ] ; then
+        SHORE="${ARGI#--shore=*}"
     else 
 	printf "Bad Argument: %s \n" $ARGI
 	exit 0
@@ -66,7 +69,7 @@ nsplug meta_vehicle.moos targ_$VNAME.moos -f WARP=$TIME_WARP  \
    VNAME=$VNAME      START_POS=$START_POS                    \
    VPORT="9001"       SHARE_LISTEN="9301"                      \
    VTYPE=UUV          COOL_FAC=$COOL_FAC  COOL_STEPS=$COOL_STEPS\
-   CONCURRENT=$CONCURRENT  ADAPTIVE=$ADAPTIVE
+   CONCURRENT=$CONCURRENT  ADAPTIVE=$ADAPTIVE  SHORE=$SHORE     \
 
 nsplug meta_vehicle.bhv targ_$VNAME.bhv -f VNAME=$VNAME      \
     START_POS=$START_POS SURVEY_X=$SURVEY_X SURVEY_Y=$SURVEY_Y \
