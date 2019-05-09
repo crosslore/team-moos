@@ -53,6 +53,7 @@ TARGET_LINK_LIBRARIES(BHV_SimpleWaypoint
 ADD_LIBRARY(BHV_FindTempFront SHARED 
    BHV_FindTempFront.cpp)
 TARGET_LINK_LIBRARIES(BHV_FindTempFront
+   geometry
    helmivp
    behaviors 
    ivpbuild 
@@ -60,7 +61,6 @@ TARGET_LINK_LIBRARIES(BHV_FindTempFront
    ivpcore 
    bhvutil 
    mbutil 
-   geometry 
    ${SYSTEM_LIBS} )
 
 #--------------------------------------------------------
@@ -69,6 +69,7 @@ TARGET_LINK_LIBRARIES(BHV_FindTempFront
 ADD_LIBRARY(BHV_AvoidBoundary SHARED 
    BHV_AvoidBoundary.cpp)
 TARGET_LINK_LIBRARIES(BHV_AvoidBoundary
+   geometry 
    helmivp
    behaviors 
    ivpbuild 
@@ -76,5 +77,4 @@ TARGET_LINK_LIBRARIES(BHV_AvoidBoundary
    ivpcore 
    bhvutil 
    mbutil 
-   geometry 
    ${SYSTEM_LIBS} )
