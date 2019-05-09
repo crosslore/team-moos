@@ -67,12 +67,83 @@ setMaxVal(max,param);
 
 }
 
+void Genetic::sendLog(string info, string name)
+{
+  if(vname == "archie")
+  {
+    ostringstream output;
+    // output << "vname," << vname << ",error," << error << ",Elapsed Time," << m_curr_time-m_start_time << ",score," << score << ",Offset," << r_offset;
+    // output << ",Angle," << r_angle << ",Amplitude," << r_amplitude << ",Period," << r_period << ",Wavelength," << r_wavelength;
+    // output << ",Alpha," << r_alpha << ",Beta," << r_beta << ",Temp_North," << r_T_N << ",Temp_South," << r_T_S << endl; 
+    output << name+"," << info << endl;
+    
+    string output_string = output.str();
 
-void Genetic::setVars( int num, double temp_fac, bool adapt)
+
+    std::ofstream out;
+
+    out.open("genetic.txt", ios::out | ios::app );
+    out << output.str();
+    out.close();
+
+  }
+}
+
+void Genetic::sendLog(vector<double> info, string name)
+{
+  if(vname == "archie")
+  {
+    ostringstream output;
+    // output << "vname," << vname << ",error," << error << ",Elapsed Time," << m_curr_time-m_start_time << ",score," << score << ",Offset," << r_offset;
+    // output << ",Angle," << r_angle << ",Amplitude," << r_amplitude << ",Period," << r_period << ",Wavelength," << r_wavelength;
+    // output << ",Alpha," << r_alpha << ",Beta," << r_beta << ",Temp_North," << r_T_N << ",Temp_South," << r_T_S << endl; 
+    output << name+"," ;
+    for (int i = 0; i < info.size(); ++i)
+    {
+      output << to_string(info[i]) + ",";
+    }
+      output << endl;
+    
+    string output_string = output.str();
+
+
+    std::ofstream out;
+
+    out.open("genetic.txt", ios::out | ios::app );
+    out << output.str();
+    out.close();
+
+  }
+}
+
+void Genetic::sendLog(string word)
+{
+
+if(vname == "archie")
+  {
+    ostringstream output;
+    output << word;
+    output << endl;
+    
+    string output_string = output.str();
+
+    std::ofstream out;
+
+    out.open("genetic.txt", ios::out | ios::app );
+    out << output.str();
+    out.close();
+
+  }
+
+}
+
+void Genetic::setVars( int num, double temp_fac, bool adapt, string name)
 {
   num_vars = num;
   k = temp_fac;
   adaptive = adapt;
+
+  vname = name;
 
   selection = cselection;               //fraction of population kept
   Nt = num_vars;                        //continuous parameter GA Nt=#variables
@@ -81,6 +152,12 @@ void Genetic::setVars( int num, double temp_fac, bool adapt)
   M = ceil((popsize-keep)/2);           //number of matings
   iga = 0;                              //generation counter initialized
   
+    sendLog(to_string(selection),"selection");
+    sendLog(to_string(Nt),"Nt");
+    sendLog(to_string(keep),"keep");
+    sendLog(to_string(nmut),"nmut");
+    sendLog(to_string(M),"M");
+
   //Initialize population empty shell
   for (int i = 0; i < popsize; i++) { 
     Chromosome chrom;
@@ -98,11 +175,19 @@ void Genetic::setVars( int num, double temp_fac, bool adapt)
   }
   reverse(prob.begin(), prob.end()); // Most chance of top rank
   odds.push_back(0);
+
+  sendLog("");
+  sendLog(to_string(odds[0]),"odds");
+
   for (int i = 0; i <keep; ++i)
   {
     cumprob += prob[i];
     odds.push_back(cumprob);
+    sendLog(to_string(odds[i+1]),"odds");
+
   }
+  sendLog("");
+
 
 
   //Initialize Mating vector empty shells
@@ -121,11 +206,17 @@ void Genetic::setVars( int num, double temp_fac, bool adapt)
   for (int i = 0; i < keep; i+=2)
   {
     ix.push_back(i+keep);
+    sendLog(to_string(ix[i/2]),"ix");
+
   }
 for (int i = 0; i < nmut; ++i)
 {
   mut_row.push_back(ceil(Ran.rand()*(popsize-1)));
   mut_col.push_back(floor(Ran.rand()*(Nt)));
+
+  sendLog(to_string(mut_row[i]),"mut_row");
+  sendLog(to_string(mut_col[i]),"mut_col");
+
 }
 }
 
@@ -146,6 +237,8 @@ bool Genetic::setInitVal(vector<double> var_init)
       double m = var_min[j]+Ran.rand()*(var_max[j]-var_min[j]);
       population[i].variables.push_back(m);
     }
+  sendLog(population[i].variables,"population" + to_string(i));
+
   }
 
   return(true);
@@ -159,6 +252,8 @@ bool Genetic::setMinVal(vector<double> var)
 	return(false);
     }
   var_min = var;
+  sendLog(var_min,"var_min");
+
   got_min = true;
   return(true);
 }
@@ -171,6 +266,8 @@ bool Genetic::setMaxVal(vector<double> var)
 	return(false);
     }
   var_max = var;
+  sendLog(var_max,"var_max");
+
   got_max = true;
   return(true);
 }
@@ -247,29 +344,25 @@ string Genetic::run()
 
   count +=1;
   string tmp;
-  // for (int i = 0; i < Nt; ++i)
-  // {
-  //   tmp += to_string(population[0].variables[i]);
-  //   tmp += "   ";  
-  // }
 
-  // if((check) && (count>400)) {
-  //   calcCost();
-  //   sort(population.begin(),population.end());
-  //   check = false;
 
-  //   //Pair and Mate
-  //   mate();
-  //   mutate();
-
-  // }
-
-    if((check) && (count>1400)) {
+    if((check) && (count>700)) {
     check = false;
 
 
   calcCost();
   sort(population.begin(),population.end());
+
+  sendLog("");
+  for (int i = 0; i < popsize; ++i)
+  {
+
+    sendLog(population[i].variables,"population"+to_string(i));
+    sendLog(to_string(population[i].cost),"cost"+to_string(i));
+  }
+  sendLog("");
+
+
 for (int i = 0; i < max_it; ++i)
 {
   
@@ -281,11 +374,6 @@ for (int i = 0; i < max_it; ++i)
 }
 
 
-  //   for (int i = 0; i < popsize; ++i)
-  // {
-  //   tmp += to_string(population[i].cost);
-  //   tmp += "   ";  
-  // }
   }
 
     for (int i = 0; i < Nt; ++i)
@@ -299,9 +387,7 @@ for (int i = 0; i < max_it; ++i)
 
     return(tmp);
   
-  // else {
-  //   return(10.3);
-  // }
+ 
 }
 
 double Genetic::calcEnergy(int chrom)

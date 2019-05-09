@@ -33,6 +33,10 @@
 #include <vector>
 #include <iostream>
 #include "MBUtils.h"
+#include <stdio.h>      /* printf, scanf, puts, NULL */
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
+
 
 class Measurement
 {
@@ -60,7 +64,7 @@ class Genetic
   Genetic();
   virtual ~Genetic();
 
-  void setVars(int num, double temp_fac, bool adapt);
+  void setVars(int num, double temp_fac, bool adapt, std::string name);
   bool setInitVal(std::vector<double> val);
   bool setMinVal(std::vector<double> val);
   bool setMaxVal(std::vector<double> val);
@@ -81,6 +85,11 @@ class Genetic
   bool setMaxVal(int val, int i);
 
   int cumlsum(int n);
+
+  void sendLog(std::string info, std::string name);
+  void sendLog(std::vector<double> info, std::string name);
+  void sendLog(std::string name);
+
 
 
  protected:
@@ -136,6 +145,9 @@ class Genetic
   double Energy;
   double Energy_good;
   double Energy_best;
+
+  std::string vname;
+
 
   std::vector<Measurement> measurements;
   std::vector<Measurement> model;

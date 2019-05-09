@@ -195,7 +195,7 @@ bool CFrontEstimate::OnStartUp()
 
   // Initialize annealer
   anneal.setVars(num_param, temp_fac, adaptive);
-  genetic.setVars(num_param, temp_fac, adaptive);
+  genetic.setVars(num_param, temp_fac, adaptive, vname);
 
   vector<double> vars;
   vars.push_back(min_offset);
@@ -259,7 +259,7 @@ bool CFrontEstimate::Iterate()
   double curr_time = MOOSTime();
   //double temperature;
 
-  reportEvent(genetic.run());
+  // reportEvent(genetic.run());
 
   new_anneal_report=false;
   if (concurrent)
