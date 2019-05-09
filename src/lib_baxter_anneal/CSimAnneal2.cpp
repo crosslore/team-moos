@@ -33,6 +33,13 @@ CSimAnneal::CSimAnneal()
   Energy = 0;
   Energy_good = 0;
   Energy_best = 10000000;
+  vec_size = 3;
+
+  for (int j = 0; j < vec_size; ++j)
+  {
+    Energy_vec.push_back(0);
+  }
+
 }
 
 CSimAnneal::~CSimAnneal()
@@ -80,6 +87,13 @@ bool CSimAnneal::setInitVal(vector<double> var_init)
   variables = var_init;
   variables_good = var_init;
   variables_best = var_init;
+
+  for (int i = 0; i < vec_size; ++i)
+    {
+      variables_Vec.push_back(var_init);
+      variables_Vec_Old.push_back(var_init);
+    }
+
   return(true);
 }
 
@@ -123,13 +137,39 @@ bool CSimAnneal::setMaxVal(int var, int i)
 
 void CSimAnneal::getEstimate(vector<double>& var_est, bool good)
 {
+
+  double good_energy = calcEnergy(true);
+  double before_energy = calcEnergy(false);
+  double best = good_energy;
+  double tmp;
+
+
   if(good){
+
+    if(good_energy<before_energy) {
     var_est = variables_best;
+    }
+    else {
+    var_est = variables;
+    best = before_energy;
+    }
+
+    for (int j = 0; j < vec_size; ++j)
+    {
+    tmp = calcEnergy(j);
+    if(tmp<best) {
+    var_est = variables_Vec[j];
+    best = tmp;
+    }
+
+    }
+
   }
   else {
     var_est = variables;
   }
   
+
 }
 
 void CSimAnneal::clearMeas()
@@ -148,6 +188,12 @@ void CSimAnneal::addMeas(CMeasurement new_meas)
   double model_good = measModelGood(new_meas.t, new_meas.x, new_meas.y);
   Energy_good = sqrt((num_meas*pow(Energy_good,2) + pow(new_meas.temp - model_good,2))/(num_meas+1)); 
 
+  for (int j = 0; j < vec_size; ++j)
+  {
+    double model_vec = measModelVec(new_meas.t, new_meas.x, new_meas.y,j);
+    Energy_vec[j] = sqrt((num_meas*pow(Energy_vec[j],2) + pow(new_meas.temp - model_vec,2))/(num_meas+1)); 
+
+  }
 
   cout << ">>> Num_Meas=" << num_meas+1 << " new_meas.temp=" << new_meas.temp << endl; 
   cout << "t,x,y=" << new_meas.t << "," << new_meas.x << "," << new_meas.y 
@@ -189,6 +235,10 @@ double CSimAnneal::heatBath(double temperature)
     {
       double old = variables[i];
       double old_good = variables_good[i];
+      for (int j = 0; j < vec_size; ++j)
+      {
+        variables_Vec_Old[j][i] = variables_Vec[j][i];
+      }
 
       if (adaptive)
 	{
@@ -217,6 +267,11 @@ double CSimAnneal::heatBath(double temperature)
 	  // traditional
     variables[i] = var_min[i] + Ran.rand()*(var_max[i]-var_min[i]);
     variables_good[i] = var_min_best[i] + Ran.rand()*(var_max_best[i]-var_min_best[i]);
+
+    for (int j = 0; j < vec_size; ++j)
+      {
+        variables_Vec[j][i] = var_min_best[i] + Ran.rand()*(var_max_best[i]-var_min_best[i]);
+      }
 	}
 
       double new_Energy = calcEnergy(false);
@@ -250,8 +305,41 @@ double CSimAnneal::heatBath(double temperature)
   }
   variables_best[i] = variables_good[i];
 
+
+for (int j = 0; j < vec_size; ++j)
+{
+
+      double new_Energy_vec = calcEnergy(j);
+      prob = exp(-(new_Energy_vec-Energy_vec[j])/(k*temperature));
+      if (new_Energy_vec < Energy_vec[j] || rand() <= prob)
+  {
+    // if(new_Energy_good < Energy_best){
+      // variables_best[i] = variables_good[i];
+      // Energy_best = new_Energy_good; 
+    // }
+    Energy_vec[j] = new_Energy_vec;
   }
+      else
+  {
+    variables_Vec[j][i] = variables_Vec_Old[j][i];
+  }
+
+  }
+}
   return(Energy);
+}
+
+double CSimAnneal::calcEnergy(int index)
+{
+  double energy = 0;
+  for (unsigned int i=0; i < measurements.size(); i++)
+    {
+      CMeasurement m = measurements[i];
+        energy += pow(m.temp - measModelVec(m.t,m.x,m.y,index),2);
+    }
+  energy /= measurements.size();
+  energy = sqrt(energy);
+  return(energy);
 }
 
 double CSimAnneal::calcEnergy(bool good)
@@ -308,5 +396,23 @@ double CSimAnneal::measModelGood(double t, double x, double y)
   return(temp) ;
 }
 
+
+double CSimAnneal::measModelVec(double t, double x, double y, int index)
+{
+  double offset     = variables_Vec[index][0];
+  double angle      = variables_Vec[index][1];
+  double amplitude  = variables_Vec[index][2];
+  double period     = variables_Vec[index][3];
+  double wavelength = variables_Vec[index][4];
+  double alpha      = variables_Vec[index][5];
+  double beta       = variables_Vec[index][6];
+  double temp_N     = variables_Vec[index][7];
+  double temp_S     = variables_Vec[index][8];
+
+  front.setVars(offset,angle,amplitude,period,wavelength,alpha,beta,temp_N,temp_S);
+  // here you put your intelligent model of the temeperature field
+  double temp = front.tempFunction(t,x,y);
+  return(temp) ;
+}
 
 

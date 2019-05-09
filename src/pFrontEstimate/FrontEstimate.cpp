@@ -259,7 +259,7 @@ bool CFrontEstimate::Iterate()
   double curr_time = MOOSTime();
   //double temperature;
 
-  reportEvent(genetic.run());
+  // reportEvent(genetic.run());
 
   new_anneal_report=false;
   if (concurrent)

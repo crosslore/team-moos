@@ -62,6 +62,7 @@ class CSimAnneal
   double heatBath(double temperature);
   double measModel(double t, double x, double y);
   double measModelGood(double t, double x, double y);
+  double measModelVec(double t, double x, double y, int index);
   
   void updateOffset(int min, int max, int guess);
   void updateParam(int param, int min, int max, int guess);
@@ -69,12 +70,16 @@ class CSimAnneal
   bool setMinVal(int val, int i);
   bool setMaxVal(int val, int i);
 
+  double calcEnergy(int index);
+
+
  protected:
 
   CRandom Ran;
   unsigned int num_vars;
   double k;
   bool adaptive;
+  int vec_size;
 
   std::vector<double> variables;
   std::vector<double> var_min;
@@ -85,12 +90,18 @@ class CSimAnneal
   std::vector<double> var_min_best;
   std::vector<double> var_max_best;
 
+  std::vector<std::vector<double> > variables_Vec;
+  std::vector<std::vector<double> > variables_Vec_Old;
+
+
   bool got_min;
   bool got_max;
   
   double Energy;
   double Energy_good;
   double Energy_best;
+  std::vector<double> Energy_vec;
+
 
   std::vector<CMeasurement> measurements;
   std::vector<CMeasurement> model;

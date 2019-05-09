@@ -3,8 +3,8 @@
 #  Part 1: Check for and handle command-line arguments
 #-------------------------------------------------------
 
-#for i in {1..40}
-#do
+for i in {1..40}
+do
 
 
 TIME_WARP=1
@@ -141,16 +141,16 @@ fi
     uPokeDB targ_shoreside.moos DEPLOY_ALL=true MOOS_MANUAL_OVERRIDE_ALL=false
 
     uMAC targ_shoreside.moos
-#   sleep 80
-#    uPokeDB targ_shoreside.moos RETURN_ALL=true
-#    sleep 5
+  sleep 80
+   uPokeDB targ_shoreside.moos RETURN_ALL=true
+   sleep 5
     printf "Killing all processes ... \n"
     kill %1 %2 %3
     ktm
     printf "Done killing processes.   \n"
 
 
-#done
+done
 
 #RESULTS_DIR="results_"`date "+%Y_%m_%d_____%H_%M"`
 #mkdir $RESULTS_DIR
