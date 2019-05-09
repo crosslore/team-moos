@@ -69,25 +69,18 @@ VNAME2="betty"
 START_POS="0,0"
 
 #start first vehicle:                                                                                                                                                                                                                         
-nsplug meta_vehicle.moos targ_$VNAME1.moos -f WARP=$TIME_WARP  \
+nsplug meta_vehicle.moos targ_$VNAME.moos -f WARP=$TIME_WARP  \
    VNAME=$VNAME      START_POS=$START_POS                    \
    VPORT=$MOOS_PORT       SHARE_LISTEN=$UDP_LISTEN_PORT                   \
    SHOREIP=$SHOREIP SHORE_LISTEN=$SHORE_LISTEN                 \
    VTYPE=KAYAK          COOL_FAC=$COOL_FAC  COOL_STEPS=$COOL_STEPS\
    CONCURRENT=$CONCURRENT  ADAPTIVE=$ADAPTIVE  SHORE=$SHORE     \
 
-nsplug meta_vehicle.moos targ_$VNAME2.moos -f WARP=$TIME_WARP  \
-   VNAME=$VNAME      START_POS=$START_POS                    \
-   VPORT=$MOOS_PORT       SHARE_LISTEN=$UDP_LISTEN_PORT\
-   SHOREIP=$SHOREIP SHORE_LISTEN=$SHORE_LISTEN               \
-   VTYPE=KAYAK          COOL_FAC=$COOL_FAC  COOL_STEPS=$COOL_STEPS\
-   CONCURRENT=$CONCURRENT  ADAPTIVE=$ADAPTIVE  SHORE=$SHORE     \
 
-nsplug meta_vehicle.bhv targ_$VNAME1.bhv -f VNAME=$VNAME      \
+
+nsplug meta_vehicle.bhv targ_$VNAME.bhv -f VNAME=$VNAME      \
     START_POS=$START_POS VNAME1=$VNAME1 VNAME2=$VNAME2       
 
-splug meta_vehicle.bhv targ_$VNAME2.bhv -f VNAME=$VNAME      \
-    START_POS=$START_POS VNAME1=$VNAME1 VNAME2=$VNAME2
 
 
 if [ ${JUST_MAKE} = "yes" ] ; then
