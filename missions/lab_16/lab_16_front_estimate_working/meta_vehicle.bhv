@@ -56,7 +56,7 @@ Behavior = BHV_Waypoint
 #ifdef VNAME VNAME1
   points = pts = {130,-180:155,-170:155,-165}
 #elseifdef VNAME VNAME2
-  points = pts = {-10,-180:130,-180:155,-170:155,-165}
+  points = pts = {10,-180:130,-180:155,-170:155,-165}
 #endif
 activeflag = REPORT_NAME = $(VNAME)
 
