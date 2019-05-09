@@ -3,8 +3,8 @@
 #  Part 1: Check for and handle command-line arguments
 #-------------------------------------------------------
 
-for i in {1..40}
-do
+#for i in {1..40}
+#do
 
 
 TIME_WARP=1
@@ -85,7 +85,7 @@ fi
 #-------------------------------------------------------
 
 VNAME1="archie"      # The first  vehicle community
-START_POS1="20,0"  
+START_POS1="30,0"  
 
 VNAME2="betty"
 START_POS2="0,0"
@@ -107,7 +107,7 @@ nsplug meta_vehicle.bhv targ_$VNAME1.bhv -f VNAME=$VNAME1      \
 
 #start second vehicle:                                                                                                   
 nsplug meta_vehicle.moos targ_$VNAME2.moos -f WARP=$TIME_WARP  \
-   VNAME=$VNAME2      START_POS=$START_POS1                    \
+   VNAME=$VNAME2      START_POS=$START_POS2                    \
    VPORT="9002"       SHARE_LISTEN="9302"                      \
    VTYPE=KAYAK          COOL_FAC=$COOL_FAC  COOL_STEPS=$COOL_STEPS\
    CONCURRENT=$CONCURRENT  ADAPTIVE=$ADAPTIVE
@@ -140,24 +140,17 @@ fi
     echo "Poking..."
     uPokeDB targ_shoreside.moos DEPLOY_ALL=true MOOS_MANUAL_OVERRIDE_ALL=false
 
-
-    #    uMAC targ_shoreside.moos
-    sleep 65
-    uPokeDB targ_$VNAME1.moos SURVEY_UNDERWAY=false
-    sleep 0.5 
-    uPokeDB targ_$VNAME2.moos SURVEY_UNDERWAY=false
-    sleep 15
-    uPokeDB targ_shoreside.moos RETURN_ALL=true
-    sleep 5
+    uMAC targ_shoreside.moos
+#   sleep 80
+#    uPokeDB targ_shoreside.moos RETURN_ALL=true
+#    sleep 5
     printf "Killing all processes ... \n"
     kill %1 %2 %3
     ktm
     printf "Done killing processes.   \n"
-    sleep 5
-    ktm
-    sleep 5
 
-done
+
+#done
 
 #RESULTS_DIR="results_"`date "+%Y_%m_%d_____%H_%M"`
 #mkdir $RESULTS_DIR

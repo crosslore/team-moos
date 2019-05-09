@@ -130,7 +130,7 @@ IvPFunction* BHV_AvoidBoundary::onRunState()
     return(0);
   }
 
-  double buffer = 20;
+  double buffer = 25;
 
 //logic statement to determine if a boundary is approached and turn ship
 //around.. additionally it sets the general easterly or westerly search

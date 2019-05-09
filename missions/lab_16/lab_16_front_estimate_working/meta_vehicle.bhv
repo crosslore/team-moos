@@ -54,9 +54,9 @@ Behavior = BHV_Waypoint
          speed = 2   // meters per second
 
 #ifdef VNAME VNAME1
-  points = pts = {130,-180:155,-170}
+  points = pts = {130,-180:155,-170:155,-165}
 #elseifdef VNAME VNAME2
-  points = pts = {30,-180:155,-170}
+  points = pts = {-10,-180:130,-180:155,-170:155,-165}
 #endif
 activeflag = REPORT_NAME = $(VNAME)
 
@@ -88,7 +88,7 @@ Behavior = BHV_FindTempFront
   name        = find_temp
   pwt         = 100
   condition   = MODE == FINDTEMP
-  //activeflag   = SURVEY_UNDERWAY = true
+  activeflag   = SURVEY_UNDERWAY = true
   perpetual   = true
 }
 
@@ -101,8 +101,8 @@ Behavior = BHV_OpRegion
   condition  = OPREGION=true
  
              polygon = pts={-50,-40 : 100,20 : 180,20 : 180,-200 : -50,-200 : -100,-75}
-  trigger_entry_time = 1000
-  trigger_exit_time  = 1000
+  trigger_entry_time = 1
+  trigger_exit_time  = 1
         visual_hints = edge_size=1, vertex_size=2
 }
 
@@ -160,3 +160,23 @@ Behavior = BHV_AvoidBoundary
   pwt        = 400
   condition  = RETURN = false
 }
+
+ Behavior = BHV_Timer
+ {
+   // General Behavior Parameters
+   // ---------------------------
+   name         = bhv_timer_return
+   duration     = 1200              // example
+   runflag      = MODE == ACTIVE       // example
+ 
+   endflag      = RETURN = true
+
+   duration_idle_decay = false
+   perpetual = true
+
+
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+   // None
+ }

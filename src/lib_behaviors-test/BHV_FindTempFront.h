@@ -35,7 +35,7 @@ public:
   void         calculateWavelengthWest();
   void         calculateWavelengthEast();
   void         courseAdjustBoundary();
-  void         reportOffsetAngle();
+  // void         reportOffsetAngle();
 
   void         updateParam();
   void         calculatePeriodEast(Temps New_Temp);
@@ -114,6 +114,8 @@ protected: // State variables
   bool               T_S_updated;
   bool               initial_leg;
   bool               Offset_updated;
+  bool               Angle_updated;
+  bool               Amplitude_updated;
   bool               first_temp_path;
 
 
