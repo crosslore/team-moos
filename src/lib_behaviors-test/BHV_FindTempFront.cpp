@@ -133,146 +133,6 @@ void BHV_FindTempFront::onHelmStart()
 {
 }
 
-void BHV_FindTempFront::calculateWavelengthWest()
-{
-  double old_x = 0;
-  double old_y = 0;
-  double new_x = 0;
-  double new_y = 0;
-  wavelength_west.clear();
-
-  std::list<Temps>::iterator it;
-  for (it = wavelength_temps_west.begin(); it != wavelength_temps_west.end(); ++it){
-    Temps Curr_Temp = *it;
-    if (old_x == 0 && old_y ==0){
-      old_x = Curr_Temp.m_x;
-      old_y = Curr_Temp.m_y;
-      continue;
-    }
-    new_x = Curr_Temp.m_x;
-    new_y = Curr_Temp.m_y;
-    double delta_x = new_x - old_x;
-    double delta_y = new_y - old_y;
-    double dist = pow(pow(delta_x,2) + pow(delta_y,2),0.5);
-    if (new_x > old_x)
-      continue;
-    wavelength_west.push_back(2 * dist);
-  wavelength_west_guess = 0;
-  double wavelength_sum = 0;
-  std::list<double>::iterator it2;
-  for (it2 = wavelength_west.begin(); it2 != wavelength_west.end(); ++it2){
-    double curr_wavelength = *it2;
-    wavelength_sum = wavelength_sum + curr_wavelength;
-    if (curr_wavelength * 0.8 < wave_small)
-      wave_small = curr_wavelength * 0.8;
-  }
-  wavelength_west_guess = wavelength_sum / wavelength_west.size();
-  //postMessage("WAVE_WEST_GUESS",to_string(wave_small));
- }
-}
-
-void BHV_FindTempFront::calculateWavelengthEast()
-{
-  double old_x = 0;
-  double old_y = 0;
-  double new_x = 0;
-  double new_y = 0;
-  double wavelength_sum = 0;
-  std::list<Temps>::iterator it;
-  for (it = wavelength_temps_east.begin(); it != wavelength_temps_east.end(); ++it){
-    Temps Curr_Temp = *it;
-    if (old_x == 0 && old_y ==0){
-      old_x = Curr_Temp.m_x;
-      old_y = Curr_Temp.m_y;
-      continue;
-    }
-    new_x = Curr_Temp.m_x;
-    new_y = Curr_Temp.m_y;
-    double delta_x = new_x - old_x;
-    double delta_y = new_y - old_y;
-    double dist = pow(pow(delta_x,2) + pow(delta_y,2),0.5);
-    double wavelength_new = 2 * dist;
-    wavelength_east.push_back(wavelength_new);
-  
-    wavelength_sum = wavelength_sum + wavelength_new;
-    if(wavelength_new * 1.2 > wave_large)
-      wave_large = wavelength_new * 1.2;
- // }
-  }
-  wavelength_east_guess = wavelength_sum / wavelength_east.size();
-
-  //postMessage("WAVE_EAST_GUESS",to_string(wave_large));
-}
-
-void BHV_FindTempFront::calculatePeriodEast(Temps East_Temp)
-{
-
-}
-
-void BHV_FindTempFront::findWavelength(Temps New_Temp)
-{
-  if(m_osx > 165){
-    wavelength_temps_west.clear();
-    return;
-  }
-  if(m_osx < -50){
-    wavelength_temps_east.clear();
-    return;
-  }
-  bool ok1;
-  m_osh = getBufferDoubleVal("NAV_HEADING", ok1);
-  if (m_osh<175)
-    direction = "east";
-  if (m_osh>185)
-    direction = "west";
-  if(direction=="west"){
-    if(location=="north"){
-      if(New_Temp.m_temps > m_tave + 0.01){
-        New_Temp.m_transition = "north-south";
-        location="south";
-        wavelength_temps_west.push_back(New_Temp);
-        if(wavelength_temps_west.size() > 1)
-          calculateWavelengthWest();
-        return;
-      }    
-    }
-    if(location=="south"){
-      if(New_Temp.m_temps < m_tave - 0.01){
-        location="north";
-        New_Temp.m_transition = "south-north";
-        wavelength_temps_west.push_back(New_Temp);
-        if(wavelength_temps_west.size() > 1)
-          calculateWavelengthWest();
-        return;
-      }
-    }
-  }
-  if(direction=="east"){
-    if(location=="north"){
-      if(New_Temp.m_temps > m_tave + 0.01){
-        location="south";
-        New_Temp.m_transition = "north-south";
-        wavelength_temps_east.push_back(New_Temp);
-        if(wavelength_temps_west.size())
-           calculatePeriodEast(New_Temp);
-        if(wavelength_temps_east.size() > 1)
-          calculateWavelengthEast();
-        return;
-      }    
-    }
-    if(location=="south"){
-      if(New_Temp.m_temps < m_tave - 0.01){
-        location="north";
-        New_Temp.m_transition = "south-north";
-        wavelength_temps_east.push_back(New_Temp);
-        if(wavelength_temps_east.size() > 1)
-          calculateWavelengthEast();
-        return;
-      }
-    }
-  }
-  first_temp_path = true;
-}
 
 //refines Temperatures based on largest gradient seen
 void BHV_FindTempFront::refineTemps(double t_ave_new)
@@ -333,7 +193,7 @@ void BHV_FindTempFront::onIdleState()
     m_tc = floor(Temp_New.m_temps);
   }
   if(finding_wavelength){
-    findWavelength(Temp_New);
+    first_temp_path = true;
   }
   Last_Temp = Temp_New;
 }
@@ -494,14 +354,14 @@ void BHV_FindTempFront::determineCoursePID(Temps New_Temp)
   Last_Ten.push_back(New_Temp);
   if(Last_Ten.size()>10)
     Last_Ten.pop_front();
-  if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.4)
-    m_speed_desired = 1.8;
-  if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.3)
-    m_speed_desired = 1.6;
-  if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.2)
-    m_speed_desired = 1.4;
-  if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.1)
-    m_speed_desired = 1.2;
+  // if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.4)
+  //   m_speed_desired = 1.8;
+  // if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.3)
+  //   m_speed_desired = 1.6;
+  // if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.2)
+  //   m_speed_desired = 1.4;
+  // if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.1)
+  //   m_speed_desired = 1.2;
 }
 //produces a report to give estimate for offset and angle
 void BHV_FindTempFront::updateParam()
@@ -675,7 +535,6 @@ void BHV_FindTempFront::makeTempReport()
       if(i >=43)
         break;
       }
-   postMessage("BBB",message);
    mes = mes + ",string_val=" + message;
    postMessage("NODE_MESSAGE_LOCAL",mes);
    m_report_time = getBufferCurrTime();

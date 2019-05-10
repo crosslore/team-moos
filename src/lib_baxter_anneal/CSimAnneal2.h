@@ -33,6 +33,7 @@
 #include <vector>
 #include <iostream>
 #include "MBUtils.h"
+#include <stdlib.h>
 
 class CMeasurement
 {

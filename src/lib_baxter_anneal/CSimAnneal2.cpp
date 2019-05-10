@@ -270,7 +270,8 @@ double CSimAnneal::heatBath(double temperature)
 
     for (int j = 0; j < vec_size; ++j)
       {
-        variables_Vec[j][i] = var_min_best[i] + Ran.rand()*(var_max_best[i]-var_min_best[i]);
+        //int change = rand() % ( (int) (var_max_best[i]-var_min_best[i]));
+        variables_Vec[j][i] = var_min_best[i] + round(Ran.rand()*(var_max_best[i]-var_min_best[i]));
       }
 	}
 

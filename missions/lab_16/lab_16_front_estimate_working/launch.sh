@@ -140,14 +140,16 @@ fi
     echo "Poking..."
     uPokeDB targ_shoreside.moos DEPLOY_ALL=true MOOS_MANUAL_OVERRIDE_ALL=false
 
-    uMAC targ_shoreside.moos
+#    uMAC targ_shoreside.moos
   sleep 80
    uPokeDB targ_shoreside.moos RETURN_ALL=true
    sleep 5
     printf "Killing all processes ... \n"
     kill %1 %2 %3
     ktm
+    sleep 5
     printf "Done killing processes.   \n"
+    ktm
 
 
 done
