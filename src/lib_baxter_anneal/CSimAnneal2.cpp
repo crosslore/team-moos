@@ -33,7 +33,7 @@ CSimAnneal::CSimAnneal()
   Energy = 0;
   Energy_good = 0;
   Energy_best = 10000000;
-  vec_size = 3;
+  vec_size = 12;
 
   for (int j = 0; j < vec_size; ++j)
   {
@@ -169,6 +169,7 @@ void CSimAnneal::getEstimate(vector<double>& var_est, bool good)
     var_est = variables;
   }
   
+  Energy_best= best;
 
 }
 

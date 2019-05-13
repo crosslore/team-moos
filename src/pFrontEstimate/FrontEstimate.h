@@ -57,6 +57,10 @@ class CFrontEstimate : public AppCastingMOOSApp
   bool report_sent;
   bool new_anneal_report;
   double temp_fac;
+  bool other_report_received;
+  std::string other_report;
+  bool final_report;
+  bool first_report;
   // Front parameters
   double offset;
   double angle;
@@ -122,6 +126,7 @@ class CFrontEstimate : public AppCastingMOOSApp
   void postParameterReport();
   void postParameterReportDavid();
   void postParameterReportGenetic();
+  void sendReportToOther();
 };
 
 #endif 

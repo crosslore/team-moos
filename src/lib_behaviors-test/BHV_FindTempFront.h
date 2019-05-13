@@ -36,6 +36,8 @@ public:
   void         calculateWavelengthWest();
   void         calculateWavelengthEast();
   void         courseAdjustBoundary();
+  void         postPosition();
+  void         handlePosition();
   // void         reportOffsetAngle();
 
   void         updateParam();
@@ -43,6 +45,7 @@ public:
   void         determineCoursePID(Temps New_Temp);
   void         handleTempReport(std::string s);
   void         makeTempReport();
+  void         postDirectionChange(std::string direction);
   IvPFunction* onRunState();
   IvPFunction* buildFunctionWithZAIC();
 
@@ -108,6 +111,7 @@ protected: // State variables
   Temps              Last_Temp;
   Temps              Temp_Old;
   std::string        m_report_name;
+  std::string        new_reported_direction;
   std::string        direction;
   list<Temps>        Last_Ten;
 

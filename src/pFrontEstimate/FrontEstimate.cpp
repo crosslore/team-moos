@@ -39,6 +39,8 @@ CFrontEstimate::CFrontEstimate()
   //genetic.clearMeas();
 
   anneal_step = 0;
+  other_report_received = false;
+  first_report = false;
   concurrent = false;
   adaptive   = false;
   report_sent = true;
@@ -62,7 +64,8 @@ CFrontEstimate::CFrontEstimate()
   min_T_N = 15;
   max_T_N = 25; 
   min_T_S = 20;
-  max_T_S = 30; 
+  max_T_S = 30;
+  final_report = false; 
 
   report_var = "UCTD_PARAMETER_ESTIMATE";
 }
@@ -235,7 +238,6 @@ bool CFrontEstimate::OnStartUp()
   vars.push_back(0.5*(max_T_S+min_T_S));
   anneal.setInitVal(vars);
   genetic.setInitVal(vars);
-  reportEvent("Here");
 
   return(true);
 }
@@ -248,6 +250,7 @@ bool CFrontEstimate::OnConnectToServer()
   Register("APPCAST_REQ",0);
   Register("OFFSET",0);
   Register("PARAM_UPDATE",0);
+  Register("OTHER_ESTIMATE",0);
   AppCastingMOOSApp::RegisterVariables();
   return(true);
 }
@@ -323,9 +326,43 @@ bool CFrontEstimate::Iterate()
       postParameterReportGenetic();
 
       report_sent = true;
-      new_anneal_report=true;
+      first_report=true;
+
+      reportEvent(to_string(anneal.Energy_best));
     }
-  
+    if(first_report){
+       sendReportToOther();
+}
+  if(other_report_received && first_report && !final_report)
+  {
+    reportEvent("Comparing results!");
+     double other_energy = stod(tokStringParse(other_report, "energy", ';','='));
+     reportEvent("other boat energy = " + to_string(other_energy));
+     reportEvent("my energy = " + to_string(anneal.Energy_best));
+    if(other_energy < anneal.Energy_best)
+    {
+      vname = "other_boat";
+      doffset =     stod(tokStringParse(other_report, "offset", ';','='));
+      dangle  =     stod(tokStringParse(other_report, "angle", ';','='));
+      damplitude =  stod(tokStringParse(other_report, "amplitude", ';','='));
+      dperiod =     stod(tokStringParse(other_report, "period", ';','='));
+      dwavelength = stod(tokStringParse(other_report, "wavelength", ';','='));
+      dalpha =      stod(tokStringParse(other_report, "alpha", ';','='));
+      dbeta =       stod(tokStringParse(other_report, "beta", ';','='));
+      dT_N  =       stod(tokStringParse(other_report, "tempnorth", ';','='));
+      dT_S  =       stod(tokStringParse(other_report, "tempsouth", ';','='));
+       postParameterReportDavid();
+       reportEvent("OTHER BOAT BETTER!");
+   }
+   final_report = true;
+
+
+
+  }
+
+
+
+
   AppCastingMOOSApp::PostReport();
   return(true);
 }
@@ -401,7 +438,16 @@ bool CFrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
       MOOSTrace("New measurement added, Total = %d\n", num_meas);
     }
    }
+   else if (rMsg.m_sKey == "OTHER_ESTIMATE")
+   {
+     other_report = rMsg.m_sVal;
+     other_report_received = true;
+     reportEvent("got other report");
+   }
+
+
       else if (rMsg.m_sKey == "SURVEY_UNDERWAY")
+   
 	{
 	  if ( !in_survey && rMsg.m_sVal =="true")
 	    {
@@ -423,6 +469,28 @@ bool CFrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
     }
 
   return(true);
+}
+
+void CFrontEstimate::sendReportToOther()
+{
+  string mes;
+  mes =  "src_node=" + vname;
+  mes = mes + ",dest_node=" + "all";
+  mes = mes + ",var_name="  + "OTHER_ESTIMATE";
+  string sval;
+  sval = "vname=" + vname;
+  sval += ";offset=" + doubleToString(doffset);
+  sval += ";angle=" + doubleToString(dangle);
+  sval += ";amplitude=" + doubleToString(damplitude);
+  sval += ";period=" + doubleToString(dperiod);
+  sval += ";wavelength=" + doubleToString(dwavelength);
+  sval += ";alpha=" + doubleToString(dalpha);
+  sval += ";beta=" + doubleToString(dbeta);
+  sval += ";tempnorth=" + doubleToString(dT_N);
+  sval += ";tempsouth=" + doubleToString(dT_S);
+  sval += ";energy=" + doubleToString(anneal.Energy_best);
+  mes = mes + ",string_val=" + sval;
+  Notify("NODE_MESSAGE_LOCAL",mes);
 }
 
 void CFrontEstimate::postParameterReport()

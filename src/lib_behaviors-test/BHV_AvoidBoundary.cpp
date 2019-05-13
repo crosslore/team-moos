@@ -153,6 +153,17 @@ IvPFunction* BHV_AvoidBoundary::onRunState()
     change_course = true;
    }
 
+  if(m_osy < -200 + buffer){
+    m_heading_desired = 000;
+    change_course = true;
+  }
+
+  if(m_osy > 20 - buffer){
+    m_heading_desired = 180;
+    change_course = true;
+  }
+
+
   m_speed_desired = 2;
   if(change_course)
     ipf = buildFunctionWithZAIC();

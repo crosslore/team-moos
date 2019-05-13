@@ -100,7 +100,6 @@ class CSimAnneal
   
   double Energy;
   double Energy_good;
-  double Energy_best;
   std::vector<double> Energy_vec;
 
 
@@ -113,6 +112,8 @@ class CSimAnneal
   int offset_guess_min;
   int offset_guess_max;
 
+public:
+  double Energy_best;
   // void updateAmplitude(int min, int max, int guess);
   // void updateAmplitude(int min, int max, int guess);
 

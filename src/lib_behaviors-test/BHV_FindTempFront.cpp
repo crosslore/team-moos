@@ -88,6 +88,8 @@ BHV_FindTempFront::BHV_FindTempFront(IvPDomain domain) :
   addInfoVars("UCTD_MSMNT_REPORT","no_warning");
   addInfoVars("REPORT_NAME","no_warning");
   addInfoVars("OTHER_TEMP","no_warning");
+  addInfoVars("DIRECTION_CHANGE","no_warning");
+  addInfoVars("OTHER_POSITION","no_warning");
 
 }
 
@@ -180,7 +182,7 @@ void BHV_FindTempFront::onIdleState()
   if(Temp_New.m_temps - temp_last > max_delta){
     max_delta = Temp_New.m_temps - temp_last;
     double p_t_ave = (Temp_New.m_temps + temp_last)/2;
-    refineTemps(p_t_ave);
+    //refineTemps(p_t_ave);
   }
   Temp_New.m_x = stod(tokStringParse(m_msmnt_report,"x",',','='));
   Temp_New.m_y = stod(tokStringParse(m_msmnt_report,"y",',','='));
@@ -316,7 +318,7 @@ void BHV_FindTempFront::determineCoursePID(Temps New_Temp)
   if(direction == "west"){
     double k_p = 3;
     double k_i = 0;
-    double k_d = 0; //.0000000000000000000000000000000000000001;
+    double k_d = 2; //.0000000000000000000000000000000000000001;
     double dist = pow(pow(New_Temp.m_x - Last_Temp.m_x,2) + pow(New_Temp.m_y - Last_Temp.m_y,2),0.5);
     double delta = (New_Temp.m_temps - Last_Temp.m_temps)/dist;
   //Heading Adjustment using PD control
@@ -333,9 +335,9 @@ void BHV_FindTempFront::determineCoursePID(Temps New_Temp)
       m_heading_desired = 0;
   }
   if(direction == "east"){
-    double k_p = 3;
+    double k_p = 8;
     double k_i = 0;
-    double k_d = 0; //.0000000000000000000000000000000000000001;
+    double k_d = 4; //.0000000000000000000000000000000000000001;
     double dist = pow(pow(New_Temp.m_x - Last_Temp.m_x,2) + pow(New_Temp.m_y - Last_Temp.m_y,2),0.5);
     double delta = (New_Temp.m_temps - Last_Temp.m_temps)/dist;
   //Heading Adjustment using PD control
@@ -354,14 +356,15 @@ void BHV_FindTempFront::determineCoursePID(Temps New_Temp)
   Last_Ten.push_back(New_Temp);
   if(Last_Ten.size()>10)
     Last_Ten.pop_front();
-  // if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.4)
-  //   m_speed_desired = 1.8;
-  // if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.3)
-  //   m_speed_desired = 1.6;
-  // if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.2)
-  //   m_speed_desired = 1.4;
-  // if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.1)
-  //   m_speed_desired = 1.2;
+  m_speed_desired = 2.0;
+  if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.4)
+    m_speed_desired = 1.8;
+  if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.3)
+    m_speed_desired = 1.6;
+  if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.2)
+    m_speed_desired = 1.4;
+  if(abs(New_Temp.m_temps - m_tave) < (m_th - m_tc) * 0.1)
+    m_speed_desired = 1.2;
 }
 //produces a report to give estimate for offset and angle
 void BHV_FindTempFront::updateParam()
@@ -505,10 +508,108 @@ void BHV_FindTempFront::handleTempReport(std::string s)
 
 }
 
+void BHV_FindTempFront::postDirectionChange(std::string direction)
+{
+  std::string mes;
+  mes =  "src_node=" + m_report_name;
+  mes = mes + ",dest_node=" + "all";
+  mes = mes + ",var_name="  + "DIRECTION_CHANGE";
+  mes = mes + ",string_val=" + direction;
+  postMessage("NODE_MESSAGE_LOCAL",mes);
+}
+
+void BHV_FindTempFront::postPosition()
+{
+  std::string mes;
+  mes =  "src_node=" + m_report_name;
+  mes = mes + ",dest_node=" + "all";
+  mes = mes + ",var_name="  + "OTHER_POSITION";
+  mes = mes + ",string_val=" + "x=" + to_string(m_osx) +";y=" + to_string(m_osy);
+  postMessage("NODE_MESSAGE_LOCAL",mes);
+}
+
+
+void BHV_FindTempFront::handlePosition()
+{
+  bool ok1;
+  std::string other_pos = getBufferStringVal("OTHER_POSITION", ok1);
+  if(ok1){
+    double other_x = stod(tokStringParse(other_pos,"x",';','='));
+    double other_y = stod(tokStringParse(other_pos,"y",';','='));
+    double distance = pow(pow(other_x - m_osx,2) + pow(other_y - m_osy,2),0.5);
+    m_speed_desired = 2.0;
+    return;
+    if(((m_osx > other_x) && (direction == "east")) || ((m_osx < other_x) && (direction == "west"))){
+      if(distance > 90){
+        m_speed_desired = 0.6;
+        return;
+      }
+      if(distance > 80){
+        m_speed_desired = 0.8;
+        return; 
+      }
+      if(distance > 70){
+        m_speed_desired = 1.0;
+        return;
+      }
+      if(distance > 60){
+        m_speed_desired = 1.4;
+        return;
+      }
+      if(distance > 50){
+        m_speed_desired = 1.6;
+        return;
+      }
+    }
+    if(((m_osx < other_x) && (direction == "east")) || ((m_osx > other_x) && (direction == "west"))){
+      if(distance > 70){
+        m_speed_desired = 2.0;
+        return;
+      }
+      if(abs(m_osx - other_x) < 20){
+        m_speed_desired = 0.4;
+        return;
+      }
+      if(distance < 10){
+        m_speed_desired = 0.6;
+        return;
+      }
+      if(distance < 20){
+        m_speed_desired = 0.8;
+        return;
+      }
+      if(distance < 30){
+        m_speed_desired = 1.0;
+        return;
+      }
+      if(distance < 40){
+        m_speed_desired = 1.4;
+        return;
+      }
+      if(distance < 50){
+        m_speed_desired = 1.6;
+        return;
+      }
+    }
+    // if((m_osx - other_x < 0) && (m_osx - other_x) > -50 && (direction == "east"))
+    //   m_speed_desired = 1.4;
+
+    // // if((other_x - m_osx > 40) && (direction == "west"))
+    // //   m_speed_desired = 2.0;
+    // // if((other_x - m_osx < -40) && (direction == "east"))
+    // //   m_speed_desired = 2.0;
+    // if((m_osx - other_x < -50) && (direction == "west"))
+    //   m_speed_desired = 1.4;
+    // if((m_osx - other_x > 0) && (m_osx - other_x) < 50 && (direction == "west"))
+    //   m_speed_desired = 1.4;
+  }
+
+}
+
 void BHV_FindTempFront::makeTempReport()
 {
   std::string mes;
-  if(m_curr_time >= m_report_time + 15.01 && Report_Temps.size() >= 1){
+  if(m_curr_time >= m_report_time + 3.01 && Report_Temps.size() >= 1){
     string message;
     mes =  "src_node=" + m_report_name;
     mes = mes + ",dest_node=" + "all";
@@ -547,8 +648,10 @@ void BHV_FindTempFront::makeTempReport()
 
 IvPFunction* BHV_FindTempFront::onRunState()
 {
-  bool ok1, ok2, ok3, ok4, ok5, ok6;
+  bool ok1, ok2, ok3, ok4, ok5, ok6, ok7;
   IvPFunction *ipf = 0;
+
+
 
 //obtain O/S X,Y, and desired heading
   m_osx = getBufferDoubleVal("NAV_X", ok1);
@@ -573,9 +676,17 @@ IvPFunction* BHV_FindTempFront::onRunState()
   }
 
   string m_other = getBufferStringVal("OTHER_TEMP", ok6);
+
   if(ok6){
     handleTempReport(m_other);
   }
+  
+
+  std::string direction_change = getBufferStringVal("DIRECTION_CHANGE",ok7);
+  if(ok7 && direction_change != "false"){
+    direction = direction_change;
+  }
+  
 
 
   Temps Temp_New;
@@ -600,7 +711,7 @@ IvPFunction* BHV_FindTempFront::onRunState()
   if(Temp_New.m_temps - temp_last > max_delta){
     max_delta = Temp_New.m_temps - temp_last;
     double p_t_ave = (temp_last + Temp_New.m_temps)/ 2;
-    refineTemps(p_t_ave);
+    //refineTemps(p_t_ave);
   }
 
 //only start linear regression solver if survey has started
@@ -621,7 +732,7 @@ IvPFunction* BHV_FindTempFront::onRunState()
   //   m_tc = floor(Temp_New.m_temps);
   // }
 
-  // m_tave = (m_th + m_tc)/2;
+  m_tave = (m_th + m_tc)/2;
   double t_turn = (m_th - m_tc) * 0.70;
   double m_curr_time = getBufferCurrTime();
 
@@ -671,18 +782,22 @@ IvPFunction* BHV_FindTempFront::onRunState()
     m_heading_desired = 270;
     m_mid_heading = 270;
     direction = "west";
+    new_reported_direction = direction;
     m_change_course = true;
     m_course_time = getBufferCurrTime();
   }
   if((m_osx < 100) && (m_osx > -50) && (m_osy > (2.0/5.0 * m_osx - 20.0 - buffer))){
     m_heading_desired = 180;
     //m_mid_heading = 90;
-    m_change_course = true;
+   // direction = "east";
+   // new_reported_direction = direction;
+   // m_change_course = true;
     m_course_time = getBufferCurrTime();
   }
   if((m_osx < -50) && (m_osy > 7.0/10.0 * m_osx - 5.0 - buffer)){
     m_heading_desired = 90;
     direction = "east";
+    new_reported_direction = direction;
     m_mid_heading = 90;
     m_change_course = true;
     m_course_time = getBufferCurrTime();
@@ -709,6 +824,7 @@ IvPFunction* BHV_FindTempFront::onRunState()
     m_mid_heading = 90;
     m_heading_desired = 90;
     direction = "east";
+    new_reported_direction = direction;
     m_course_time = getBufferCurrTime();
     double y_one = a_one * (-50) + a_zero;
     double y_two = a_one * (165) + a_zero;
@@ -724,9 +840,25 @@ IvPFunction* BHV_FindTempFront::onRunState()
    //   postMessage("WAVE_UPDATES","points=pts={-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");// ":-50,"+to_string(y_one)+":165,"+to_string(y_two) + "}");
    //   postMessage("FIND_WL","true");
     }
+    if(m_osy < -200 + buffer){
+      m_heading_desired = 000;
+      m_speed_desired = 1.0;
+    //  direction = "east";
+    //  new_reported_direction = direction;
+    }
+    if(m_osy > 0 - buffer)
+      m_heading_desired = 180;
    }
-   updateParam();
+
+
+   //updateParam();
    makeTempReport();
+   postPosition();
+   //handlePosition();
+
+   if((m_osx < 120) && (m_osx > 30))
+      new_reported_direction = "false";
+   postDirectionChange(new_reported_direction);
 
 
 
