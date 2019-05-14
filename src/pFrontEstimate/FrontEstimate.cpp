@@ -66,6 +66,8 @@ CFrontEstimate::CFrontEstimate()
   min_T_S = 20;
   max_T_S = 30;
   final_report = false; 
+  curr_time = MOOSTime();
+  last_report = MOOSTime();
 
   report_var = "UCTD_PARAMETER_ESTIMATE";
 }
@@ -259,7 +261,7 @@ bool CFrontEstimate::OnConnectToServer()
 bool CFrontEstimate::Iterate()
 {
   AppCastingMOOSApp::Iterate();
-  double curr_time = MOOSTime();
+  curr_time = MOOSTime();
   //double temperature;
 
   // reportEvent(genetic.run());
@@ -295,7 +297,7 @@ bool CFrontEstimate::Iterate()
       T_N  =       result[7];
       T_S  =       result[8];
       
-      postParameterReport();
+     // postParameterReport();
 
       anneal.getEstimate(result, true);
       doffset =     result[0];
@@ -330,8 +332,9 @@ bool CFrontEstimate::Iterate()
 
       reportEvent(to_string(anneal.Energy_best));
     }
-    if(first_report){
+    if(first_report && curr_time + 2 > last_report){
        sendReportToOther();
+       last_report = MOOSTime();
 }
   if(other_report_received && first_report && !final_report)
   {
@@ -341,7 +344,7 @@ bool CFrontEstimate::Iterate()
      reportEvent("my energy = " + to_string(anneal.Energy_best));
     if(other_energy < anneal.Energy_best)
     {
-      vname = "other_boat";
+      vname = vname;
       doffset =     stod(tokStringParse(other_report, "offset", ';','='));
       dangle  =     stod(tokStringParse(other_report, "angle", ';','='));
       damplitude =  stod(tokStringParse(other_report, "amplitude", ';','='));
@@ -513,7 +516,7 @@ void CFrontEstimate::postParameterReport()
 void CFrontEstimate::postParameterReportDavid()
 {
   string sval;
-  sval = "vname=David";
+  sval = "vname=" + vname;
   sval += ",offset=" + doubleToString(doffset);
   sval += ",angle=" + doubleToString(dangle);
   sval += ",amplitude=" + doubleToString(damplitude);
@@ -523,7 +526,7 @@ void CFrontEstimate::postParameterReportDavid()
   sval += ",beta=" + doubleToString(dbeta);
   sval += ",tempnorth=" + doubleToString(dT_N);
   sval += ",tempsouth=" + doubleToString(dT_S);
-  m_Comms.Notify("UCTD_PARAMETER_ESTIMATE_DAVID", sval);
+  m_Comms.Notify("UCTD_PARAMETER_ESTIMATE", sval);
 }
 
 void CFrontEstimate::postParameterReportGenetic()

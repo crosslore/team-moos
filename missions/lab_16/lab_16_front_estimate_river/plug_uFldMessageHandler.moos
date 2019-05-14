@@ -1,10 +1,10 @@
-//------------------------------------------------------
-// uFldMessageHandler config block (created from plugin) 
+//--------------------------------------------------
+// uFldMessageHandler configuration block from plugin
 
 ProcessConfig = uFldMessageHandler
 {
   AppTick   = 3
   CommsTick = 3
 
-  STRICT_ADDRESSING = true
+  STRICT_ADDRESSING = false
 }

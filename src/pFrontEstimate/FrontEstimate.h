@@ -114,6 +114,9 @@ class CFrontEstimate : public AppCastingMOOSApp
   double max_T_S;
   double delta_t;
 
+  double curr_time;
+  double last_report;
+
   int num_param; 
   int cooling_steps;
   int num_meas;

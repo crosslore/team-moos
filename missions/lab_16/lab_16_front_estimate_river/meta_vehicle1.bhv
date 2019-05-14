@@ -54,9 +54,9 @@ Behavior = BHV_Waypoint
 
 
 
-//  points = pts = {130,-160:155,-160:155,-150}
+  points = pts = {130,-160:155,-155:155,-140}
 
-  points = pts = {10,-160:130,-160:155,-150:155,-145}
+//  points = pts = {10,-180:130,-180:155,-170:155,-165}
 //#endif
 activeflag = REPORT_NAME = $(VNAME)
 
@@ -169,7 +169,7 @@ Behavior = BHV_AvoidBoundary
    // ---------------------------
    name         = bhv_timer_return
    duration     = 1200              // example
-//   runflag      = MODE == ACTIVE       // example
+  // runflag      = MODE == ACTIVE       // example
  
    endflag      = RETURN = true
 

@@ -123,6 +123,8 @@ protected: // State variables
   bool               Amplitude_updated;
   bool               first_temp_path;
 
+double direction_change_time;
+double position_time;
 
   double             min_T_N;
   double             max_T_N;

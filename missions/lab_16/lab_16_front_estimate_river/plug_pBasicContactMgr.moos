@@ -14,11 +14,14 @@ ProcessConfig = pBasicContactMgr
   contact_max_age = 3600
   display_radii   = false
 
-  default_alert_range = 50
-  default_cpa_range   = 35
+  default_alert_range = 20
+  default_cpa_range   = 28
   default_alert_range_color = gray70
   default_cpa_range_color   = gray30
 
 
+//  alert = id=avd, var=CONTACT_INFO, val="name=$[VNAME] # contact=$[VNAME]"
+//  alert = id=avd, alert_range=40, cpa_range=45, alert_range_color=green
   Alert = id=trail, var=TRAIL_INFO, val="name=$[VNAME] # contact=mokai", alert_range=140
 }
+ 

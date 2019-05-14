@@ -51,7 +51,7 @@ for ARGI; do
     elif [ "${ARGI}" = "--unconcurrent" -o "${ARGI}" = "-uc" ] ; then
         CONCURRENT="false"
         UNDEFINED_ARG=""
-    elif [ "${ARGI}" = "--adaptive" -o "${ARGI}" = "-ad" ] ; then
+    elif [ "${ARGI}" = "--adaptive" -o "${ARGI}" = "-a" ] ; then
         ADAPTIVE="true"
         UNDEFINED_ARG=""
     elif [ "${ARGI}" = "-v1"  -o "${ARGI}" = "-a" ]; then INDEX=1
@@ -66,6 +66,8 @@ for ARGI; do
     elif [ "${ARGI}" = "-v10" -o "${ARGI}" = "-J" ]; then INDEX=10
     elif [ "${ARGI}" = "-v11" -o "${ARGI}" = "-k" ]; then INDEX=11
     elif [ "${ARGI}" = "-v12" -o "${ARGI}" = "-l" ]; then INDEX=12
+    elif [ "${ARGI}" = "-pts1"  -o "${ARGI}" = "-p1" ]; then POINTS="1"
+    elif [ "${ARGI}" = "-pts2"  -o "${ARGI}" = "-p2" ]; then POINTS="2"
     else
         echo "Bad arg:" $ARGI "Run with -h for help. Exiting (1)."
         exit 1
@@ -143,7 +145,7 @@ nsplug meta_vehicle.moos targ_${VNAME}.moos -f -i              \
        CONCURRENT=$CONCURRENT      ADAPTIVE=$ADAPTIVE          \
        POINTS=$POINTS
 
-nsplug meta_vehicle.bhv targ_${VNAME}.bhv -f -i \
+nsplug meta_vehicle1.bhv targ_${VNAME}.bhv -f -i \
        RETURN_POS=${RETURN_POS} START_POS = $START_POS\
        VNAME=$VNAME POINTS=$POINTS
 

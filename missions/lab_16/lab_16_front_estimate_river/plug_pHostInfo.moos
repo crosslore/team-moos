@@ -6,5 +6,5 @@ ProcessConfig = pHostInfo
   AppTick     = 1
   CommsTick   = 1
 
-//  DEFAULT_HOSTIP = localhost
+  DEFAULT_HOSTIP = localhost
 }

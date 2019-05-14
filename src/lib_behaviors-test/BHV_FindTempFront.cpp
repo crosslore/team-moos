@@ -27,6 +27,8 @@ using namespace std;
 // IvPFunction *ipf = 0;
 bool temp_report = false;
 
+
+
 BHV_FindTempFront::BHV_FindTempFront(IvPDomain domain) :
   IvPBehavior(domain)
 {
@@ -72,10 +74,11 @@ BHV_FindTempFront::BHV_FindTempFront(IvPDomain domain) :
   T_S_updated = false;
   Offset_updated = false;
   first_temp_path = false;
-
+  direction_change_time = getBufferCurrTime();
+  position_time = getBufferCurrTime();
   m_curr_time = getBufferCurrTime();
   m_report_time = getBufferCurrTime();
-  //postMessage("SURVEY_UNDERWAY","true");
+  postMessage("SURVEY_UNDERWAY","true");
 
   // Provide a default behavior name
   IvPBehavior::setParam("name", "defaultname");
@@ -151,7 +154,7 @@ void BHV_FindTempFront::refineTemps(double t_ave_new)
 
 void BHV_FindTempFront::onIdleState()
 {
-  postMessage("SURVEY_UNDERWAY","true");
+  //postMessage("SURVEY_UNDERWAY","true");
   bool ok1, ok2, ok3, ok4, ok5, ok6;
   m_osx = getBufferDoubleVal("NAV_X", ok1);
   m_osy = getBufferDoubleVal("NAV_Y", ok2);
@@ -170,9 +173,9 @@ void BHV_FindTempFront::onIdleState()
     m_report_name = m_new_report_name;
 
   string m_other = getBufferStringVal("OTHER_TEMP", ok6);
-  if(ok6){
-    handleTempReport(m_other);
-  }
+  // if(ok6){
+  //   handleTempReport(m_other);
+  // }
 
   //determine if a new max or min temperature exists.
   Temps Temp_New;
@@ -222,7 +225,7 @@ void BHV_FindTempFront::postConfigStatus()
 void BHV_FindTempFront::onIdleToRunState()
 {
   initial_leg = true;
-  postMessage("SURVEY_UNDERWAY","true");
+  //postMessage("SURVEY_UNDERWAY","true");
 }
 
 //---------------------------------------------------------------
@@ -387,29 +390,29 @@ void BHV_FindTempFront::updateParam()
     T_S_updated = true;
     return;
   }
-  if(!Offset_updated && first_temp_path){
-    if(a_zero + 20 < max_offset)
-      max_offset = a_zero + 20;
-    if(a_zero - 20 > min_offset)
-      min_offset = a_zero - 20;
-    postMessage("PARAM_UPDATE","param=0,max=" + to_string((int)ceil(max_offset)) + ",min=" + to_string((int)floor(min_offset)) + ",guess=" + to_string((int)round(a_zero)));
-    Offset_updated = true;
-    return;
-  }
-  if(!Angle_updated && first_temp_path){
-    if(m_angle + 15 < max_angle)
-      max_angle = m_angle + 15;
-    if(m_angle - 15 > min_angle)
-      min_angle = m_angle - 15;
-    postMessage("PARAM_UPDATE","param=1,max=" + to_string((int)ceil(max_angle)) + ",min=" + to_string((int)floor(min_angle)) + ",guess=" + to_string((int)round(m_angle)));
-    Angle_updated = true;
-    return;
-  }
-  if(!Amplitude_updated && first_temp_path){
-    postMessage("PARAM_UPDATE","param=2,max=" + to_string((int)ceil(max_amplitude_reported)) + ",min=" +to_string((int)floor(min_amplitude_reported)) + ",guess=" + to_string((int)round(amp)));
-    Amplitude_updated = true;
-    return;
-  }
+  // if(!Offset_updated && first_temp_path){
+  //   if(a_zero + 20 < max_offset)
+  //     max_offset = a_zero + 20;
+  //   if(a_zero - 20 > min_offset)
+  //     min_offset = a_zero - 20;
+  //   postMessage("PARAM_UPDATE","param=0,max=" + to_string((int)ceil(max_offset)) + ",min=" + to_string((int)floor(min_offset)) + ",guess=" + to_string((int)round(a_zero)));
+  //   Offset_updated = true;
+  //   return;
+  // }
+  // if(!Angle_updated && first_temp_path){
+  //   if(m_angle + 15 < max_angle)
+  //     max_angle = m_angle + 15;
+  //   if(m_angle - 15 > min_angle)
+  //     min_angle = m_angle - 15;
+  //   postMessage("PARAM_UPDATE","param=1,max=" + to_string((int)ceil(max_angle)) + ",min=" + to_string((int)floor(min_angle)) + ",guess=" + to_string((int)round(m_angle)));
+  //   Angle_updated = true;
+  //   return;
+  // }
+  // if(!Amplitude_updated && first_temp_path){
+  //   postMessage("PARAM_UPDATE","param=2,max=" + to_string((int)ceil(max_amplitude_reported)) + ",min=" +to_string((int)floor(min_amplitude_reported)) + ",guess=" + to_string((int)round(amp)));
+  //   Amplitude_updated = true;
+  //   return;
+  // }
 
    // T_N_updated = false;
    // T_S_updated = false;
@@ -677,9 +680,9 @@ IvPFunction* BHV_FindTempFront::onRunState()
 
   string m_other = getBufferStringVal("OTHER_TEMP", ok6);
 
-  if(ok6){
-    handleTempReport(m_other);
-  }
+  // if(ok6){
+  //   handleTempReport(m_other);
+  // }
   
 
   std::string direction_change = getBufferStringVal("DIRECTION_CHANGE",ok7);
@@ -801,7 +804,7 @@ IvPFunction* BHV_FindTempFront::onRunState()
     m_mid_heading = 90;
     m_change_course = true;
     m_course_time = getBufferCurrTime();
-
+    postMessage("SURVEY_UNDERWAY","true");
 
 
 
@@ -825,6 +828,7 @@ IvPFunction* BHV_FindTempFront::onRunState()
     m_heading_desired = 90;
     direction = "east";
     new_reported_direction = direction;
+        postMessage("SURVEY_UNDERWAY","true");
     m_course_time = getBufferCurrTime();
     double y_one = a_one * (-50) + a_zero;
     double y_two = a_one * (165) + a_zero;
@@ -851,14 +855,22 @@ IvPFunction* BHV_FindTempFront::onRunState()
    }
 
 
-   //updateParam();
+   updateParam();
    makeTempReport();
+   if(position_time + 2 < m_curr_time)
+   {
    postPosition();
-   //handlePosition();
+   position_time = getBufferCurrTime();
+   }
+
+   handlePosition();
 
    if((m_osx < 120) && (m_osx > 30))
       new_reported_direction = "false";
-   postDirectionChange(new_reported_direction);
+    if(direction_change_time + 3 < m_curr_time){
+     postDirectionChange(new_reported_direction);
+     direction_change_time = getBufferCurrTime();
+    }
 
 
 
