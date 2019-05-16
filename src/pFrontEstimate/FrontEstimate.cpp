@@ -499,7 +499,7 @@ void CFrontEstimate::sendReportToOther()
 void CFrontEstimate::postParameterReport()
 {
   string sval;
-  sval = "vname=" + vname;
+  sval = "vname=new_algorithm";
   sval += ",offset=" + doubleToString(offset);
   sval += ",angle=" + doubleToString(angle);
   sval += ",amplitude=" + doubleToString(amplitude);
