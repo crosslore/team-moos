@@ -485,12 +485,12 @@ void BHV_FindTempFront::findEstimates(double x, double y, double temp)
     string s_min = "x=0,y=-78,mag="+to_string(min_amplitude_reported) + ",ang=3,label=amp_min,edge_color=red";
     string s_max = "x=0,y=-78,mag="+to_string(max_amplitude_reported) + ",ang=3,label=amp_max,edge_color=red";
     //draw vector of guess and solution
-    postMessage("VIEW_VECTOR",s);
-    postMessage("VIEW_VECTOR","x=0,y=-78,mag=100,ang=93,label=truth");
-    postMessage("VIEW_VECTOR",s2);
-    postMessage("VIEW_VECTOR",s_min);
-    postMessage("VIEW_VECTOR",s_max);
-    postMessage("VIEW_VECTOR","x=0,y=-78,mag=34,ang=3,label=true_amplitude"); 
+    // postMessage("VIEW_VECTOR",s);
+    // postMessage("VIEW_VECTOR","x=0,y=-78,mag=100,ang=93,label=truth");
+    // postMessage("VIEW_VECTOR",s2);
+    // postMessage("VIEW_VECTOR",s_min);
+    // postMessage("VIEW_VECTOR",s_max);
+    // postMessage("VIEW_VECTOR","x=0,y=-78,mag=34,ang=3,label=true_amplitude"); 
     calcAmplitude();
   }
 }

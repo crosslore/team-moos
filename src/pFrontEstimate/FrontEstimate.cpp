@@ -332,7 +332,7 @@ bool CFrontEstimate::Iterate()
 
       reportEvent(to_string(anneal.Energy_best));
     }
-    if(first_report && curr_time + 2 > last_report){
+    if(first_report && curr_time > last_report + 2){
        sendReportToOther();
        last_report = MOOSTime();
 }
@@ -509,7 +509,8 @@ void CFrontEstimate::postParameterReport()
   sval += ",beta=" + doubleToString(beta);
   sval += ",tempnorth=" + doubleToString(T_N);
   sval += ",tempsouth=" + doubleToString(T_S);
-  m_Comms.Notify(report_var, sval);
+ // m_Comms.Notify(report_var, sval);
+
 }
 
 
@@ -526,7 +527,7 @@ void CFrontEstimate::postParameterReportDavid()
   sval += ",beta=" + doubleToString(dbeta);
   sval += ",tempnorth=" + doubleToString(dT_N);
   sval += ",tempsouth=" + doubleToString(dT_S);
-  m_Comms.Notify("UCTD_PARAMETER_ESTIMATE", sval);
+  m_Comms.Notify(report_var, sval);
 }
 
 void CFrontEstimate::postParameterReportGenetic()

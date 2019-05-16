@@ -54,7 +54,7 @@ Behavior = BHV_Waypoint
 
 
 
-  points = pts = {130,-160:155,-155:155,-140}
+  points = pts = {130,-180:155,-175:155,-160}
 
 //  points = pts = {10,-180:130,-180:155,-170:155,-165}
 //#endif
@@ -160,7 +160,7 @@ Behavior = BHV_AvoidBoundary
 {
   name       = avdboundary_
   pwt        = 400
-  condition  = RETURN = false
+  condition  = MODE ==FINDTEMP
 }
 
  Behavior = BHV_Timer

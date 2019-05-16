@@ -29,7 +29,7 @@ Processconfig = ANTLER
 }
 
 //#include plug_uFldCTDSensor.moos
-#include plug_uFldCTDSensor_1.moos
+#include plug_uFldCTDSensor_3.moos
 
 //--------------------------------------------------
 // pGradeFrontEstiamte Configuration Block
