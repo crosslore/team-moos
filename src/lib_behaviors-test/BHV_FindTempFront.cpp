@@ -319,9 +319,9 @@ void BHV_FindTempFront::determineCoursePID(Temps New_Temp)
     Temp_Ave = New_Temp.m_temps;
  
   if(direction == "west"){
-    double k_p = 3;
+    double k_p = 200;
     double k_i = 0;
-    double k_d = 2; //.0000000000000000000000000000000000000001;
+    double k_d = 0; //.0000000000000000000000000000000000000001;
     double dist = pow(pow(New_Temp.m_x - Last_Temp.m_x,2) + pow(New_Temp.m_y - Last_Temp.m_y,2),0.5);
     double delta = (New_Temp.m_temps - Last_Temp.m_temps)/dist;
   //Heading Adjustment using PD control
