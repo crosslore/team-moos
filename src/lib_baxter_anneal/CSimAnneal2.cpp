@@ -33,7 +33,7 @@ CSimAnneal::CSimAnneal()
   Energy = 0;
   Energy_good = 0;
   Energy_best = 10000000;
-  vec_size = 30;
+  vec_size = 50;
 
   for (int j = 0; j < vec_size; ++j)
   {
